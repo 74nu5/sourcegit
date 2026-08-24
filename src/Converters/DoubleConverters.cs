@@ -23,5 +23,8 @@ namespace SourceGit.Converters
 
         public static readonly FuncValueConverter<double, DataGridLength> ToPixelWidth =
             new FuncValueConverter<double, DataGridLength>(v => new DataGridLength(v, DataGridLengthUnitType.Pixel));
+
+        public static readonly FuncValueConverter<double, DataGridLength> ToColumnWidth =
+            new FuncValueConverter<double, DataGridLength>(v => v > 0 ? new DataGridLength(v, DataGridLengthUnitType.Pixel) : DataGridLength.Auto);
     }
 }

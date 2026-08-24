@@ -45,6 +45,24 @@ namespace SourceGit.Models
             set;
         } = 120;
 
+        /// <summary>
+        ///     Manual width of the branch column, or 0 to size it to its contents.
+        /// </summary>
+        public double BranchColumnWidth
+        {
+            get;
+            set;
+        } = 0;
+
+        /// <summary>
+        ///     Manual width of the graph column, or 0 to size it to the graph.
+        /// </summary>
+        public double GraphColumnWidth
+        {
+            get;
+            set;
+        } = 0;
+
         public bool EnableTopoOrderInHistory
         {
             get;
