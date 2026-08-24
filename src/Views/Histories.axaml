@@ -32,6 +32,7 @@
                                ShowTags="{Binding Source={x:Static vm:Preferences.Instance}, Path=ShowTagsInGraph}"
                                FontSize="12"
                                VerticalAlignment="Center"
+                               IsVisible="{Binding Source={x:Static vm:Preferences.Instance}, Path=!ShowBranchColumnInHistories, Mode=OneWay}"
                                UseGraphColor="{Binding IsHighlightedInGraph, Mode=OneWay}"
                                UseCompactBranchNames="{Binding Source={x:Static vm:Preferences.Instance}, Path=UseCompactBranchNamesInGraph}"
                                HasSingleRemote="{Binding $parent[v:Histories].HasSingleRemote}"/>
@@ -141,6 +142,32 @@
         </DataGrid.Styles>
 
         <DataGrid.Columns>
+          <!-- References pulled out of the subject cell into their own column. Hidden unless
+               the user opts in, in which case the inline presenter above hides itself. -->
+          <DataGridTemplateColumn Width="Auto"
+                                  MinWidth="60"
+                                  MaxWidth="200"
+                                  IsReadOnly="True"
+                                  IsVisible="{Binding Source={x:Static vm:Preferences.Instance}, Path=ShowBranchColumnInHistories, Mode=OneWay}">
+            <DataGridTemplateColumn.Header>
+              <TextBlock Classes="table_header" Text="{DynamicResource Text.Histories.Header.Branch}" HorizontalAlignment="Center"/>
+            </DataGridTemplateColumn.Header>
+
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate DataType="m:Commit">
+                <Border Padding="6,0,4,0" ClipToBounds="True" Background="Transparent">
+                  <v:CommitRefsPresenter Background="{DynamicResource Brush.Contents}"
+                                         Foreground="{DynamicResource Brush.FG1}"
+                                         ShowTags="{Binding Source={x:Static vm:Preferences.Instance}, Path=ShowTagsInGraph}"
+                                         FontSize="12"
+                                         HorizontalAlignment="Left" VerticalAlignment="Center"
+                                         UseGraphColor="{Binding IsHighlightedInGraph, Mode=OneWay}"
+                                         UseCompactBranchNames="{Binding Source={x:Static vm:Preferences.Instance}, Path=UseCompactBranchNamesInGraph}"/>
+                </Border>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
           <!-- Dedicated graph column. Hidden unless the user opts in; the graph itself is
                painted by the v:CommitGraph overlay, so the cells only reserve the room. -->
           <DataGridTemplateColumn IsReadOnly="True"

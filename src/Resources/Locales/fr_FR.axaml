@@ -482,6 +482,7 @@
   <x:String x:Key="Text.GotoRevisionSelector" xml:space="preserve">Sélectionner un commit</x:String>
   <x:String x:Key="Text.Histories" xml:space="preserve">Historique</x:String>
   <x:String x:Key="Text.Histories.Header.Author" xml:space="preserve">AUTEUR</x:String>
+  <x:String x:Key="Text.Histories.Header.Branch" xml:space="preserve">BRANCHE / TAG</x:String>
   <x:String x:Key="Text.Histories.Header.AuthorTime" xml:space="preserve">HEURE DE L'AUTEUR</x:String>
   <x:String x:Key="Text.Histories.Header.CommitTime" xml:space="preserve">HEURE DE COMMIT</x:String>
   <x:String x:Key="Text.Histories.Header.Graph" xml:space="preserve">GRAPHE</x:String>
@@ -772,6 +773,7 @@
   <x:String x:Key="Text.Repository.FilterCommits.Exclude" xml:space="preserve">Cacher dans le graphique des commits</x:String>
   <x:String x:Key="Text.Repository.FilterCommits.Include" xml:space="preserve">Filtrer dans le graphique des commits</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns" xml:space="preserve">COLONNES</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.ShowBranch" xml:space="preserve">Colonne branche / tag</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.SplitGraph" xml:space="preserve">Colonne graphe séparée</x:String>
   <x:String x:Key="Text.Repository.HistoriesLayout" xml:space="preserve">DISPOSITION</x:String>
   <x:String x:Key="Text.Repository.HistoriesLayout.Horizontal" xml:space="preserve">Horizontal</x:String>
