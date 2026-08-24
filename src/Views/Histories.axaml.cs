@@ -614,13 +614,36 @@ namespace SourceGit.Views
 
             IsScrollToTopVisible = startY >= rowHeight;
 
-            var clipWidth = dataGrid.Columns[0].ActualWidth - 4;
+            var (startX, clipWidth) = MeasureGraphViewport(dataGrid);
             var lastLayout = CommitGraph.Layout;
             if (lastLayout == null ||
+                Math.Abs(lastLayout.StartX - startX) > 0.01 ||
                 Math.Abs(lastLayout.StartY - startY) > 0.01 ||
                 Math.Abs(lastLayout.ClipWidth - clipWidth) > 0.01 ||
                 Math.Abs(lastLayout.RowHeight - rowHeight) > 0.01)
-                CommitGraph.Layout = new(startY, clipWidth, rowHeight);
+                CommitGraph.Layout = new(startX, startY, clipWidth, rowHeight);
+        }
+
+        /// <summary>
+        ///     Locates the column the commit graph is drawn over and returns its horizontal
+        ///     offset within the grid along with the width available to the graph.
+        /// </summary>
+        private static (double StartX, double ClipWidth) MeasureGraphViewport(DataGrid dataGrid)
+        {
+            var startX = 0.0;
+            foreach (var column in dataGrid.Columns)
+            {
+                if (!column.IsVisible)
+                    continue;
+
+                // The graph column is flagged with Tag="graph" in Histories.axaml.
+                if (column.Tag is "graph")
+                    return (startX, column.ActualWidth - 4);
+
+                startX += column.ActualWidth;
+            }
+
+            return (0, dataGrid.Columns[0].ActualWidth - 4);
         }
 
         private void OnScrollToTopPointerPressed(object sender, PointerPressedEventArgs e)
