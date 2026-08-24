@@ -732,14 +732,22 @@ namespace SourceGit.Views
             {
                 // Right-clicking a reference acts on that reference alone. Anywhere else keeps
                 // the commit menu, which gathers the actions of every reference on the row.
-                if (e.Source is CommitRefsPresenter presenter &&
-                    e.TryGetPosition(presenter, out var position) &&
-                    presenter.DecoratorAt(position) is { } decorator &&
-                    CreateContextMenuForDecorator(repo, commits[0], decorator) is { } refMenu)
+                if (e.Source is CommitRefsPresenter presenter)
                 {
-                    refMenu.Open(presenter);
-                    e.Handled = true;
-                    return;
+                    // Folded cells hide references behind a counter, so the menu has to offer
+                    // all of them; otherwise it acts on the one under the cursor.
+                    var menuForRefs = presenter.IsCollapsed
+                        ? CreateContextMenuForDecorators(repo, commits[0], presenter.Decorators())
+                        : e.TryGetPosition(presenter, out var position) && presenter.DecoratorAt(position) is { } decorator
+                            ? CreateContextMenuForDecorator(repo, commits[0], decorator)
+                            : null;
+
+                    if (menuForRefs != null)
+                    {
+                        menuForRefs.Open(presenter);
+                        e.Handled = true;
+                        return;
+                    }
                 }
 
                 var menu = CreateContextMenuForSingleCommit(repo, commits[0]);
@@ -973,6 +981,53 @@ namespace SourceGit.Views
             copy.Items.Add(copyMessage);
             menu.Items.Add(copy);
             return menu;
+        }
+
+        /// <summary>
+        ///     One submenu per reference, so a commit carrying several of them gives access to
+        ///     each without having to unfold anything.
+        /// </summary>
+        private ContextMenu CreateContextMenuForDecorators(ViewModels.Repository repo, Models.Commit commit, List<Models.Decorator> decorators)
+        {
+            if (decorators.Count == 1)
+                return CreateContextMenuForDecorator(repo, commit, decorators[0]);
+
+            var menu = new ContextMenu();
+            foreach (var decorator in decorators)
+            {
+                var actions = CreateContextMenuForDecorator(repo, commit, decorator);
+                if (actions == null)
+                    continue;
+
+                var entry = new MenuItem();
+                entry.Header = decorator.Name;
+                entry.Icon = this.CreateMenuIcon(IconKeyOf(decorator.Type));
+
+                // An item cannot belong to two parents, so detach before re-parenting.
+                var items = new List<object>();
+                foreach (var item in actions.Items)
+                    items.Add(item);
+                actions.Items.Clear();
+
+                foreach (var item in items)
+                    entry.Items.Add(item);
+
+                menu.Items.Add(entry);
+            }
+
+            return menu.Items.Count > 0 ? menu : null;
+        }
+
+        private static string IconKeyOf(Models.DecoratorType type)
+        {
+            return type switch
+            {
+                Models.DecoratorType.CurrentBranchHead => "Icons.Head",
+                Models.DecoratorType.CurrentCommitHead => "Icons.Head",
+                Models.DecoratorType.RemoteBranchHead => "Icons.Remote",
+                Models.DecoratorType.Tag => "Icons.Tag",
+                _ => "Icons.Branch",
+            };
         }
 
         private ContextMenu CreateContextMenuForDecorator(ViewModels.Repository repo, Models.Commit commit, Models.Decorator decorator)
