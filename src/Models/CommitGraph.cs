@@ -71,6 +71,11 @@ namespace SourceGit.Models
         public List<Link> Links { get; } = [];
         public List<Dot> Dots { get; } = [];
 
+        /// <summary>
+        ///     Horizontal room the curves need, in pixels.
+        /// </summary>
+        public double Width { get; private set; } = 0;
+
         public static CommitGraph Generate(List<Commit> commits, bool firstParentOnlyEnabled, CommitGraphHighlighting highlighting, HashSet<string> highlightExtraCommits)
         {
             const double unitWidth = 12;
@@ -250,6 +255,9 @@ namespace SourceGit.Models
                 // Margins & colors (used by Views.Histories).
                 commit.Color = dotColor;
                 commit.LeftMargin = Math.Max(offsetX, maxOffsetOld) + halfWidth + 2;
+
+                if (commit.LeftMargin > temp.Width)
+                    temp.Width = commit.LeftMargin;
             }
 
             // Deal with curves haven't ended yet.
