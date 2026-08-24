@@ -74,6 +74,12 @@ namespace SourceGit.Views
             public IBrush Brush { get; set; } = null;
             public bool IsHead { get; set; } = false;
             public double Width { get; set; } = 0.0;
+
+            /// <summary>
+            ///     Width the chip asks for. Width may be shrunk to fit the column; this is the
+            ///     value truncation always starts from, so it never compounds.
+            /// </summary>
+            public double NaturalWidth { get; set; } = 0.0;
             public List<FormattedText> Remotes { get; set; } = [];
         }
 
@@ -188,24 +194,22 @@ namespace SourceGit.Views
         {
             base.OnPointerMoved(e);
 
-            // Folded references are only reachable through the popup, so it always applies.
-            if (_collapsed)
+            // Folded references are only reachable through the popup, and a trimmed name is
+            // only readable there, so both call for the full chips.
+            if (_collapsed || _truncated)
             {
                 if (ToolTip.GetTip(this) is not CommitRefsPresenter)
+                {
                     ToolTip.SetTip(this, CreateHoverPopup());
+                    ToolTip.SetPlacement(this, PlacementMode.RightEdgeAlignedTop);
+                    ToolTip.SetHorizontalOffset(this, -Bounds.Width);
+                    ToolTip.SetVerticalOffset(this, 0);
+                }
 
                 return;
             }
 
-            // Otherwise only name what the column is too narrow to show in full.
-            if (_requiredWidth <= Bounds.Width + 0.5)
-            {
-                ToolTip.SetTip(this, null);
-                return;
-            }
-
-            var decorator = DecoratorAt(e.GetPosition(this));
-            ToolTip.SetTip(this, decorator?.Name);
+            ToolTip.SetTip(this, null);
         }
 
         /// <summary>
@@ -291,10 +295,14 @@ namespace SourceGit.Views
 
             context.FillRectangle(Brushes.Transparent, Bounds);
 
+            Truncate(Bounds.Width);
+
             var count = _collapsed ? 1 : _items.Count;
             for (var i = 0; i < count; i++)
             {
                 var item = _items[i];
+                if (item.Width <= 0)
+                    continue;
 
                 if (stacked && i > 0)
                 {
@@ -413,6 +421,62 @@ namespace SourceGit.Views
             InvalidateMeasure();
         }
 
+        /// <summary>
+        ///     Shrinks the chips that do not fit the width actually granted, so the column ends
+        ///     a name with an ellipsis rather than cutting it mid-letter. Called from Render
+        ///     because only then is the real width known: the column may be sized to its
+        ///     contents and then capped, in which case measuring never sees the final value.
+        /// </summary>
+        private void Truncate(double available)
+        {
+            var drawn = _collapsed ? 1 : _items.Count;
+            for (var i = 0; i < drawn; i++)
+            {
+                var item = _items[i];
+                item.Width = item.NaturalWidth;
+                item.Label.MaxTextWidth = double.PositiveInfinity;
+                item.Label.Trimming = TextTrimming.None;
+            }
+
+            _truncated = false;
+
+            if (double.IsInfinity(available) || available <= 0 || StackVertically)
+                return;
+
+            var budget = available - 2 - (_collapsed && _extraCounter != null ? _extraCounter.Width + 14 : 0);
+            var used = 0.0;
+
+            for (var i = 0; i < drawn; i++)
+            {
+                var item = _items[i];
+                if (used + item.Width <= budget)
+                {
+                    used += item.Width + 4;
+                    continue;
+                }
+
+                var room = budget - used;
+                if (room < MIN_CHIP_WIDTH)
+                {
+                    // Nothing usable left: drop the chip rather than draw a stub of it.
+                    item.Width = 0;
+                    _truncated = true;
+                    continue;
+                }
+
+                // A trimmed name has no room for the remotes it was sharing its chip with;
+                // the hover popup still shows them.
+                item.Remotes.Clear();
+                item.Label.MaxTextWidth = Math.Max(1, room - 24);
+                item.Label.MaxTextHeight = double.PositiveInfinity;
+                item.Label.MaxLineCount = 1;
+                item.Label.Trimming = TextTrimming.CharacterEllipsis;
+                item.Width = room;
+                used += room + 4;
+                _truncated = true;
+            }
+        }
+
         protected override Size MeasureOverride(Size availableSize)
         {
             _items.Clear();
@@ -481,6 +545,7 @@ namespace SourceGit.Views
                 }
 
                 item.Width = item.Label.Width + 24;
+                item.NaturalWidth = item.Width;
 
                 var findRemotes = useCompactBranchNames && (decorator.Type == Models.DecoratorType.CurrentBranchHead || decorator.Type == Models.DecoratorType.LocalBranchHead);
                 if (findRemotes)
@@ -513,6 +578,7 @@ namespace SourceGit.Views
                             else
                                 item.Width += remote.WidthIncludingTrailingWhitespace + 22;
 
+                            item.NaturalWidth = item.Width;
                             skippedIdx.Add(j);
                         }
                     }
@@ -531,6 +597,7 @@ namespace SourceGit.Views
 
             _collapsed = CollapseExtraRefs && _items.Count > 1;
             _extraCounter = null;
+            _truncated = false;
 
             double requiredWidth = 0;
             if (_collapsed)
@@ -557,12 +624,19 @@ namespace SourceGit.Views
             else if (_items.Count > 0)
             {
                 if (allowWrap && requiredHeight > 16.0)
+                {
                     requiredWidth = double.IsInfinity(availableSize.Width) ? x + 2 : availableSize.Width;
+                }
                 else
+                {
                     requiredWidth = x + 2;
+                }
             }
 
             _requiredWidth = requiredWidth;
+
+            if (!double.IsInfinity(availableSize.Width) && availableSize.Width > 0)
+                requiredWidth = Math.Min(requiredWidth, availableSize.Width);
 
             InvalidateVisual();
             return new Size(requiredWidth, requiredHeight);
@@ -571,6 +645,12 @@ namespace SourceGit.Views
         private List<RenderItem> _items = new List<RenderItem>();
         private FormattedText _extraCounter = null;
         private bool _collapsed = false;
+        private bool _truncated = false;
         private double _requiredWidth = 0;
+
+        /// <summary>
+        ///     Below this a chip would show its icon and nothing readable.
+        /// </summary>
+        private const double MIN_CHIP_WIDTH = 40;
     }
 }
