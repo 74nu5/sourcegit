@@ -145,7 +145,7 @@
         <DataGrid.Columns>
           <!-- References pulled out of the subject cell into their own column. Hidden unless
                the user opts in, in which case the inline presenter above hides itself. -->
-          <DataGridTemplateColumn Width="{Binding BranchColumnWidth, Mode=OneWay, Converter={x:Static c:DoubleConverters.ToColumnWidth}}"
+          <DataGridTemplateColumn Width="Auto"
                                   MinWidth="60"
                                   MaxWidth="400"
                                   IsReadOnly="True"
@@ -236,7 +236,6 @@
           <DataGridTemplateColumn MinWidth="80"
                                   IsReadOnly="True"
                                   Tag="author"
-                                  Width="{Binding AuthorColumnWidth, Mode=OneWay, Converter={x:Static c:DoubleConverters.ToPixelWidth}}"
                                   IsVisible="{Binding IsAuthorColumnVisible, Mode=OneWay}">
             <DataGridTemplateColumn.Header>
               <TextBlock Classes="table_header" Text="{DynamicResource Text.Histories.Header.Author}" HorizontalAlignment="Center"/>

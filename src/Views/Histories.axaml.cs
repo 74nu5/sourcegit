@@ -517,6 +517,31 @@ namespace SourceGit.Views
             return null;
         }
 
+        protected override void OnDataContextChanged(EventArgs e)
+        {
+            base.OnDataContextChanged(e);
+            ApplyStoredColumnWidths();
+        }
+
+        /// <summary>
+        ///     Puts the stored widths back on the columns that carry one. A binding on
+        ///     DataGridColumn.Width does not survive the grid's own sizing pass, which is why
+        ///     the author column has always been sized from code here.
+        /// </summary>
+        private void ApplyStoredColumnWidths()
+        {
+            if (DataContext is not ViewModels.Histories vm)
+                return;
+
+            foreach (var column in CommitListContainer.Columns)
+            {
+                if (column.Tag is "author")
+                    column.Width = new(vm.AuthorColumnWidth, DataGridLengthUnitType.Pixel);
+                else if (column.Tag is "branch" && vm.BranchColumnWidth > 0)
+                    column.Width = new(vm.BranchColumnWidth, DataGridLengthUnitType.Pixel);
+            }
+        }
+
         private void OnCommitListHeaderPointerMoved(object sender, PointerEventArgs e)
         {
             if (sender is not Border border)
