@@ -821,7 +821,9 @@
   <x:String x:Key="Text.Repository.BranchPlacement.Compact" xml:space="preserve">Compact</x:String>
   <x:String x:Key="Text.Repository.BranchPlacement.Stable" xml:space="preserve">Stable Lanes</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns" xml:space="preserve">COLUMNS</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.AllRows" xml:space="preserve">Branch Column: All Rows</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.ColorizeRows" xml:space="preserve">Colorize Rows By Branch</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.RefsOnly" xml:space="preserve">Branch Column: Refs Only</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.ShowBranch" xml:space="preserve">Branch / Tag Column</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.SplitGraph" xml:space="preserve">Separate Graph Column</x:String>
   <x:String x:Key="Text.Repository.HistoriesLayout" xml:space="preserve">LAYOUT</x:String>
