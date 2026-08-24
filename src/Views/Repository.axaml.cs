@@ -503,6 +503,16 @@ namespace SourceGit.Views
                     ev.Handled = true;
                 };
 
+                var colorizeRows = new MenuItem();
+                colorizeRows.Header = App.Text("Repository.HistoriesColumns.ColorizeRows");
+                if (pref.ColorizeRowsByBranch)
+                    colorizeRows.Icon = this.CreateMenuIcon("Icons.Check");
+                colorizeRows.Click += (_, ev) =>
+                {
+                    pref.ColorizeRowsByBranch = !pref.ColorizeRowsByBranch;
+                    ev.Handled = true;
+                };
+
                 var highlights = new MenuItem();
                 highlights.Header = App.Text("Histories.HighlightsInGraph");
                 highlights.IsEnabled = false;
@@ -579,6 +589,7 @@ namespace SourceGit.Views
                 menu.Items.Add(columns);
                 menu.Items.Add(showBranchColumn);
                 menu.Items.Add(splitGraph);
+                menu.Items.Add(colorizeRows);
                 menu.Items.Add(new MenuItem() { Header = "-" });
                 menu.Items.Add(highlights);
                 menu.Items.Add(all);
