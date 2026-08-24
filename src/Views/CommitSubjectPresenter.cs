@@ -86,6 +86,32 @@ namespace SourceGit.Views
             set => SetValue(InlineCodeForegroundProperty, value);
         }
 
+        public static readonly StyledProperty<int> GraphColorProperty =
+            AvaloniaProperty.Register<CommitSubjectPresenter, int>(nameof(GraphColor), -1);
+
+        /// <summary>
+        ///     Index in <see cref="Models.CommitGraph.Pens"/> of the lane this commit sits on,
+        ///     or -1 when it is unknown.
+        /// </summary>
+        public int GraphColor
+        {
+            get => GetValue(GraphColorProperty);
+            set => SetValue(GraphColorProperty, value);
+        }
+
+        public static readonly StyledProperty<bool> ShowBranchStripeProperty =
+            AvaloniaProperty.Register<CommitSubjectPresenter, bool>(nameof(ShowBranchStripe));
+
+        /// <summary>
+        ///     Draws a thin rule in the lane colour before the subject, so a row can be traced
+        ///     back to its branch without tinting the text itself.
+        /// </summary>
+        public bool ShowBranchStripe
+        {
+            get => GetValue(ShowBranchStripeProperty);
+            set => SetValue(ShowBranchStripeProperty, value);
+        }
+
         public static readonly StyledProperty<bool> ShowStrikethroughProperty =
             AvaloniaProperty.Register<CommitSubjectPresenter, bool>(nameof(ShowStrikethrough));
 
@@ -125,6 +151,16 @@ namespace SourceGit.Views
             {
                 _needRebuildInlines = false;
                 GenerateFormattedTextElements();
+            }
+
+            // The lane colours are rebuilt whenever the theme changes, so resolve the brush
+            // here instead of through a binding that would keep the previous theme's colour.
+            var stripeColor = GraphColor;
+            if (ShowBranchStripe && stripeColor >= 0 && stripeColor < Models.CommitGraph.Pens.Count)
+            {
+                var brush = Models.CommitGraph.Pens[stripeColor].Brush;
+                if (brush != null)
+                    context.FillRectangle(brush, new Rect(0, 3, 2, Math.Max(0, Bounds.Height - 6)));
             }
 
             if (_inlines.Count == 0)

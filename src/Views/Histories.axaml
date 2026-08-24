@@ -39,6 +39,8 @@
 
         <v:CommitSubjectPresenter Grid.Column="3"
                                   Height="26"
+                                  GraphColor="{Binding Color, Mode=OneWay}"
+                                  ShowBranchStripe="{Binding Source={x:Static vm:Preferences.Instance}, Path=ColorizeRowsByBranch, Mode=OneWay}"
                                   FontFamily="{DynamicResource Fonts.Default}"
                                   CodeFontFamily="{DynamicResource Fonts.Monospace}"
                                   InlineCodeBackground="{DynamicResource Brush.InlineCode}"
