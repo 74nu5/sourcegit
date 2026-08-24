@@ -1175,6 +1175,7 @@ namespace SourceGit.ViewModels
                     Remotes = remotes;
                     Branches = branches;
                     CurrentBranch = branches.Find(x => x.IsCurrent);
+                    _histories?.ResolveBranchOwnership();
                     LocalBranchTrees = builder.Locals;
                     RemoteBranchTrees = builder.Remotes;
 

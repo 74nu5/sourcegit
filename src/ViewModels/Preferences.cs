@@ -241,6 +241,12 @@ namespace SourceGit.ViewModels
             set => SetProperty(ref _colorizeRowsByBranch, value);
         }
 
+        public Models.BranchColumnMode BranchColumnMode
+        {
+            get => _branchColumnMode;
+            set => SetProperty(ref _branchColumnMode, value);
+        }
+
         public bool DisplayTimeAsPeriodInHistories
         {
             get => _displayTimeAsPeriodInHistories;
@@ -842,6 +848,7 @@ namespace SourceGit.ViewModels
         private bool _showBranchColumnInHistories = false;
         private Models.GraphLaneMode _graphLaneMode = Models.GraphLaneMode.Compact;
         private bool _colorizeRowsByBranch = false;
+        private Models.BranchColumnMode _branchColumnMode = Models.BranchColumnMode.RefsOnly;
         private bool _displayTimeAsPeriodInHistories = false;
         private bool _useSideBySideDiff = false;
         private bool _ignoreWhitespaceChangesInDiff = false;

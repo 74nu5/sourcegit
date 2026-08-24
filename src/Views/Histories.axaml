@@ -158,13 +158,22 @@
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate DataType="m:Commit">
                 <Border Padding="6,0,4,0" ClipToBounds="True" Background="Transparent">
-                  <v:CommitRefsPresenter Background="{DynamicResource Brush.Contents}"
+                  <Grid>
+                    <TextBlock Text="{Binding OwnerBranch, Mode=OneWay}"
+                               IsVisible="{Binding !HasDecorators}"
+                               Foreground="{DynamicResource Brush.FG2}"
+                               FontSize="11"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+
+                    <v:CommitRefsPresenter Background="{DynamicResource Brush.Contents}"
                                          Foreground="{DynamicResource Brush.FG1}"
                                          ShowTags="{Binding Source={x:Static vm:Preferences.Instance}, Path=ShowTagsInGraph}"
                                          FontSize="12"
                                          HorizontalAlignment="Left" VerticalAlignment="Center"
                                          UseGraphColor="{Binding IsHighlightedInGraph, Mode=OneWay}"
                                          UseCompactBranchNames="{Binding Source={x:Static vm:Preferences.Instance}, Path=UseCompactBranchNamesInGraph}"/>
+                  </Grid>
                 </Border>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
