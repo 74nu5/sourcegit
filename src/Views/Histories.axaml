@@ -325,6 +325,21 @@
                      ClipToBounds="True"
                      Loaded="OnCommitGraphLoaded"/>
 
+      <Border Margin="6,0,0,8"
+              Padding="6,1"
+              CornerRadius="7"
+              Background="{DynamicResource Brush.Popup}"
+              HorizontalAlignment="Left" VerticalAlignment="Bottom"
+              IsVisible="{Binding HasHiddenLanes, Mode=OneWay}">
+        <ToolTip.Tip>
+          <TextBlock Text="{DynamicResource Text.Histories.HiddenLanes.Tip}" TextWrapping="Wrap" MaxWidth="260"/>
+        </ToolTip.Tip>
+        <TextBlock Text="{Binding HiddenLanes, Mode=OneWay, StringFormat='+{0}'}"
+                   FontSize="10"
+                   Opacity=".85"
+                   Foreground="{DynamicResource Brush.FG2}"/>
+      </Border>
+
       <Border Width="28" Height="28"
               Margin="0,0,16,8"
               CornerRadius="14"

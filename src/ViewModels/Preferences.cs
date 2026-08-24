@@ -229,6 +229,12 @@ namespace SourceGit.ViewModels
             set => SetProperty(ref _showBranchColumnInHistories, value);
         }
 
+        public Models.GraphLaneMode GraphLaneMode
+        {
+            get => _graphLaneMode;
+            set => SetProperty(ref _graphLaneMode, value);
+        }
+
         public bool DisplayTimeAsPeriodInHistories
         {
             get => _displayTimeAsPeriodInHistories;
@@ -828,6 +834,7 @@ namespace SourceGit.ViewModels
         private bool _useTwoColumnsLayoutInHistories = false;
         private bool _splitGraphColumnInHistories = false;
         private bool _showBranchColumnInHistories = false;
+        private Models.GraphLaneMode _graphLaneMode = Models.GraphLaneMode.Compact;
         private bool _displayTimeAsPeriodInHistories = false;
         private bool _useSideBySideDiff = false;
         private bool _ignoreWhitespaceChangesInDiff = false;

@@ -8,6 +8,21 @@ namespace SourceGit.Models
 {
     public record CommitGraphLayout(double StartX, double StartY, double ClipWidth, double RowHeight);
 
+    public enum GraphLaneMode
+    {
+        /// <summary>
+        ///     A path sits at the rank it happens to hold among the live paths, so it drifts
+        ///     left whenever a path on its left ends. This is the historical behaviour.
+        /// </summary>
+        Compact = 0,
+
+        /// <summary>
+        ///     A path keeps the lane it was given when it was created until it ends, so a
+        ///     branch never changes column while it is alive.
+        /// </summary>
+        Stable,
+    }
+
     public enum CommitGraphHighlighting
     {
         All = 0,
@@ -76,7 +91,13 @@ namespace SourceGit.Models
         /// </summary>
         public double Width { get; private set; } = 0;
 
-        public static CommitGraph Generate(List<Commit> commits, bool firstParentOnlyEnabled, CommitGraphHighlighting highlighting, HashSet<string> highlightExtraCommits)
+        /// <summary>
+        ///     Number of paths that had to share the last lane because the lane budget was
+        ///     exhausted. Always 0 in <see cref="GraphLaneMode.Compact"/>.
+        /// </summary>
+        public int HiddenLanes { get; private set; } = 0;
+
+        public static CommitGraph Generate(List<Commit> commits, bool firstParentOnlyEnabled, CommitGraphHighlighting highlighting, HashSet<string> highlightExtraCommits, GraphLaneMode laneMode = GraphLaneMode.Compact)
         {
             const double unitWidth = 12;
             const double halfWidth = 6;
@@ -90,9 +111,21 @@ namespace SourceGit.Models
             var colorPicker = new ColorPicker();
             var defHighlighting = highlighting == CommitGraphHighlighting.All;
 
+            // Reserving lane 0 for the current branch only makes sense when that branch is
+            // actually part of the window, otherwise the leftmost lane would stay empty.
+            LaneAllocator laneAllocator = null;
+            if (laneMode == GraphLaneMode.Stable)
+                laneAllocator = new LaneAllocator(HasCurrentHead(commits));
+
+            var rowIndex = -1;
+
+            // Horizontal position of a lane, matching the compact layout for the same rank.
+            static double LaneX(int lane) => 4 - halfWidth + (lane + 1) * unitWidth;
+
             foreach (var commit in commits)
             {
                 PathHelper major = null;
+                rowIndex++;
 
                 // Update current y offset
                 offsetY += unitHeight;
@@ -111,14 +144,15 @@ namespace SourceGit.Models
                             major = l;
                             isHighlighted = major.IsHighlighted;
 
+                            var majorX = laneAllocator != null ? LaneX(l.Lane) : offsetX;
                             if (commit.Parents.Count > 0)
                             {
                                 major.Next = commit.Parents[0];
-                                major.Goto(offsetX, offsetY, halfHeight);
+                                major.Goto(majorX, offsetY, halfHeight);
                             }
                             else
                             {
-                                major.End(offsetX, offsetY, halfHeight);
+                                major.End(majorX, offsetY, halfHeight);
                                 ended.Add(l);
                             }
                         }
@@ -134,7 +168,7 @@ namespace SourceGit.Models
                     else
                     {
                         offsetX += unitWidth;
-                        l.Pass(offsetX, offsetY, halfHeight);
+                        l.Pass(laneAllocator != null ? LaneX(l.Lane) : offsetX, offsetY, halfHeight);
                     }
                 }
 
@@ -142,6 +176,7 @@ namespace SourceGit.Models
                 foreach (var l in ended)
                 {
                     colorPicker.Recycle(l.Path.Color);
+                    laneAllocator?.Release(l.Lane, rowIndex);
                     unsolved.Remove(l);
                 }
                 ended.Clear();
@@ -189,7 +224,9 @@ namespace SourceGit.Models
 
                     if (commit.Parents.Count > 0)
                     {
-                        major = new PathHelper(commit.Parents[0], isHighlighted, colorPicker.Next(), new Point(offsetX, offsetY));
+                        var lane = laneAllocator?.Acquire(rowIndex, commit.IsCurrentHead) ?? 0;
+                        var startX = laneAllocator != null ? LaneX(lane) : offsetX;
+                        major = new PathHelper(commit.Parents[0], isHighlighted, colorPicker.Next(), new Point(startX, offsetY)) { Lane = lane };
                         unsolved.Add(major);
                         temp.Paths.Add(major.Path);
                     }
@@ -244,8 +281,11 @@ namespace SourceGit.Models
                         {
                             offsetX += unitWidth;
 
+                            var lane = laneAllocator?.Acquire(rowIndex, false) ?? 0;
+                            var laneX = laneAllocator != null ? LaneX(lane) : offsetX;
+
                             // Create new curve for parent commit that not includes before
-                            var l = new PathHelper(parentHash, isHighlighted, colorPicker.Next(), position, new Point(offsetX, position.Y + halfHeight));
+                            var l = new PathHelper(parentHash, isHighlighted, colorPicker.Next(), position, new Point(laneX, position.Y + halfHeight)) { Lane = lane };
                             unsolved.Add(l);
                             temp.Paths.Add(l.Path);
                         }
@@ -254,7 +294,9 @@ namespace SourceGit.Models
 
                 // Margins & colors (used by Views.Histories).
                 commit.Color = dotColor;
-                commit.LeftMargin = Math.Max(offsetX, maxOffsetOld) + halfWidth + 2;
+                commit.LeftMargin = laneAllocator != null
+                    ? LaneX(laneAllocator.MaxLane) + halfWidth + 2
+                    : Math.Max(offsetX, maxOffsetOld) + halfWidth + 2;
 
                 if (commit.LeftMargin > temp.Width)
                     temp.Width = commit.LeftMargin;
@@ -269,11 +311,105 @@ namespace SourceGit.Models
                 if (path.Path.Points.Count == 1 && Math.Abs(path.Path.Points[0].Y - endY) < 0.0001)
                     continue;
 
-                path.End((i + 0.5) * unitWidth + 4, endY + halfHeight, halfHeight);
+                path.End(laneAllocator != null ? LaneX(path.Lane) : (i + 0.5) * unitWidth + 4, endY + halfHeight, halfHeight);
             }
             unsolved.Clear();
 
+            if (laneAllocator != null)
+            {
+                temp.HiddenLanes = laneAllocator.Overflow;
+
+                // Every row shares the same margin in stable mode, and the last rows may have
+                // been laid out before the widest lane was reached.
+                var width = LaneX(laneAllocator.MaxLane) + halfWidth + 2;
+                foreach (var commit in commits)
+                    commit.LeftMargin = width;
+                temp.Width = width;
+            }
+
             return temp;
+        }
+
+        private static bool HasCurrentHead(List<Commit> commits)
+        {
+            foreach (var c in commits)
+            {
+                if (c.IsCurrentHead)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Hands out lanes that a path keeps for its whole life. A released lane is only
+        ///     handed out again after a quarantine, so two unrelated branches never appear
+        ///     back to back in the same column.
+        /// </summary>
+        private class LaneAllocator
+        {
+            public LaneAllocator(bool reserveCurrentBranch)
+            {
+                _reserveCurrentBranch = reserveCurrentBranch;
+                _reservedAvailable = reserveCurrentBranch;
+                _next = reserveCurrentBranch ? 1 : 0;
+            }
+
+            public int MaxLane { get; private set; } = 0;
+            public int Overflow { get; private set; } = 0;
+
+            public int Acquire(int row, bool isCurrentBranch)
+            {
+                if (isCurrentBranch && _reservedAvailable)
+                {
+                    _reservedAvailable = false;
+                    return 0;
+                }
+
+                var best = -1;
+                for (var i = 0; i < _freed.Count; i++)
+                {
+                    if (row - _freed[i].Row < QUARANTINE_ROWS)
+                        continue;
+
+                    if (best == -1 || _freed[i].Lane < _freed[best].Lane)
+                        best = i;
+                }
+
+                if (best != -1)
+                {
+                    var reused = _freed[best].Lane;
+                    _freed.RemoveAt(best);
+                    return reused;
+                }
+
+                // Beyond the budget the extra paths share the last lane rather than pushing
+                // the subject out of view. The overflow is reported so the UI can say so.
+                if (_next >= MAX_LANES)
+                {
+                    Overflow++;
+                    return MAX_LANES - 1;
+                }
+
+                var lane = _next++;
+                if (lane > MaxLane)
+                    MaxLane = lane;
+
+                return lane;
+            }
+
+            public void Release(int lane, int row)
+            {
+                if (lane == 0 && _reserveCurrentBranch)
+                    return;
+
+                _freed.Add((lane, row));
+            }
+
+            private readonly List<(int Lane, int Row)> _freed = [];
+            private readonly bool _reserveCurrentBranch;
+            private bool _reservedAvailable;
+            private int _next;
         }
 
         private class ColorPicker
@@ -303,6 +439,7 @@ namespace SourceGit.Models
             public Path Path { get; private set; }
             public string Next { get; set; }
             public double LastX { get; private set; }
+            public int Lane { get; set; } = 0;
             public bool IsHighlighted { get => Path.IsHighlighted; }
 
             public PathHelper(string next, bool IsHighlighted, int color, Point start)
@@ -426,6 +563,17 @@ namespace SourceGit.Models
             private double _lastY = 0;
             private double _endY = 0;
         }
+
+        /// <summary>
+        ///     Rows a released lane stays untouched before it can be handed out again, about
+        ///     one screenful of commits.
+        /// </summary>
+        private const int QUARANTINE_ROWS = 25;
+
+        /// <summary>
+        ///     Lane budget, matching the 240px cap of the graph column.
+        /// </summary>
+        private const int MAX_LANES = 20;
 
         private static int s_penCount = 0;
         private static readonly List<Color> s_defaultPenColors = [
