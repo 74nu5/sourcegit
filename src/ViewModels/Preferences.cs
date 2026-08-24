@@ -217,6 +217,12 @@ namespace SourceGit.ViewModels
             set => SetProperty(ref _useTwoColumnsLayoutInHistories, value);
         }
 
+        public bool SplitGraphColumnInHistories
+        {
+            get => _splitGraphColumnInHistories;
+            set => SetProperty(ref _splitGraphColumnInHistories, value);
+        }
+
         public bool DisplayTimeAsPeriodInHistories
         {
             get => _displayTimeAsPeriodInHistories;
@@ -814,6 +820,7 @@ namespace SourceGit.ViewModels
 
         private bool _showTagsInGraph = true;
         private bool _useTwoColumnsLayoutInHistories = false;
+        private bool _splitGraphColumnInHistories = false;
         private bool _displayTimeAsPeriodInHistories = false;
         private bool _useSideBySideDiff = false;
         private bool _ignoreWhitespaceChangesInDiff = false;

@@ -453,6 +453,20 @@ namespace SourceGit.Views
                     ev.Handled = true;
                 };
 
+                var columns = new MenuItem();
+                columns.Header = App.Text("Repository.HistoriesColumns");
+                columns.IsEnabled = false;
+
+                var splitGraph = new MenuItem();
+                splitGraph.Header = App.Text("Repository.HistoriesColumns.SplitGraph");
+                if (pref.SplitGraphColumnInHistories)
+                    splitGraph.Icon = this.CreateMenuIcon("Icons.Check");
+                splitGraph.Click += (_, ev) =>
+                {
+                    pref.SplitGraphColumnInHistories = !pref.SplitGraphColumnInHistories;
+                    ev.Handled = true;
+                };
+
                 var highlights = new MenuItem();
                 highlights.Header = App.Text("Histories.HighlightsInGraph");
                 highlights.IsEnabled = false;
@@ -521,6 +535,9 @@ namespace SourceGit.Views
                 menu.Items.Add(order);
                 menu.Items.Add(dateOrder);
                 menu.Items.Add(topoOrder);
+                menu.Items.Add(new MenuItem() { Header = "-" });
+                menu.Items.Add(columns);
+                menu.Items.Add(splitGraph);
                 menu.Items.Add(new MenuItem() { Header = "-" });
                 menu.Items.Add(highlights);
                 menu.Items.Add(all);

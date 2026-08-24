@@ -84,7 +84,24 @@ namespace SourceGit.ViewModels
         public Models.CommitGraph Graph
         {
             get => _graph;
-            set => SetProperty(ref _graph, value);
+            set
+            {
+                if (SetProperty(ref _graph, value))
+                    OnPropertyChanged(nameof(GraphColumnWidth));
+            }
+        }
+
+        /// <summary>
+        ///     Width of the dedicated graph column, capped so that a repository with a large
+        ///     number of concurrent branches cannot squeeze the subject out of view.
+        /// </summary>
+        public double GraphColumnWidth
+        {
+            get
+            {
+                var width = _graph?.Width ?? 0;
+                return Math.Clamp(width + 4, MIN_GRAPH_COLUMN_WIDTH, MAX_GRAPH_COLUMN_WIDTH);
+            }
         }
 
         public Models.CommitGraphHighlighting GraphHighlighting
@@ -526,6 +543,9 @@ namespace SourceGit.ViewModels
 
             Graph = Models.CommitGraph.Generate(commits, firstParentOnly, highlighting, extraHeads);
         }
+
+        private const double MIN_GRAPH_COLUMN_WIDTH = 24;
+        private const double MAX_GRAPH_COLUMN_WIDTH = 240;
 
         private Repository _repo = null;
         private Models.Branch _currentBranch = null;

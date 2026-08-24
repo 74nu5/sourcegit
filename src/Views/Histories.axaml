@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -10,6 +10,48 @@
              x:Class="SourceGit.Views.Histories"
              x:DataType="vm:Histories"
              x:Name="ThisControl">
+  <UserControl.Resources>
+    <!-- Shared by the merged GRAPH & SUBJECT column and the standalone COMMIT MESSAGE one. -->
+    <DataTemplate x:Key="CommitSubjectCell" DataType="m:Commit">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*" Margin="2,0,4,0" ClipToBounds="True">
+        <v:CommitStatusIndicator Grid.Column="0"
+                                 CurrentBranch="{Binding $parent[v:Histories].CurrentBranch}"
+                                 AheadBrush="{DynamicResource Brush.Accent}"
+                                 BehindBrush="{DynamicResource Brush.FG1}"
+                                 VerticalAlignment="Center"/>
+
+        <v:BisectStateIndicator Grid.Column="1"
+                                Background="{DynamicResource Brush.Contents}"
+                                Foreground="{DynamicResource Brush.FG1}"
+                                Bisect="{Binding $parent[v:Histories].Bisect}"
+                                VerticalAlignment="Center"/>
+
+        <v:CommitRefsPresenter Grid.Column="2"
+                               Background="{DynamicResource Brush.Contents}"
+                               Foreground="{DynamicResource Brush.FG1}"
+                               ShowTags="{Binding Source={x:Static vm:Preferences.Instance}, Path=ShowTagsInGraph}"
+                               FontSize="12"
+                               VerticalAlignment="Center"
+                               UseGraphColor="{Binding IsHighlightedInGraph, Mode=OneWay}"
+                               UseCompactBranchNames="{Binding Source={x:Static vm:Preferences.Instance}, Path=UseCompactBranchNamesInGraph}"
+                               HasSingleRemote="{Binding $parent[v:Histories].HasSingleRemote}"/>
+
+        <v:CommitSubjectPresenter Grid.Column="3"
+                                  Height="26"
+                                  FontFamily="{DynamicResource Fonts.Default}"
+                                  CodeFontFamily="{DynamicResource Fonts.Monospace}"
+                                  InlineCodeBackground="{DynamicResource Brush.InlineCode}"
+                                  InlineCodeForeground="{DynamicResource Brush.InlineCodeFG}"
+                                  Foreground="{DynamicResource Brush.FG1}"
+                                  LinkForeground="{DynamicResource Brush.Link}"
+                                  Subject="{Binding Subject}"
+                                  IssueTrackers="{Binding $parent[v:Histories].IssueTrackers}"
+                                  FontWeight="{Binding IsCurrentHead, Converter={x:Static c:BoolConverters.IsBoldToFontWeight}}"
+                                  Opacity="{Binding IsMerged, Converter={x:Static c:BoolConverters.IsMergedToOpacity}}"/>
+      </Grid>
+    </DataTemplate>
+  </UserControl.Resources>
+
   <v:HistoriesLayout UseHorizontal="{Binding Source={x:Static vm:Preferences.Instance}, Path=UseTwoColumnsLayoutInHistories}">
     <v:HistoriesLayout.RowDefinitions>
       <RowDefinition Height="{Binding TopArea, Mode=TwoWay}" MinHeight="100"/>
@@ -99,7 +141,29 @@
         </DataGrid.Styles>
 
         <DataGrid.Columns>
-          <DataGridTemplateColumn Width="*" IsReadOnly="True" Tag="graph">
+          <!-- Dedicated graph column. Hidden unless the user opts in; the graph itself is
+               painted by the v:CommitGraph overlay, so the cells only reserve the room. -->
+          <DataGridTemplateColumn IsReadOnly="True"
+                                  Width="{Binding GraphColumnWidth, Mode=OneWay, Converter={x:Static c:DoubleConverters.ToPixelWidth}}"
+                                  Tag="graph"
+                                  IsVisible="{Binding Source={x:Static vm:Preferences.Instance}, Path=SplitGraphColumnInHistories, Mode=OneWay}">
+            <DataGridTemplateColumn.Header>
+              <TextBlock Classes="table_header" Text="{DynamicResource Text.Histories.Header.Graph}" HorizontalAlignment="Center"/>
+            </DataGridTemplateColumn.Header>
+
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate DataType="m:Commit">
+                <Border Background="Transparent"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <!-- Default layout: the graph shares this column with the subject, each row being
+               indented by its own LeftMargin. -->
+          <DataGridTemplateColumn Width="*"
+                                  IsReadOnly="True"
+                                  Tag="graph"
+                                  IsVisible="{Binding Source={x:Static vm:Preferences.Instance}, Path=!SplitGraphColumnInHistories, Mode=OneWay}">
             <DataGridTemplateColumn.Header>
               <TextBlock Classes="table_header" Text="{DynamicResource Text.Histories.Header.GraphAndSubject}" HorizontalAlignment="Center"/>
             </DataGridTemplateColumn.Header>
@@ -107,42 +171,24 @@
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate DataType="m:Commit">
                 <Border Padding="{Binding LeftMargin, Converter={x:Static c:DoubleConverters.ToLeftMargin}}" ClipToBounds="True" Background="Transparent">
-                  <Grid ColumnDefinitions="Auto,Auto,Auto,*" Margin="2,0,4,0" ClipToBounds="True">
-                    <v:CommitStatusIndicator Grid.Column="0"
-                                             CurrentBranch="{Binding $parent[v:Histories].CurrentBranch}"
-                                             AheadBrush="{DynamicResource Brush.Accent}"
-                                             BehindBrush="{DynamicResource Brush.FG1}"
-                                             VerticalAlignment="Center"/>
+                  <ContentControl Content="{Binding}" ContentTemplate="{StaticResource CommitSubjectCell}"/>
+                </Border>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
 
-                    <v:BisectStateIndicator Grid.Column="1"
-                                            Background="{DynamicResource Brush.Contents}"
-                                            Foreground="{DynamicResource Brush.FG1}"
-                                            Bisect="{Binding $parent[v:Histories].Bisect}"
-                                            VerticalAlignment="Center"/>
+          <!-- Split layout: subjects all start at the same X, no per-row indent. -->
+          <DataGridTemplateColumn Width="*"
+                                  IsReadOnly="True"
+                                  IsVisible="{Binding Source={x:Static vm:Preferences.Instance}, Path=SplitGraphColumnInHistories, Mode=OneWay}">
+            <DataGridTemplateColumn.Header>
+              <TextBlock Classes="table_header" Text="{DynamicResource Text.Histories.Header.Subject}" HorizontalAlignment="Center"/>
+            </DataGridTemplateColumn.Header>
 
-                    <v:CommitRefsPresenter Grid.Column="2"
-                                           Background="{DynamicResource Brush.Contents}"
-                                           Foreground="{DynamicResource Brush.FG1}"
-                                           ShowTags="{Binding Source={x:Static vm:Preferences.Instance}, Path=ShowTagsInGraph}"
-                                           FontSize="12"
-                                           VerticalAlignment="Center"
-                                           UseGraphColor="{Binding IsHighlightedInGraph, Mode=OneWay}"
-                                           UseCompactBranchNames="{Binding Source={x:Static vm:Preferences.Instance}, Path=UseCompactBranchNamesInGraph}"
-                                           HasSingleRemote="{Binding $parent[v:Histories].HasSingleRemote}"/>
-
-                    <v:CommitSubjectPresenter Grid.Column="3"
-                                              Height="26"
-                                              FontFamily="{DynamicResource Fonts.Default}"
-                                              CodeFontFamily="{DynamicResource Fonts.Monospace}"
-                                              InlineCodeBackground="{DynamicResource Brush.InlineCode}"
-                                              InlineCodeForeground="{DynamicResource Brush.InlineCodeFG}"
-                                              Foreground="{DynamicResource Brush.FG1}"
-                                              LinkForeground="{DynamicResource Brush.Link}"
-                                              Subject="{Binding Subject}"
-                                              IssueTrackers="{Binding $parent[v:Histories].IssueTrackers}"
-                                              FontWeight="{Binding IsCurrentHead, Converter={x:Static c:BoolConverters.IsBoldToFontWeight}}"
-                                              Opacity="{Binding IsMerged, Converter={x:Static c:BoolConverters.IsMergedToOpacity}}"/>
-                  </Grid>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate DataType="m:Commit">
+                <Border ClipToBounds="True" Background="Transparent">
+                  <ContentControl Content="{Binding}" ContentTemplate="{StaticResource CommitSubjectCell}"/>
                 </Border>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
