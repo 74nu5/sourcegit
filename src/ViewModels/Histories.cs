@@ -87,9 +87,19 @@ namespace SourceGit.ViewModels
             set
             {
                 if (SetProperty(ref _graph, value))
+                {
                     OnPropertyChanged(nameof(GraphColumnWidth));
+                    OnPropertyChanged(nameof(HiddenLanes));
+                    OnPropertyChanged(nameof(HasHiddenLanes));
+                }
             }
         }
+
+        /// <summary>
+        ///     Number of branches that had to share the last lane, and whether to say so.
+        /// </summary>
+        public int HiddenLanes => _graph?.HiddenLanes ?? 0;
+        public bool HasHiddenLanes => HiddenLanes > 0;
 
         /// <summary>
         ///     Width of the dedicated graph column, capped so that a repository with a large
@@ -539,7 +549,7 @@ namespace SourceGit.ViewModels
                     extraHeads.Add(c.SHA);
             }
 
-            Graph = Models.CommitGraph.Generate(commits, firstParentOnly, highlighting, extraHeads);
+            Graph = Models.CommitGraph.Generate(commits, firstParentOnly, highlighting, extraHeads, Preferences.Instance.GraphLaneMode);
         }
 
         private const double MIN_GRAPH_COLUMN_WIDTH = 24;

@@ -516,6 +516,7 @@
   <x:String x:Key="Text.Histories.Header.GraphAndSubject" xml:space="preserve">GRAPH &amp; SUBJECT</x:String>
   <x:String x:Key="Text.Histories.Header.SHA" xml:space="preserve">SHA</x:String>
   <x:String x:Key="Text.Histories.Header.Subject" xml:space="preserve">COMMIT MESSAGE</x:String>
+  <x:String x:Key="Text.Histories.HiddenLanes.Tip" xml:space="preserve">Some branches share the last column because the graph reached its lane budget. Widen the window or use the compact placement to see more.</x:String>
   <x:String x:Key="Text.Histories.HighlightsInGraph" xml:space="preserve">HIGHLIGHTS IN GRAPH</x:String>
   <x:String x:Key="Text.Histories.HighlightsInGraph.All" xml:space="preserve">All</x:String>
   <x:String x:Key="Text.Histories.HighlightsInGraph.CurrentBranchOnly" xml:space="preserve">Current Branch Only</x:String>
@@ -816,6 +817,9 @@
   <x:String x:Key="Text.Repository.FilterCommits.Expand" xml:space="preserve">Expand Filters</x:String>
   <x:String x:Key="Text.Repository.FilterCommits.Include" xml:space="preserve">Filter in commit graph</x:String>
   <x:String x:Key="Text.Repository.FilterCommits.Summary" xml:space="preserve">filter(s) enabled</x:String>
+  <x:String x:Key="Text.Repository.BranchPlacement" xml:space="preserve">BRANCH PLACEMENT</x:String>
+  <x:String x:Key="Text.Repository.BranchPlacement.Compact" xml:space="preserve">Compact</x:String>
+  <x:String x:Key="Text.Repository.BranchPlacement.Stable" xml:space="preserve">Stable Lanes</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns" xml:space="preserve">COLUMNS</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.ShowBranch" xml:space="preserve">Branch / Tag Column</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.SplitGraph" xml:space="preserve">Separate Graph Column</x:String>

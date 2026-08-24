@@ -453,6 +453,32 @@ namespace SourceGit.Views
                     ev.Handled = true;
                 };
 
+                var branchPlacement = new MenuItem();
+                branchPlacement.Header = App.Text("Repository.BranchPlacement");
+                branchPlacement.IsEnabled = false;
+
+                var compactLanes = new MenuItem();
+                compactLanes.Header = App.Text("Repository.BranchPlacement.Compact");
+                if (pref.GraphLaneMode == Models.GraphLaneMode.Compact)
+                    compactLanes.Icon = this.CreateMenuIcon("Icons.Check");
+                compactLanes.Click += (_, ev) =>
+                {
+                    pref.GraphLaneMode = Models.GraphLaneMode.Compact;
+                    repo.RefreshCommits();
+                    ev.Handled = true;
+                };
+
+                var stableLanes = new MenuItem();
+                stableLanes.Header = App.Text("Repository.BranchPlacement.Stable");
+                if (pref.GraphLaneMode == Models.GraphLaneMode.Stable)
+                    stableLanes.Icon = this.CreateMenuIcon("Icons.Check");
+                stableLanes.Click += (_, ev) =>
+                {
+                    pref.GraphLaneMode = Models.GraphLaneMode.Stable;
+                    repo.RefreshCommits();
+                    ev.Handled = true;
+                };
+
                 var columns = new MenuItem();
                 columns.Header = App.Text("Repository.HistoriesColumns");
                 columns.IsEnabled = false;
@@ -545,6 +571,10 @@ namespace SourceGit.Views
                 menu.Items.Add(order);
                 menu.Items.Add(dateOrder);
                 menu.Items.Add(topoOrder);
+                menu.Items.Add(new MenuItem() { Header = "-" });
+                menu.Items.Add(branchPlacement);
+                menu.Items.Add(compactLanes);
+                menu.Items.Add(stableLanes);
                 menu.Items.Add(new MenuItem() { Header = "-" });
                 menu.Items.Add(columns);
                 menu.Items.Add(showBranchColumn);
