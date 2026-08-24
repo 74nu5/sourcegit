@@ -4,6 +4,7 @@ using System.Globalization;
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media;
 
 namespace SourceGit.Views
@@ -146,6 +147,22 @@ namespace SourceGit.Views
         {
             get => GetValue(ShowTagsProperty);
             set => SetValue(ShowTagsProperty, value);
+        }
+
+        protected override void OnPointerMoved(PointerEventArgs e)
+        {
+            base.OnPointerMoved(e);
+
+            // In a width-constrained column the names get clipped, so name the one under the
+            // cursor. Nothing is shown while everything already fits.
+            if (_requiredWidth <= Bounds.Width + 0.5)
+            {
+                ToolTip.SetTip(this, null);
+                return;
+            }
+
+            var decorator = DecoratorAt(e.GetPosition(this));
+            ToolTip.SetTip(this, decorator?.Name);
         }
 
         public Models.Decorator DecoratorAt(Point point)
@@ -371,10 +388,13 @@ namespace SourceGit.Views
                     requiredWidth = x + 2;
             }
 
+            _requiredWidth = requiredWidth;
+
             InvalidateVisual();
             return new Size(requiredWidth, requiredHeight);
         }
 
         private List<RenderItem> _items = new List<RenderItem>();
+        private double _requiredWidth = 0;
     }
 }
