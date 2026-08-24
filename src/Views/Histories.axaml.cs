@@ -676,6 +676,18 @@ namespace SourceGit.Views
             }
             else if (selected.Count == 1)
             {
+                // Right-clicking a reference acts on that reference alone. Anywhere else keeps
+                // the commit menu, which gathers the actions of every reference on the row.
+                if (e.Source is CommitRefsPresenter presenter &&
+                    e.TryGetPosition(presenter, out var position) &&
+                    presenter.DecoratorAt(position) is { } decorator &&
+                    CreateContextMenuForDecorator(repo, commits[0], decorator) is { } refMenu)
+                {
+                    refMenu.Open(presenter);
+                    e.Handled = true;
+                    return;
+                }
+
                 var menu = CreateContextMenuForSingleCommit(repo, commits[0]);
                 menu.Open(CommitListContainer);
             }
@@ -906,6 +918,58 @@ namespace SourceGit.Views
             copy.Items.Add(copySubjects);
             copy.Items.Add(copyMessage);
             menu.Items.Add(copy);
+            return menu;
+        }
+
+        private ContextMenu CreateContextMenuForDecorator(ViewModels.Repository repo, Models.Commit commit, Models.Decorator decorator)
+        {
+            var current = repo.CurrentBranch;
+            if (current == null)
+                return null;
+
+            var menu = new ContextMenu();
+            switch (decorator.Type)
+            {
+                case Models.DecoratorType.CurrentBranchHead:
+                    FillCurrentBranchMenu(menu, repo, current);
+                    break;
+                case Models.DecoratorType.LocalBranchHead:
+                    var local = repo.Branches.Find(x => x.IsLocal && decorator.Name.Equals(x.Name, StringComparison.Ordinal));
+                    if (local == null)
+                        return null;
+                    FillOtherLocalBranchMenu(menu, repo, local, current, commit.IsMerged);
+                    break;
+                case Models.DecoratorType.RemoteBranchHead:
+                    var remote = repo.Branches.Find(x => !x.IsLocal && decorator.Name.Equals(x.FriendlyName, StringComparison.Ordinal));
+                    if (remote == null)
+                        return null;
+                    FillRemoteBranchMenu(menu, repo, remote, current, commit.IsMerged);
+                    break;
+                case Models.DecoratorType.Tag:
+                    var tag = repo.Tags.Find(x => decorator.Name.Equals(x.Name, StringComparison.Ordinal));
+                    if (tag == null)
+                        return null;
+                    FillTagMenu(menu, repo, tag, current);
+                    break;
+                default:
+                    return null;
+            }
+
+            if (menu.Items.Count == 0)
+                return null;
+
+            menu.Items.Add(new MenuItem() { Header = "-" });
+
+            var copyName = new MenuItem();
+            copyName.Icon = this.CreateMenuIcon("Icons.Copy");
+            copyName.Header = App.Text("Copy");
+            copyName.Click += async (_, e) =>
+            {
+                await this.CopyTextAsync(decorator.Name);
+                e.Handled = true;
+            };
+            menu.Items.Add(copyName);
+
             return menu;
         }
 
