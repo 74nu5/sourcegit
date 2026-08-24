@@ -171,6 +171,7 @@
                                          Foreground="{DynamicResource Brush.FG1}"
                                          ShowTags="{Binding Source={x:Static vm:Preferences.Instance}, Path=ShowTagsInGraph}"
                                          FontSize="12"
+                                         CollapseExtraRefs="True"
                                          HorizontalAlignment="Left" VerticalAlignment="Center"
                                          UseGraphColor="{Binding IsHighlightedInGraph, Mode=OneWay}"
                                          UseCompactBranchNames="{Binding Source={x:Static vm:Preferences.Instance}, Path=UseCompactBranchNamesInGraph}"/>
