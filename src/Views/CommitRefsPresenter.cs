@@ -149,6 +149,32 @@ namespace SourceGit.Views
             set => SetValue(AllowWrapProperty, value);
         }
 
+        public static readonly StyledProperty<bool> CollapseExtraRefsProperty =
+            AvaloniaProperty.Register<CommitRefsPresenter, bool>(nameof(CollapseExtraRefs));
+
+        /// <summary>
+        ///     Shows only the first reference followed by a "+N" counter, and lists them all
+        ///     on hover. Meant for the narrow branch column, where several references on the
+        ///     same commit would otherwise push each other out of view.
+        /// </summary>
+        public bool CollapseExtraRefs
+        {
+            get => GetValue(CollapseExtraRefsProperty);
+            set => SetValue(CollapseExtraRefsProperty, value);
+        }
+
+        public static readonly StyledProperty<bool> StackVerticallyProperty =
+            AvaloniaProperty.Register<CommitRefsPresenter, bool>(nameof(StackVertically));
+
+        /// <summary>
+        ///     Lays the references out one per line. Used by the hover popup.
+        /// </summary>
+        public bool StackVertically
+        {
+            get => GetValue(StackVerticallyProperty);
+            set => SetValue(StackVerticallyProperty, value);
+        }
+
         public static readonly StyledProperty<bool> ShowTagsProperty =
             AvaloniaProperty.Register<CommitRefsPresenter, bool>(nameof(ShowTags), true);
 
@@ -162,8 +188,16 @@ namespace SourceGit.Views
         {
             base.OnPointerMoved(e);
 
-            // In a width-constrained column the names get clipped, so name the one under the
-            // cursor. Nothing is shown while everything already fits.
+            // Folded references are only reachable through the popup, so it always applies.
+            if (_collapsed)
+            {
+                if (ToolTip.GetTip(this) is not CommitRefsPresenter)
+                    ToolTip.SetTip(this, CreateHoverPopup());
+
+                return;
+            }
+
+            // Otherwise only name what the column is too narrow to show in full.
             if (_requiredWidth <= Bounds.Width + 0.5)
             {
                 ToolTip.SetTip(this, null);
@@ -174,8 +208,42 @@ namespace SourceGit.Views
             ToolTip.SetTip(this, decorator?.Name);
         }
 
+        /// <summary>
+        ///     A second presenter showing every reference, one per line, reusing this one's
+        ///     look so the popup and the row cannot drift apart.
+        /// </summary>
+        private Control CreateHoverPopup()
+        {
+            return new CommitRefsPresenter()
+            {
+                DataContext = DataContext,
+                StackVertically = true,
+                FontFamily = FontFamily,
+                FontSize = FontSize,
+                Foreground = Foreground,
+                Background = Background,
+                UseGraphColor = UseGraphColor,
+                UseCompactBranchNames = UseCompactBranchNames,
+                ShowTags = ShowTags,
+            };
+        }
+
         public Models.Decorator DecoratorAt(Point point)
         {
+            if (_items.Count == 0)
+                return null;
+
+            // Folded away references have no hit area of their own; the visible one answers
+            // for the whole cell so right-clicking it still acts on a real reference.
+            if (_collapsed)
+                return _items[0].Decorator;
+
+            if (StackVertically)
+            {
+                var row = (int)(point.Y / 20.0);
+                return row >= 0 && row < _items.Count ? _items[row].Decorator : null;
+            }
+
             var x = 0.0;
             foreach (var item in _items)
             {
@@ -196,6 +264,7 @@ namespace SourceGit.Views
             var fg = Foreground;
             var bg = Background;
             var allowWrap = AllowWrap;
+            var stacked = StackVertically;
             var x = 1.5;
             var y = 0.5;
             var remoteIcon = CommitRefsIconCache.Instance.GetIcon(Models.DecoratorType.RemoteBranchHead);
@@ -203,9 +272,17 @@ namespace SourceGit.Views
 
             context.FillRectangle(Brushes.Transparent, Bounds);
 
-            foreach (var item in _items)
+            var count = _collapsed ? 1 : _items.Count;
+            for (var i = 0; i < count; i++)
             {
-                if (allowWrap && x > 1.5 && x + item.Width > Bounds.Width)
+                var item = _items[i];
+
+                if (stacked && i > 0)
+                {
+                    x = 1.5;
+                    y += 20.0;
+                }
+                else if (allowWrap && x > 1.5 && x + item.Width > Bounds.Width)
                 {
                     x = 1.5;
                     y += 20.0;
@@ -267,6 +344,31 @@ namespace SourceGit.Views
 
                 x += item.Width + 4;
             }
+
+            if (_collapsed)
+                DrawExtraCounter(context, x, y, fg);
+        }
+
+        /// <summary>
+        ///     "+N" chip standing for the references that are not drawn.
+        /// </summary>
+        private void DrawExtraCounter(DrawingContext context, double x, double y, IBrush fg)
+        {
+            if (_extraCounter == null)
+                return;
+
+            var rect = new RoundedRect(new Rect(x, y, _extraCounter.Width + 10, 16), new CornerRadius(4));
+            var bg = Background;
+            if (bg != null)
+                context.DrawRectangle(bg, null, rect);
+
+            using (context.PushOpacity(.15))
+                context.DrawRectangle(fg, null, rect);
+
+            using (context.PushOpacity(.5))
+                context.DrawRectangle(null, new Pen(fg), rect);
+
+            context.DrawText(_extraCounter, new Point(x + 5, y + 8.0 - _extraCounter.Height * 0.5));
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -280,6 +382,8 @@ namespace SourceGit.Views
                 change.Property == UseCompactBranchNamesProperty ||
                 change.Property == HasSingleRemoteProperty ||
                 change.Property == BackgroundProperty ||
+                change.Property == CollapseExtraRefsProperty ||
+                change.Property == StackVerticallyProperty ||
                 change.Property == ShowTagsProperty)
                 InvalidateMeasure();
         }
@@ -406,8 +510,32 @@ namespace SourceGit.Views
                 }
             }
 
+            _collapsed = CollapseExtraRefs && _items.Count > 1;
+            _extraCounter = null;
+
             double requiredWidth = 0;
-            if (_items.Count > 0)
+            if (_collapsed)
+            {
+                _extraCounter = new FormattedText(
+                    $"+{_items.Count - 1}",
+                    CultureInfo.CurrentCulture,
+                    FlowDirection.LeftToRight,
+                    typeface,
+                    labelSize,
+                    fg);
+
+                requiredWidth = _items[0].Width + 4 + _extraCounter.Width + 10 + 2;
+                requiredHeight = 16.0;
+            }
+            else if (StackVertically && _items.Count > 0)
+            {
+                foreach (var item in _items)
+                    requiredWidth = Math.Max(requiredWidth, item.Width);
+
+                requiredWidth += 4;
+                requiredHeight = _items.Count * 20.0 - 4.0;
+            }
+            else if (_items.Count > 0)
             {
                 if (allowWrap && requiredHeight > 16.0)
                     requiredWidth = double.IsInfinity(availableSize.Width) ? x + 2 : availableSize.Width;
@@ -422,6 +550,8 @@ namespace SourceGit.Views
         }
 
         private List<RenderItem> _items = new List<RenderItem>();
+        private FormattedText _extraCounter = null;
+        private bool _collapsed = false;
         private double _requiredWidth = 0;
     }
 }
