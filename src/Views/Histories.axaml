@@ -99,7 +99,7 @@
         </DataGrid.Styles>
 
         <DataGrid.Columns>
-          <DataGridTemplateColumn Width="*" IsReadOnly="True">
+          <DataGridTemplateColumn Width="*" IsReadOnly="True" Tag="graph">
             <DataGridTemplateColumn.Header>
               <TextBlock Classes="table_header" Text="{DynamicResource Text.Histories.Header.GraphAndSubject}" HorizontalAlignment="Center"/>
             </DataGridTemplateColumn.Header>
