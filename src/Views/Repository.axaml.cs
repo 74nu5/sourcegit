@@ -503,6 +503,30 @@ namespace SourceGit.Views
                     ev.Handled = true;
                 };
 
+                var refsOnly = new MenuItem();
+                refsOnly.Header = App.Text("Repository.HistoriesColumns.RefsOnly");
+                if (pref.BranchColumnMode == Models.BranchColumnMode.RefsOnly)
+                    refsOnly.Icon = this.CreateMenuIcon("Icons.Check");
+                refsOnly.Click += (_, ev) =>
+                {
+                    pref.BranchColumnMode = Models.BranchColumnMode.RefsOnly;
+                    pref.ShowBranchColumnInHistories = true;
+                    histories.ResolveBranchOwnership();
+                    ev.Handled = true;
+                };
+
+                var allRows = new MenuItem();
+                allRows.Header = App.Text("Repository.HistoriesColumns.AllRows");
+                if (pref.BranchColumnMode == Models.BranchColumnMode.AllRows)
+                    allRows.Icon = this.CreateMenuIcon("Icons.Check");
+                allRows.Click += (_, ev) =>
+                {
+                    pref.BranchColumnMode = Models.BranchColumnMode.AllRows;
+                    pref.ShowBranchColumnInHistories = true;
+                    histories.ResolveBranchOwnership();
+                    ev.Handled = true;
+                };
+
                 var colorizeRows = new MenuItem();
                 colorizeRows.Header = App.Text("Repository.HistoriesColumns.ColorizeRows");
                 if (pref.ColorizeRowsByBranch)
@@ -588,6 +612,8 @@ namespace SourceGit.Views
                 menu.Items.Add(new MenuItem() { Header = "-" });
                 menu.Items.Add(columns);
                 menu.Items.Add(showBranchColumn);
+                menu.Items.Add(refsOnly);
+                menu.Items.Add(allRows);
                 menu.Items.Add(splitGraph);
                 menu.Items.Add(colorizeRows);
                 menu.Items.Add(new MenuItem() { Header = "-" });

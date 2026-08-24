@@ -34,6 +34,16 @@ namespace SourceGit.Models
             set => SetProperty(ref _isHighlightedInGraph, value);
         }
 
+        /// <summary>
+        ///     Branch this commit is reached from, resolved by <see cref="BranchOwnership"/>.
+        ///     Observable because branches and commits are refreshed by two independent tasks.
+        /// </summary>
+        public string OwnerBranch
+        {
+            get => _ownerBranch;
+            set => SetProperty(ref _ownerBranch, value);
+        }
+
         public bool IsCommitterVisible => !Author.Equals(Committer) || AuthorTime != CommitterTime;
         public bool IsCurrentHead => Decorators.Find(x => x.Type is DecoratorType.CurrentBranchHead or DecoratorType.CurrentCommitHead) != null;
         public bool HasDecorators => Decorators.Count > 0;
@@ -126,6 +136,7 @@ namespace SourceGit.Models
         }
 
         private bool _isHighlightedInGraph = false;
+        private string _ownerBranch = string.Empty;
     }
 
     public class CommitFullMessage

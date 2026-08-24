@@ -76,6 +76,7 @@ namespace SourceGit.ViewModels
             set
             {
                 GenerateGraph(value);
+                ResolveBranchOwnership(value);
                 if (SetProperty(ref _commits, value))
                     PostCommitsChanged();
             }
@@ -537,6 +538,23 @@ namespace SourceGit.ViewModels
 
             if (_repo.UIStates.GraphHighlighting >= Models.CommitGraphHighlighting.SelectedCommitsOnly)
                 GenerateGraph(_commits);
+        }
+
+        /// <summary>
+        ///     Commits and branches are loaded by two independent tasks, so ownership is
+        ///     resolved again whenever either of them lands.
+        /// </summary>
+        public void ResolveBranchOwnership()
+        {
+            ResolveBranchOwnership(_commits);
+        }
+
+        private void ResolveBranchOwnership(List<Models.Commit> commits)
+        {
+            if (Preferences.Instance.BranchColumnMode == Models.BranchColumnMode.AllRows)
+                Models.BranchOwnership.Resolve(commits, _repo.Branches);
+            else
+                Models.BranchOwnership.Clear(commits);
         }
 
         private void GenerateGraph(List<Models.Commit> commits)
