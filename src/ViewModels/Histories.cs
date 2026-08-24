@@ -110,8 +110,36 @@ namespace SourceGit.ViewModels
         {
             get
             {
+                var manual = _repo.UIStates.GraphColumnWidth;
+                if (manual > 0)
+                    return manual;
+
                 var width = _graph?.Width ?? 0;
                 return Math.Clamp(width + 4, MIN_GRAPH_COLUMN_WIDTH, MAX_GRAPH_COLUMN_WIDTH);
+            }
+            set
+            {
+                if (_repo.UIStates.GraphColumnWidth != value)
+                {
+                    _repo.UIStates.GraphColumnWidth = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Manual width of the branch column, or 0 to size it to its contents.
+        /// </summary>
+        public double BranchColumnWidth
+        {
+            get => _repo.UIStates.BranchColumnWidth;
+            set
+            {
+                if (_repo.UIStates.BranchColumnWidth != value)
+                {
+                    _repo.UIStates.BranchColumnWidth = value;
+                    OnPropertyChanged();
+                }
             }
         }
 

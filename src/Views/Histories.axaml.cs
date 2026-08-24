@@ -448,12 +448,73 @@ namespace SourceGit.Views
             }
         }
 
-        protected override void OnDataContextChanged(EventArgs e)
+        /// <summary>
+        ///     A drag handle sitting on the right edge of a column, and the column it resizes.
+        /// </summary>
+        private sealed class ColumnResizer
         {
-            base.OnDataContextChanged(e);
+            public DataGridColumn Target { get; init; }
+            public double Origin { get; init; }
+            public double StartWidth { get; init; }
+            public bool Inverted { get; init; }
+            public double Min { get; init; }
+            public double Max { get; init; }
+        }
 
-            if (DataContext is ViewModels.Histories vm)
-                CommitListContainer.Columns[1].Width = new(vm.AuthorColumnWidth, DataGridLengthUnitType.Pixel);
+        /// <summary>
+        ///     Finds the handle under the cursor, if any. Column indices are never assumed:
+        ///     which columns are visible depends on the user's display options.
+        /// </summary>
+        private ColumnResizer FindColumnResizer(double x)
+        {
+            var visible = new List<DataGridColumn>();
+            foreach (var column in CommitListContainer.Columns)
+            {
+                if (column.IsVisible)
+                    visible.Add(column);
+            }
+
+            var edge = 0.0;
+            for (var i = 0; i < visible.Count - 1; i++)
+            {
+                var column = visible[i];
+                edge += column.ActualWidth;
+
+                if (Math.Abs(edge - 4 - x) > 4)
+                    continue;
+
+                // A fixed-width column is resized directly.
+                if (!column.Width.IsStar && column.Tag is "branch" or "graph")
+                {
+                    return new ColumnResizer
+                    {
+                        Target = column,
+                        Origin = edge,
+                        StartWidth = column.ActualWidth,
+                        Inverted = false,
+                        Min = 24,
+                        Max = 400,
+                    };
+                }
+
+                // A star column cannot take a pixel width, so the handle on its right edge
+                // resizes the column that follows it instead, in the opposite direction.
+                var next = visible[i + 1];
+                if (column.Width.IsStar && next.Tag is "author")
+                {
+                    return new ColumnResizer
+                    {
+                        Target = next,
+                        Origin = edge,
+                        StartWidth = next.ActualWidth,
+                        Inverted = true,
+                        Min = 80,
+                        Max = Math.Max(80, column.ActualWidth + next.ActualWidth - 100),
+                    };
+                }
+            }
+
+            return null;
         }
 
         private void OnCommitListHeaderPointerMoved(object sender, PointerEventArgs e)
@@ -461,32 +522,29 @@ namespace SourceGit.Views
             if (sender is not Border border)
                 return;
 
-            if (DataContext is not ViewModels.Histories { IsAuthorColumnVisible: true } vm)
+            if (DataContext is not ViewModels.Histories vm)
                 return;
 
             var pos = e.GetPosition(border);
-            if (_resizingAuthorColumn)
+            if (_columnResizer != null)
             {
-                var posX = CommitListContainer.Columns[0].ActualWidth;
-                var maxW = posX + CommitListContainer.Columns[1].ActualWidth - 100;
-                var delta = posX - pos.X;
-                var w = Math.Max(Math.Min(vm.AuthorColumnWidth + delta, maxW), 80);
-                CommitListContainer.Columns[1].Width = new(w, DataGridLengthUnitType.Pixel);
-                vm.AuthorColumnWidth = w;
+                var delta = _columnResizer.Inverted ? _columnResizer.Origin - pos.X : pos.X - _columnResizer.Origin;
+                var w = Math.Clamp(_columnResizer.StartWidth + delta, _columnResizer.Min, _columnResizer.Max);
+                _columnResizer.Target.Width = new(w, DataGridLengthUnitType.Pixel);
+
+                if (_columnResizer.Target.Tag is "author")
+                    vm.AuthorColumnWidth = w;
+                else if (_columnResizer.Target.Tag is "branch")
+                    vm.BranchColumnWidth = w;
+                else if (_columnResizer.Target.Tag is "graph")
+                    vm.GraphColumnWidth = w;
+
+                return;
             }
-            else
-            {
-                var dis = CommitListContainer.Columns[0].ActualWidth - 4 - pos.X;
-                if (dis < 4 && dis > -4)
-                {
-                    if (border.Cursor != _resizingCursor)
-                        border.Cursor = _resizingCursor;
-                }
-                else if (border.Cursor != Cursor.Default)
-                {
-                    border.Cursor = Cursor.Default;
-                }
-            }
+
+            var cursor = FindColumnResizer(pos.X) != null ? _resizingCursor : Cursor.Default;
+            if (border.Cursor != cursor)
+                border.Cursor = cursor;
         }
 
         private void OnCommitListHeaderPointerPressed(object sender, PointerPressedEventArgs e)
@@ -494,21 +552,17 @@ namespace SourceGit.Views
             if (sender is not Border border)
                 return;
 
-            var pos = e.GetPosition(border);
-            var dis = CommitListContainer.Columns[0].ActualWidth - 4 - pos.X;
-            if (dis > 4 || dis < -4)
+            if (!e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
                 return;
 
-            if (e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
-            {
-                _resizingAuthorColumn = true;
+            _columnResizer = FindColumnResizer(e.GetPosition(border).X);
+            if (_columnResizer != null)
                 e.Handled = true;
-            }
         }
 
         private void OnCommitListHeaderPointerReleased(object sender, PointerReleasedEventArgs e)
         {
-            _resizingAuthorColumn = false;
+            _columnResizer = null;
         }
 
         private void OnCommitListHeaderContextRequested(object sender, ContextRequestedEventArgs e)
@@ -1827,7 +1881,7 @@ namespace SourceGit.Views
         private AvaloniaList<Models.IssueTracker> _issueTrackers = null;
         private bool _isScrollToTopVisible = false;
         private bool _isDetailsPanelExpanded = true;
-        private bool _resizingAuthorColumn = false;
+        private ColumnResizer _columnResizer = null;
         private Cursor _resizingCursor = new(StandardCursorType.SizeWestEast);
     }
 }

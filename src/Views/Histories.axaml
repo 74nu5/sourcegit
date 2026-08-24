@@ -145,10 +145,11 @@
         <DataGrid.Columns>
           <!-- References pulled out of the subject cell into their own column. Hidden unless
                the user opts in, in which case the inline presenter above hides itself. -->
-          <DataGridTemplateColumn Width="Auto"
+          <DataGridTemplateColumn Width="{Binding BranchColumnWidth, Mode=OneWay, Converter={x:Static c:DoubleConverters.ToColumnWidth}}"
                                   MinWidth="60"
-                                  MaxWidth="200"
+                                  MaxWidth="400"
                                   IsReadOnly="True"
+                                  Tag="branch"
                                   IsVisible="{Binding Source={x:Static vm:Preferences.Instance}, Path=ShowBranchColumnInHistories, Mode=OneWay}">
             <DataGridTemplateColumn.Header>
               <TextBlock Classes="table_header" Text="{DynamicResource Text.Histories.Header.Branch}" HorizontalAlignment="Center"/>
@@ -231,7 +232,11 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <DataGridTemplateColumn MinWidth="80" IsReadOnly="True" IsVisible="{Binding IsAuthorColumnVisible, Mode=OneWay}">
+          <DataGridTemplateColumn MinWidth="80"
+                                  IsReadOnly="True"
+                                  Tag="author"
+                                  Width="{Binding AuthorColumnWidth, Mode=OneWay, Converter={x:Static c:DoubleConverters.ToPixelWidth}}"
+                                  IsVisible="{Binding IsAuthorColumnVisible, Mode=OneWay}">
             <DataGridTemplateColumn.Header>
               <TextBlock Classes="table_header" Text="{DynamicResource Text.Histories.Header.Author}" HorizontalAlignment="Center"/>
             </DataGridTemplateColumn.Header>
