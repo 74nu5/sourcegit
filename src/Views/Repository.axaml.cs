@@ -457,6 +457,16 @@ namespace SourceGit.Views
                 columns.Header = App.Text("Repository.HistoriesColumns");
                 columns.IsEnabled = false;
 
+                var showBranchColumn = new MenuItem();
+                showBranchColumn.Header = App.Text("Repository.HistoriesColumns.ShowBranch");
+                if (pref.ShowBranchColumnInHistories)
+                    showBranchColumn.Icon = this.CreateMenuIcon("Icons.Check");
+                showBranchColumn.Click += (_, ev) =>
+                {
+                    pref.ShowBranchColumnInHistories = !pref.ShowBranchColumnInHistories;
+                    ev.Handled = true;
+                };
+
                 var splitGraph = new MenuItem();
                 splitGraph.Header = App.Text("Repository.HistoriesColumns.SplitGraph");
                 if (pref.SplitGraphColumnInHistories)
@@ -537,6 +547,7 @@ namespace SourceGit.Views
                 menu.Items.Add(topoOrder);
                 menu.Items.Add(new MenuItem() { Header = "-" });
                 menu.Items.Add(columns);
+                menu.Items.Add(showBranchColumn);
                 menu.Items.Add(splitGraph);
                 menu.Items.Add(new MenuItem() { Header = "-" });
                 menu.Items.Add(highlights);

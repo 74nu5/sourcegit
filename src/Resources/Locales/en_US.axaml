@@ -509,6 +509,7 @@
   <x:String x:Key="Text.GotoRevisionSelector" xml:space="preserve">Select Commit</x:String>
   <x:String x:Key="Text.Histories" xml:space="preserve">HISTORY</x:String>
   <x:String x:Key="Text.Histories.Header.Author" xml:space="preserve">AUTHOR</x:String>
+  <x:String x:Key="Text.Histories.Header.Branch" xml:space="preserve">BRANCH / TAG</x:String>
   <x:String x:Key="Text.Histories.Header.AuthorTime" xml:space="preserve">AUTHOR TIME</x:String>
   <x:String x:Key="Text.Histories.Header.CommitTime" xml:space="preserve">COMMIT TIME</x:String>
   <x:String x:Key="Text.Histories.Header.Graph" xml:space="preserve">GRAPH</x:String>
@@ -816,6 +817,7 @@
   <x:String x:Key="Text.Repository.FilterCommits.Include" xml:space="preserve">Filter in commit graph</x:String>
   <x:String x:Key="Text.Repository.FilterCommits.Summary" xml:space="preserve">filter(s) enabled</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns" xml:space="preserve">COLUMNS</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.ShowBranch" xml:space="preserve">Branch / Tag Column</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.SplitGraph" xml:space="preserve">Separate Graph Column</x:String>
   <x:String x:Key="Text.Repository.HistoriesLayout" xml:space="preserve">LAYOUT</x:String>
   <x:String x:Key="Text.Repository.HistoriesLayout.Horizontal" xml:space="preserve">Horizontal</x:String>
