@@ -219,6 +219,25 @@ namespace SourceGit.Views
             };
         }
 
+        /// <summary>
+        ///     True when only the first reference is drawn and the others sit behind the
+        ///     counter, in which case they can only be reached through the context menu.
+        /// </summary>
+        public bool IsCollapsed => _collapsed;
+
+        /// <summary>
+        ///     Every reference this presenter stands for, folded ones included, in the order
+        ///     they are drawn.
+        /// </summary>
+        public List<Models.Decorator> Decorators()
+        {
+            var result = new List<Models.Decorator>(_items.Count);
+            foreach (var item in _items)
+                result.Add(item.Decorator);
+
+            return result;
+        }
+
         public Models.Decorator DecoratorAt(Point point)
         {
             if (_items.Count == 0)
