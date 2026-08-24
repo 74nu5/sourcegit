@@ -973,7 +973,7 @@ namespace SourceGit.Views
 
         /// <summary>
         ///     One submenu per reference, so a commit carrying several of them gives access to
-        ///     each without having to unfold anything.
+        ///     each of them without having to unfold anything.
         /// </summary>
         private ContextMenu CreateContextMenuForDecorators(ViewModels.Repository repo, Models.Commit commit, List<Models.Decorator> decorators)
         {
@@ -983,91 +983,80 @@ namespace SourceGit.Views
             var menu = new ContextMenu();
             foreach (var decorator in decorators)
             {
-                var actions = CreateContextMenuForDecorator(repo, commit, decorator);
-                if (actions == null)
-                    continue;
-
-                var entry = new MenuItem();
-                entry.Header = decorator.Name;
-                entry.Icon = this.CreateMenuIcon(IconKeyOf(decorator.Type));
-
-                // An item cannot belong to two parents, so detach before re-parenting.
-                var items = new List<object>();
-                foreach (var item in actions.Items)
-                    items.Add(item);
-                actions.Items.Clear();
-
-                foreach (var item in items)
-                    entry.Items.Add(item);
-
-                menu.Items.Add(entry);
+                var submenu = BuildDecoratorSubmenu(repo, commit, decorator);
+                if (submenu != null)
+                    menu.Items.Add(submenu);
             }
 
             return menu.Items.Count > 0 ? menu : null;
         }
 
-        private static string IconKeyOf(Models.DecoratorType type)
+        /// <summary>
+        ///     Actions of a single reference, listed directly: there is nothing to disambiguate,
+        ///     so nesting them under the reference name would only add a level to walk through.
+        /// </summary>
+        private ContextMenu CreateContextMenuForDecorator(ViewModels.Repository repo, Models.Commit commit, Models.Decorator decorator)
         {
-            return type switch
-            {
-                Models.DecoratorType.CurrentBranchHead => "Icons.Head",
-                Models.DecoratorType.CurrentCommitHead => "Icons.Head",
-                Models.DecoratorType.RemoteBranchHead => "Icons.Remote",
-                Models.DecoratorType.Tag => "Icons.Tag",
-                _ => "Icons.Branch",
-            };
+            var submenu = BuildDecoratorSubmenu(repo, commit, decorator);
+            if (submenu == null)
+                return null;
+
+            // An item cannot belong to two parents, so detach before re-parenting.
+            var items = new List<object>();
+            foreach (var item in submenu.Items)
+                items.Add(item);
+            submenu.Items.Clear();
+
+            var menu = new ContextMenu();
+            foreach (var item in items)
+                menu.Items.Add(item);
+
+            return menu;
         }
 
-        private ContextMenu CreateContextMenuForDecorator(ViewModels.Repository repo, Models.Commit commit, Models.Decorator decorator)
+        /// <summary>
+        ///     The FillXxxMenu helpers already wrap their actions in a submenu named after the
+        ///     reference, icon included. This hands that submenu back.
+        /// </summary>
+        private MenuItem BuildDecoratorSubmenu(ViewModels.Repository repo, Models.Commit commit, Models.Decorator decorator)
         {
             var current = repo.CurrentBranch;
             if (current == null)
                 return null;
 
-            var menu = new ContextMenu();
+            var host = new ContextMenu();
             switch (decorator.Type)
             {
                 case Models.DecoratorType.CurrentBranchHead:
-                    FillCurrentBranchMenu(menu, repo, current);
+                    FillCurrentBranchMenu(host, repo, current);
                     break;
                 case Models.DecoratorType.LocalBranchHead:
                     var local = repo.Branches.Find(x => x.IsLocal && decorator.Name.Equals(x.Name, StringComparison.Ordinal));
                     if (local == null)
                         return null;
-                    FillOtherLocalBranchMenu(menu, repo, local, current, commit.IsMerged);
+                    FillOtherLocalBranchMenu(host, repo, local, current, commit.IsMerged);
                     break;
                 case Models.DecoratorType.RemoteBranchHead:
                     var remote = repo.Branches.Find(x => !x.IsLocal && decorator.Name.Equals(x.FriendlyName, StringComparison.Ordinal));
                     if (remote == null)
                         return null;
-                    FillRemoteBranchMenu(menu, repo, remote, current, commit.IsMerged);
+                    FillRemoteBranchMenu(host, repo, remote, current, commit.IsMerged);
                     break;
                 case Models.DecoratorType.Tag:
                     var tag = repo.Tags.Find(x => decorator.Name.Equals(x.Name, StringComparison.Ordinal));
                     if (tag == null)
                         return null;
-                    FillTagMenu(menu, repo, tag, current);
+                    FillTagMenu(host, repo, tag, current);
                     break;
                 default:
                     return null;
             }
 
-            if (menu.Items.Count == 0)
+            if (host.Items.Count != 1 || host.Items[0] is not MenuItem submenu)
                 return null;
 
-            menu.Items.Add(new MenuItem() { Header = "-" });
-
-            var copyName = new MenuItem();
-            copyName.Icon = this.CreateMenuIcon("Icons.Copy");
-            copyName.Header = App.Text("Copy");
-            copyName.Click += async (_, e) =>
-            {
-                await this.CopyTextAsync(decorator.Name);
-                e.Handled = true;
-            };
-            menu.Items.Add(copyName);
-
-            return menu;
+            host.Items.Clear();
+            return submenu;
         }
 
         private ContextMenu CreateContextMenuForSingleCommit(ViewModels.Repository repo, Models.Commit commit)
