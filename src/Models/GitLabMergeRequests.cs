@@ -113,6 +113,7 @@ namespace SourceGit.Models
                 Url = ReadString(item, "web_url") ?? string.Empty,
                 CreatedAt = created,
                 SourceRepository = ReadSourceProject(item, repo),
+                Kind = ForgeKind.GitLab,
             };
         }
 

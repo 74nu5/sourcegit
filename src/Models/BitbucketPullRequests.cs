@@ -116,6 +116,7 @@ namespace SourceGit.Models
                 Url = ReadWebUrl(item),
                 CreatedAt = created,
                 SourceRepository = ReadSourceRepository(item),
+                Kind = ForgeKind.Bitbucket,
             };
         }
 
