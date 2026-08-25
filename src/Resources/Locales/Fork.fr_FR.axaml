@@ -23,6 +23,7 @@
   <x:String x:Key="Text.Preferences.Forge.Project.Watermark" xml:space="preserve">tous les projets de l’organisation</x:String>
   <x:String x:Key="Text.Preferences.Forge.Project.Hint" xml:space="preserve">Azure DevOps classe les dépôts en organisation / projet / dépôt. En nommer un restreint ce compte à celui-ci, ce qu’exige un jeton limité à un seul projet. Le compte le plus précis qui convient à un dépôt est celui qui sert.</x:String>
   <x:String x:Key="Text.Preferences.Forge.FromEnv" xml:space="preserve">Lire le jeton dans une variable d’environnement</x:String>
+  <x:String x:Key="Text.Preferences.Forge.ShowIndicator" xml:space="preserve">Signaler les branches ayant une demande de tirage ouverte</x:String>
   <x:String x:Key="Text.Preferences.Forge.Test" xml:space="preserve">Tester la connexion</x:String>
   <x:String x:Key="Text.Preferences.Forge.Test.Hint" xml:space="preserve">Envoie une seule requête authentifiée et rapporte la réponse. Cela prouve que l’adresse répond et que le jeton est accepté ; sur Azure DevOps, cela prouve en plus que l’organisation et le projet nommés ci-dessus sont bien ceux que le jeton ouvre.</x:String>
   <x:String x:Key="Text.Preferences.Forge.Test.Running" xml:space="preserve">Interrogation…</x:String>

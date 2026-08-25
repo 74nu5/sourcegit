@@ -66,6 +66,17 @@ namespace SourceGit.ViewModels
             return best;
         }
 
+        /// <summary>
+        ///     Whether a branch carrying an open pull request shows it. Off by default like
+        ///     everything else this fork adds — and while it is off, nothing here ever
+        ///     reaches the network.
+        /// </summary>
+        public bool ShowPullRequestIndicator
+        {
+            get => _showPullRequestIndicator;
+            set => SetProperty(ref _showPullRequestIndicator, value);
+        }
+
         public Models.BranchColumnMode BranchColumnMode
         {
             get => _branchColumnMode;
@@ -76,6 +87,7 @@ namespace SourceGit.ViewModels
         private bool _showBranchColumnInHistories = false;
         private Models.GraphLaneMode _graphLaneMode = Models.GraphLaneMode.Compact;
         private bool _colorizeRowsByBranch = false;
+        private bool _showPullRequestIndicator = false;
         private Models.BranchColumnMode _branchColumnMode = Models.BranchColumnMode.RefsOnly;
     }
 }
