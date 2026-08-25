@@ -114,6 +114,7 @@ namespace SourceGit.Models
                 Url = ReadString(item, "html_url") ?? string.Empty,
                 CreatedAt = created,
                 SourceRepository = ReadHeadRepository(item),
+                Kind = ForgeKind.Gitea,
             };
         }
 
