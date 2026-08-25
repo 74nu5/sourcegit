@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Avalonia.Interactivity;
 
 namespace SourceGit.Views
@@ -63,7 +62,5 @@ namespace SourceGit.Views
             e.Handled = true;
         }
 
-        [GeneratedRegex(@"^v\d{4}\.\d{1,2}(?:\-\d+\-[0-9a-f]{8})?(?:\-dirty)?$")]
-        private static partial Regex REG_FRIENDLY_VERSION();
     }
 }
