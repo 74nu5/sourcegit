@@ -23,6 +23,7 @@
   <x:String x:Key="Text.Preferences.Forge.Project.Watermark" xml:space="preserve">every project of the organisation</x:String>
   <x:String x:Key="Text.Preferences.Forge.Project.Hint" xml:space="preserve">Azure DevOps files repositories under organisation / project / repository. Naming one restricts this account to it, which is what a token scoped to a single project needs. The narrowest account that fits a repository is the one used.</x:String>
   <x:String x:Key="Text.Preferences.Forge.FromEnv" xml:space="preserve">Read the token from an environment variable</x:String>
+  <x:String x:Key="Text.Preferences.Forge.ShowIndicator" xml:space="preserve">Mark branches that have an open pull request</x:String>
   <x:String x:Key="Text.Preferences.Forge.Test" xml:space="preserve">Test connection</x:String>
   <x:String x:Key="Text.Preferences.Forge.Test.Hint" xml:space="preserve">Sends one authenticated request and reports what came back. It proves the address is reachable and the token is accepted; on Azure DevOps it also proves the organisation and project named above are the ones the token opens.</x:String>
   <x:String x:Key="Text.Preferences.Forge.Test.Running" xml:space="preserve">Asking…</x:String>
