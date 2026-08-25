@@ -23,6 +23,19 @@
   <x:String x:Key="Text.Preferences.Forge.Project.Watermark" xml:space="preserve">every project of the organisation</x:String>
   <x:String x:Key="Text.Preferences.Forge.Project.Hint" xml:space="preserve">Azure DevOps files repositories under organisation / project / repository. Naming one restricts this account to it, which is what a token scoped to a single project needs. The narrowest account that fits a repository is the one used.</x:String>
   <x:String x:Key="Text.Preferences.Forge.FromEnv" xml:space="preserve">Read the token from an environment variable</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test" xml:space="preserve">Test connection</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.Hint" xml:space="preserve">Sends one authenticated request and reports what came back. It proves the address is reachable and the token is accepted; on Azure DevOps it also proves the organisation and project named above are the ones the token opens.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.Running" xml:space="preserve">Asking…</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.Ok" xml:space="preserve">Connected.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.NoToken" xml:space="preserve">No token to send.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.NeedsOrganization" xml:space="preserve">Azure DevOps has nothing to answer without an organisation.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.BadAddress" xml:space="preserve">That address is not a usable http or https address.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.Unauthorized" xml:space="preserve">The token was refused. It may be wrong, expired, or issued for another organisation.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.Forbidden" xml:space="preserve">The token was accepted but is not allowed to read this.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.NotFound" xml:space="preserve">Nothing at that address. Check the organisation and project names.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.Unreachable" xml:space="preserve">Could not reach the forge.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.Timeout" xml:space="preserve">No answer within fifteen seconds.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.Unexpected" xml:space="preserve">Unexpected answer.</x:String>
   <x:String x:Key="Text.Preferences.Forge.Token" xml:space="preserve">Token</x:String>
   <x:String x:Key="Text.Preferences.Forge.Token.Hint" xml:space="preserve">With the box above ticked, the name of the variable holding the token (e.g. AZURE_DEVOPS_PAT). Unticked, the token itself.</x:String>
   <x:String x:Key="Text.Preferences.Forge.Privacy" xml:space="preserve">Preferences are stored as plain text, so a token typed here is readable by anything that can read your home directory. Naming an environment variable keeps it out of the file.</x:String>
