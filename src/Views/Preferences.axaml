@@ -678,6 +678,14 @@
 
         <TabItem>
           <TabItem.Header>
+            <TextBlock Classes="tab_header" Text="{DynamicResource Text.Preferences.Forge}"/>
+          </TabItem.Header>
+
+          <v:ForgeAccounts Margin="0,8,0,16" MinHeight="400"/>
+        </TabItem>
+
+        <TabItem>
+          <TabItem.Header>
             <TextBlock Classes="tab_header" Text="{DynamicResource Text.Configure.CustomAction}"/>
           </TabItem.Header>
 

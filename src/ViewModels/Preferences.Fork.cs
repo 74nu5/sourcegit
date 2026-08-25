@@ -1,4 +1,8 @@
 ﻿
+using System;
+
+using Avalonia.Collections;
+
 namespace SourceGit.ViewModels
 {
     /// <summary>
@@ -29,6 +33,34 @@ namespace SourceGit.ViewModels
         {
             get => _colorizeRowsByBranch;
             set => SetProperty(ref _colorizeRowsByBranch, value);
+        }
+
+        /// <summary>
+        ///     Credentials for the forges this fork talks to. Empty by default, and while it
+        ///     is empty nothing here ever reaches the network.
+        /// </summary>
+        public AvaloniaList<Models.ForgeAccount> ForgeAccounts
+        {
+            get;
+            set;
+        } = [];
+
+        /// <summary>
+        ///     The account to use for a host, or null when none is configured. Matching is on
+        ///     the host alone: one set of credentials serves every repository on it.
+        /// </summary>
+        public Models.ForgeAccount FindForgeAccount(string host)
+        {
+            if (string.IsNullOrEmpty(host))
+                return null;
+
+            foreach (var account in ForgeAccounts)
+            {
+                if (host.Equals(account.Host, StringComparison.OrdinalIgnoreCase))
+                    return account;
+            }
+
+            return null;
         }
 
         public Models.BranchColumnMode BranchColumnMode

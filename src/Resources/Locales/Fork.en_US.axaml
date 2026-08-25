@@ -12,6 +12,14 @@
   <x:String x:Key="Text.Histories.Header.Graph" xml:space="preserve">GRAPH</x:String>
   <x:String x:Key="Text.Histories.Header.Subject" xml:space="preserve">COMMIT MESSAGE</x:String>
   <x:String x:Key="Text.Histories.HiddenLanes.Tip" xml:space="preserve">Some branches share the last column because the graph reached its lane budget. Widen the window or use the compact placement to see more.</x:String>
+  <x:String x:Key="Text.Preferences.Forge" xml:space="preserve">FORGES</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Empty" xml:space="preserve">No account selected. Add one for each forge you want SourceGit to query — an Azure DevOps organisation, a GitHub or GitLab instance.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Host" xml:space="preserve">Host</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Host.Hint" xml:space="preserve">The host as it appears in the remote URL: dev.azure.com, github.com, or the address of a self-hosted instance. Every repository whose remote points there uses this account.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.FromEnv" xml:space="preserve">Read the token from an environment variable</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Token" xml:space="preserve">Token</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Token.Hint" xml:space="preserve">With the box above ticked, the name of the variable holding the token (e.g. AZURE_DEVOPS_PAT). Unticked, the token itself.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Privacy" xml:space="preserve">Preferences are stored as plain text, so a token typed here is readable by anything that can read your home directory. Naming an environment variable keeps it out of the file.</x:String>
   <x:String x:Key="Text.Repository.BranchPlacement" xml:space="preserve">BRANCH PLACEMENT</x:String>
   <x:String x:Key="Text.Repository.BranchPlacement.Compact" xml:space="preserve">Compact</x:String>
   <x:String x:Key="Text.Repository.BranchPlacement.Stable" xml:space="preserve">Stable Lanes</x:String>
