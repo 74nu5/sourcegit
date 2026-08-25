@@ -6,7 +6,13 @@
              x:Class="SourceGit.Views.ForgeAccounts"
              x:DataType="vm:Preferences"
              x:Name="ThisControl">
-  <Grid ColumnDefinitions="240,*">
+  <Grid RowDefinitions="Auto,*">
+    <CheckBox Grid.Row="0"
+              Margin="0,0,0,10"
+              Content="{DynamicResource Text.Preferences.Forge.ShowIndicator}"
+              IsChecked="{Binding ShowPullRequestIndicator, Mode=TwoWay}"/>
+
+    <Grid Grid.Row="1" ColumnDefinitions="240,*">
     <!-- The accounts themselves -->
     <Border Grid.Column="0"
             BorderThickness="1" BorderBrush="{DynamicResource Brush.Border2}"
@@ -191,7 +197,8 @@
             </StackPanel>
           </ScrollViewer>
         </DataTemplate>
-      </ContentControl.DataTemplates>
-    </ContentControl>
+        </ContentControl.DataTemplates>
+      </ContentControl>
+    </Grid>
   </Grid>
 </UserControl>
