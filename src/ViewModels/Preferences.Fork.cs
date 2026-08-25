@@ -1,7 +1,4 @@
-﻿
-using System;
-
-using Avalonia.Collections;
+﻿using Avalonia.Collections;
 
 namespace SourceGit.ViewModels
 {
@@ -46,21 +43,27 @@ namespace SourceGit.ViewModels
         } = [];
 
         /// <summary>
-        ///     The account to use for a host, or null when none is configured. Matching is on
-        ///     the host alone: one set of credentials serves every repository on it.
+        ///     The account to use for a repository, or null when none covers it.
+        ///
+        ///     The most specific one wins, so a token issued for a single Azure DevOps project
+        ///     can sit beside the organisation-wide one without either shadowing the other.
         /// </summary>
-        public Models.ForgeAccount FindForgeAccount(string host)
+        public Models.ForgeAccount FindForgeAccount(Models.ForgeRepository repo)
         {
-            if (string.IsNullOrEmpty(host))
-                return null;
+            Models.ForgeAccount best = null;
+            var bestScore = -1;
 
             foreach (var account in ForgeAccounts)
             {
-                if (host.Equals(account.Host, StringComparison.OrdinalIgnoreCase))
-                    return account;
+                var score = account.Match(repo);
+                if (score > bestScore)
+                {
+                    best = account;
+                    bestScore = score;
+                }
             }
 
-            return null;
+            return best;
         }
 
         public Models.BranchColumnMode BranchColumnMode

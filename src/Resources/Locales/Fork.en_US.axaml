@@ -13,9 +13,15 @@
   <x:String x:Key="Text.Histories.Header.Subject" xml:space="preserve">COMMIT MESSAGE</x:String>
   <x:String x:Key="Text.Histories.HiddenLanes.Tip" xml:space="preserve">Some branches share the last column because the graph reached its lane budget. Widen the window or use the compact placement to see more.</x:String>
   <x:String x:Key="Text.Preferences.Forge" xml:space="preserve">FORGES</x:String>
-  <x:String x:Key="Text.Preferences.Forge.Empty" xml:space="preserve">No account selected. Add one for each forge you want SourceGit to query — an Azure DevOps organisation, a GitHub or GitLab instance.</x:String>
-  <x:String x:Key="Text.Preferences.Forge.Host" xml:space="preserve">Host</x:String>
-  <x:String x:Key="Text.Preferences.Forge.Host.Hint" xml:space="preserve">The host as it appears in the remote URL: dev.azure.com, github.com, or the address of a self-hosted instance. Every repository whose remote points there uses this account.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Empty" xml:space="preserve">No account selected. Use + to add one, choosing the forge it talks to.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Url" xml:space="preserve">Address</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Url.Hint" xml:space="preserve">Where the forge lives. Change it for a self-hosted instance, a GitHub Enterprise server or an on-premises Azure DevOps Server.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Organization" xml:space="preserve">Organisation</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Organization.Watermark" xml:space="preserve">every organisation on this address</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Organization.Hint" xml:space="preserve">The organisation on Azure DevOps, the owner or organisation on GitHub, the group on GitLab. Leave it empty and the account serves every repository hosted at the address above.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Project" xml:space="preserve">Project</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Project.Watermark" xml:space="preserve">every project of the organisation</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Project.Hint" xml:space="preserve">Azure DevOps files repositories under organisation / project / repository. Naming one restricts this account to it, which is what a token scoped to a single project needs. The narrowest account that fits a repository is the one used.</x:String>
   <x:String x:Key="Text.Preferences.Forge.FromEnv" xml:space="preserve">Read the token from an environment variable</x:String>
   <x:String x:Key="Text.Preferences.Forge.Token" xml:space="preserve">Token</x:String>
   <x:String x:Key="Text.Preferences.Forge.Token.Hint" xml:space="preserve">With the box above ticked, the name of the variable holding the token (e.g. AZURE_DEVOPS_PAT). Unticked, the token itself.</x:String>

@@ -1,11 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="using:SourceGit.Models"
+             xmlns:c="using:SourceGit.Converters"
              xmlns:vm="using:SourceGit.ViewModels"
              x:Class="SourceGit.Views.ForgeAccounts"
              x:DataType="vm:Preferences"
              x:Name="ThisControl">
-  <Grid Margin="8" ColumnDefinitions="240,*">
+  <Grid ColumnDefinitions="240,*">
     <!-- The accounts themselves -->
     <Border Grid.Column="0"
             BorderThickness="1" BorderBrush="{DynamicResource Brush.Border2}"
@@ -19,7 +20,7 @@
           <ListBox.Styles>
             <Style Selector="ListBoxItem">
               <Setter Property="MinHeight" Value="0"/>
-              <Setter Property="Height" Value="38"/>
+              <Setter Property="Height" Value="40"/>
               <Setter Property="Padding" Value="6,2"/>
             </Style>
           </ListBox.Styles>
@@ -35,9 +36,9 @@
               <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
                 <Path Grid.Column="0" Width="14" Height="14"
                       Data="{StaticResource Icons.Remote}"
-                      Fill="{DynamicResource Brush.FG2}"/>
+                      Fill="{Binding Kind, Converter={x:Static c:ForgeConverters.ToBrush}}"/>
                 <StackPanel Grid.Column="1" Orientation="Vertical" Margin="8,0">
-                  <TextBlock Text="{Binding Host}" TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
                   <TextBlock Text="{Binding Description}"
                              FontSize="11"
                              Foreground="{DynamicResource Brush.FG2}"
@@ -51,7 +52,16 @@
         <Rectangle Grid.Row="1" Height="1" Fill="{DynamicResource Brush.Border2}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"/>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" Background="{DynamicResource Brush.ToolBar}">
-          <Button Classes="icon_button" Click="OnAddAccount">
+          <Button Classes="icon_button">
+            <Button.Flyout>
+              <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                <MenuItem Header="Azure DevOps" Click="OnAddAzureDevOpsAccount"/>
+                <MenuItem Header="GitHub" Click="OnAddGitHubAccount"/>
+                <MenuItem Header="GitLab" Click="OnAddGitLabAccount"/>
+                <MenuItem Header="Gitea" Click="OnAddGiteaAccount"/>
+                <MenuItem Header="Bitbucket" Click="OnAddBitbucketAccount"/>
+              </MenuFlyout>
+            </Button.Flyout>
             <Path Width="14" Height="14" Data="{StaticResource Icons.Plus}"/>
           </Button>
 
@@ -85,42 +95,75 @@
 
       <ContentControl.DataTemplates>
         <DataTemplate DataType="m:ForgeAccount">
-          <StackPanel Orientation="Vertical" MaxWidth="560">
-            <TextBlock Text="{DynamicResource Text.Preferences.Forge.Host}" Margin="0,0,0,4"/>
-            <TextBox Height="28" CornerRadius="3" Text="{Binding Host, Mode=TwoWay}"/>
-            <TextBlock Margin="0,4,0,0"
-                       FontSize="11"
-                       Foreground="{DynamicResource Brush.FG2}"
-                       TextWrapping="Wrap"
-                       Text="{DynamicResource Text.Preferences.Forge.Host.Hint}"/>
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical" MaxWidth="560" Margin="0,0,8,0">
+              <StackPanel Orientation="Horizontal">
+                <Path Width="14" Height="14"
+                      Data="{StaticResource Icons.Remote}"
+                      Fill="{Binding Kind, Converter={x:Static c:ForgeConverters.ToBrush}}"/>
+                <TextBlock Margin="8,0,0,0" FontWeight="Bold" Text="{Binding KindName}"/>
+              </StackPanel>
 
-            <CheckBox Margin="0,16,0,0"
-                      Content="{DynamicResource Text.Preferences.Forge.FromEnv}"
-                      IsChecked="{Binding ReadTokenFromEnv, Mode=TwoWay}"/>
-
-            <TextBlock Margin="0,12,0,4" Text="{DynamicResource Text.Preferences.Forge.Token}"/>
-            <TextBox Height="28"
-                     CornerRadius="3"
-                     Text="{Binding Token, Mode=TwoWay}"
-                     PasswordChar="*"
-                     RevealPassword="{Binding ReadTokenFromEnv, Mode=OneWay}"/>
-            <TextBlock Margin="0,4,0,0"
-                       FontSize="11"
-                       Foreground="{DynamicResource Brush.FG2}"
-                       TextWrapping="Wrap"
-                       Text="{DynamicResource Text.Preferences.Forge.Token.Hint}"/>
-
-            <Border Margin="0,20,0,0"
-                    Padding="10,8"
-                    CornerRadius="3"
-                    Background="{DynamicResource Brush.Contents}"
-                    BorderThickness="1" BorderBrush="{DynamicResource Brush.Border2}">
-              <TextBlock TextWrapping="Wrap"
+              <TextBlock Margin="0,16,0,4" Text="{DynamicResource Text.Preferences.Forge.Url}"/>
+              <TextBox Height="28" CornerRadius="3" Text="{Binding Url, Mode=TwoWay}"/>
+              <TextBlock Margin="0,4,0,0"
                          FontSize="11"
                          Foreground="{DynamicResource Brush.FG2}"
-                         Text="{DynamicResource Text.Preferences.Forge.Privacy}"/>
-            </Border>
-          </StackPanel>
+                         TextWrapping="Wrap"
+                         Text="{DynamicResource Text.Preferences.Forge.Url.Hint}"/>
+
+              <TextBlock Margin="0,12,0,4" Text="{DynamicResource Text.Preferences.Forge.Organization}"/>
+              <TextBox Height="28"
+                       CornerRadius="3"
+                       Text="{Binding Organization, Mode=TwoWay}"
+                       Watermark="{DynamicResource Text.Preferences.Forge.Organization.Watermark}"/>
+              <TextBlock Margin="0,4,0,0"
+                         FontSize="11"
+                         Foreground="{DynamicResource Brush.FG2}"
+                         TextWrapping="Wrap"
+                         Text="{DynamicResource Text.Preferences.Forge.Organization.Hint}"/>
+
+              <StackPanel Orientation="Vertical" IsVisible="{Binding SupportsProject}">
+                <TextBlock Margin="0,12,0,4" Text="{DynamicResource Text.Preferences.Forge.Project}"/>
+                <TextBox Height="28"
+                         CornerRadius="3"
+                         Text="{Binding Project, Mode=TwoWay}"
+                         Watermark="{DynamicResource Text.Preferences.Forge.Project.Watermark}"/>
+                <TextBlock Margin="0,4,0,0"
+                           FontSize="11"
+                           Foreground="{DynamicResource Brush.FG2}"
+                           TextWrapping="Wrap"
+                           Text="{DynamicResource Text.Preferences.Forge.Project.Hint}"/>
+              </StackPanel>
+
+              <CheckBox Margin="0,16,0,0"
+                        Content="{DynamicResource Text.Preferences.Forge.FromEnv}"
+                        IsChecked="{Binding ReadTokenFromEnv, Mode=TwoWay}"/>
+
+              <TextBlock Margin="0,12,0,4" Text="{DynamicResource Text.Preferences.Forge.Token}"/>
+              <TextBox Height="28"
+                       CornerRadius="3"
+                       Text="{Binding Token, Mode=TwoWay}"
+                       PasswordChar="*"
+                       RevealPassword="{Binding ReadTokenFromEnv, Mode=OneWay}"/>
+              <TextBlock Margin="0,4,0,0"
+                         FontSize="11"
+                         Foreground="{DynamicResource Brush.FG2}"
+                         TextWrapping="Wrap"
+                         Text="{DynamicResource Text.Preferences.Forge.Token.Hint}"/>
+
+              <Border Margin="0,16,0,0"
+                      Padding="10,8"
+                      CornerRadius="3"
+                      Background="{DynamicResource Brush.Contents}"
+                      BorderThickness="1" BorderBrush="{DynamicResource Brush.Border2}">
+                <TextBlock TextWrapping="Wrap"
+                           FontSize="11"
+                           Foreground="{DynamicResource Brush.FG2}"
+                           Text="{DynamicResource Text.Preferences.Forge.Privacy}"/>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
         </DataTemplate>
       </ContentControl.DataTemplates>
     </ContentControl>
