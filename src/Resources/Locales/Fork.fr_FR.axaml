@@ -53,6 +53,7 @@
   <x:String x:Key="Text.Repository.HistoriesColumns.AllRows" xml:space="preserve">Colonne branche : toutes les lignes</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.ColorizeRows" xml:space="preserve">Colorer les lignes par branche</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.RefsOnly" xml:space="preserve">Colonne branche : refs seules</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.RemoteIcon" xml:space="preserve">Dépôt distant en icône plutôt qu’en nom</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.ShowBranch" xml:space="preserve">Colonne branche / tag</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.SplitGraph" xml:space="preserve">Colonne graphe séparée</x:String>
 </ResourceDictionary>
