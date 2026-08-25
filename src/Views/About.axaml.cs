@@ -39,17 +39,6 @@ namespace SourceGit.Views
                 TxtCopyright.Text = copyright.Copyright;
         }
 
-        private void OnVisitReleaseNotes(object _, RoutedEventArgs e)
-        {
-            var ver = TxtVersion.Text ?? string.Empty;
-            var endOfTagIdx = ver.IndexOf('-');
-            if (endOfTagIdx > 0)
-                ver = ver.Substring(0, endOfTagIdx);
-
-            Native.OS.OpenBrowser($"https://github.com/sourcegit-scm/sourcegit/releases/tag/{ver}");
-            e.Handled = true;
-        }
-
         private void OnVisitWebsite(object _, RoutedEventArgs e)
         {
             Native.OS.OpenBrowser("https://sourcegit-scm.github.io/");
