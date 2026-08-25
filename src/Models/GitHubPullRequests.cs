@@ -122,6 +122,7 @@ namespace SourceGit.Models
                 SourceBranch = ReadRef(item, "head"),
                 TargetBranch = ReadRef(item, "base"),
                 SourceRepository = ReadHeadRepository(item),
+                Kind = ForgeKind.GitHub,
                 State = ToState(state, isDraft, merged),
                 Url = ReadString(item, "html_url") ?? string.Empty,
                 CreatedAt = created,

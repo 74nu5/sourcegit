@@ -197,67 +197,196 @@ namespace SourceGit.Views
         }
 
         /// <summary>
-        ///     What the mark stands for, spelled out: the request, where it goes, and who
-        ///     opened it. Built here rather than as a resource because it belongs to no window.
+        ///     What the mark stands for, spelled out.
+        ///
+        ///     The two branches are stacked rather than written side by side, and each sits in
+        ///     its own block that wraps. Branch names in the wild run to forty characters and
+        ///     more; on one line the second of them was simply cut off, which is the one thing
+        ///     a card meant to inform must not do.
         /// </summary>
         private Control CreatePullRequestCard(Models.PullRequest pr)
         {
-            var panel = new StackPanel() { Orientation = Avalonia.Layout.Orientation.Vertical, MaxWidth = 420 };
-
-            panel.Children.Add(new TextBlock()
+            var root = new StackPanel()
             {
-                Text = $"#{pr.Id}  {pr.Title}",
-                FontWeight = FontWeight.Bold,
+                Orientation = Avalonia.Layout.Orientation.Vertical,
+                MinWidth = 300,
+                MaxWidth = 460,
+            };
+
+            root.Children.Add(CardHeader(pr));
+
+            root.Children.Add(new TextBlock()
+            {
+                Text = pr.Title,
+                FontWeight = FontWeight.SemiBold,
+                FontSize = 13,
                 TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 10, 0, 0),
             });
 
-            var line = new StackPanel() { Orientation = Avalonia.Layout.Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
-            line.Children.Add(new Border()
+            root.Children.Add(BranchBlock(pr.SourceBranch, true));
+            root.Children.Add(new TextBlock()
             {
-                Background = StateBrush(pr.State),
-                CornerRadius = new CornerRadius(3),
-                Padding = new Thickness(5, 1),
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                Child = new TextBlock()
+                Text = "↓",
+                Margin = new Thickness(9, 1, 0, 1),
+                FontSize = 11,
+                Opacity = 0.45,
+            });
+            root.Children.Add(BranchBlock(pr.TargetBranch, false));
+
+            var meta = Meta(pr);
+            if (meta.Length > 0)
+            {
+                root.Children.Add(new TextBlock()
                 {
-                    Text = App.Text($"PullRequest.State.{pr.State}"),
+                    Text = meta,
+                    Margin = new Thickness(0, 10, 0, 0),
                     FontSize = 11,
-                    Foreground = Brushes.White,
-                },
-            });
-            line.Children.Add(new TextBlock()
-            {
-                Text = $"{pr.SourceBranch} → {pr.TargetBranch}",
-                Margin = new Thickness(8, 0, 0, 0),
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                TextTrimming = TextTrimming.CharacterEllipsis,
-            });
-            panel.Children.Add(line);
-
-            var who = pr.Author ?? string.Empty;
-            if (pr.CreatedAt.Year > 2000)
-                who = who.Length > 0 ? $"{who} · {pr.CreatedAt.ToLocalTime():d}" : $"{pr.CreatedAt.ToLocalTime():d}";
-
-            if (who.Length > 0)
-            {
-                panel.Children.Add(new TextBlock()
-                {
-                    Text = who,
-                    Margin = new Thickness(0, 6, 0, 0),
-                    FontSize = 11,
-                    Opacity = 0.75,
+                    Opacity = 0.7,
+                    TextWrapping = TextWrapping.Wrap,
                 });
             }
 
-            panel.Children.Add(new TextBlock()
+            root.Children.Add(new Avalonia.Controls.Shapes.Rectangle()
+            {
+                Height = 1,
+                Margin = new Thickness(0, 10, 0, 0),
+                Opacity = 0.15,
+                Fill = Foreground ?? Brushes.Gray,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+            });
+
+            root.Children.Add(new TextBlock()
             {
                 Text = App.Text("PullRequest.OpenInBrowser"),
-                Margin = new Thickness(0, 8, 0, 0),
+                Margin = new Thickness(0, 7, 0, 0),
                 FontSize = 11,
                 Opacity = 0.55,
             });
 
-            return panel;
+            return root;
+        }
+
+        /// <summary>
+        ///     Number and forge on the left, state on the right.
+        /// </summary>
+        private static Control CardHeader(Models.PullRequest pr)
+        {
+            var header = new Grid() { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto") };
+
+            var left = new StackPanel()
+            {
+                Orientation = Avalonia.Layout.Orientation.Horizontal,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            };
+
+            if (App.Current?.FindResource("Icons.Remote") is StreamGeometry forge)
+            {
+                left.Children.Add(new Avalonia.Controls.Shapes.Path()
+                {
+                    Width = 12,
+                    Height = 12,
+                    Data = forge,
+                    Fill = Converters.ForgeConverters.BrushOf(pr.Kind),
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                });
+            }
+
+            left.Children.Add(new TextBlock()
+            {
+                Text = $"#{pr.Id}",
+                FontWeight = FontWeight.Bold,
+                Margin = new Thickness(6, 0, 0, 0),
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            });
+
+            left.Children.Add(new TextBlock()
+            {
+                Text = Models.ForgeAccount.NameOf(pr.Kind),
+                Margin = new Thickness(7, 0, 0, 0),
+                FontSize = 11,
+                Opacity = 0.55,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            });
+
+            Grid.SetColumn(left, 0);
+            header.Children.Add(left);
+
+            var pill = new Border()
+            {
+                Background = StateBrush(pr.State),
+                CornerRadius = new CornerRadius(9),
+                Padding = new Thickness(8, 2),
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                Child = new TextBlock()
+                {
+                    Text = App.Text($"PullRequest.State.{pr.State}"),
+                    FontSize = 10,
+                    FontWeight = FontWeight.Bold,
+                    Foreground = Brushes.White,
+                },
+            };
+
+            Grid.SetColumn(pill, 2);
+            header.Children.Add(pill);
+
+            return header;
+        }
+
+        /// <summary>
+        ///     One branch, in a block of its own so that a long name wraps inside it instead
+        ///     of pushing the rest of the line out of sight.
+        /// </summary>
+        private static Control BranchBlock(string name, bool isSource)
+        {
+            var grid = new Grid() { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
+
+            if (App.Current?.FindResource("Icons.Branch") is StreamGeometry branch)
+            {
+                var icon = new Avalonia.Controls.Shapes.Path()
+                {
+                    Width = 11,
+                    Height = 11,
+                    Data = branch,
+                    Opacity = isSource ? 0.9 : 0.55,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
+                    Margin = new Thickness(0, 2, 0, 0),
+                };
+
+                Grid.SetColumn(icon, 0);
+                grid.Children.Add(icon);
+            }
+
+            var text = new TextBlock()
+            {
+                Text = string.IsNullOrEmpty(name) ? "?" : name,
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(7, 0, 0, 0),
+                FontSize = 12,
+                Opacity = isSource ? 1 : 0.8,
+            };
+
+            Grid.SetColumn(text, 1);
+            grid.Children.Add(text);
+
+            return new Border()
+            {
+                Background = new SolidColorBrush(Colors.Gray, 0.16),
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(8, 5),
+                Margin = new Thickness(0, 10, 0, 0),
+                Child = grid,
+            };
+        }
+
+        private static string Meta(Models.PullRequest pr)
+        {
+            var who = pr.Author ?? string.Empty;
+            if (pr.CreatedAt.Year <= 2000)
+                return who;
+
+            var when = pr.CreatedAt.ToLocalTime().ToString("d");
+            return who.Length > 0 ? $"{who} · {when}" : when;
         }
 
         private static IBrush StateBrush(Models.PullRequestState state)

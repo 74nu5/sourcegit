@@ -50,6 +50,12 @@ namespace SourceGit.Models
         public string SourceRepository { get; init; } = string.Empty;
 
         public PullRequestState State { get; init; }
+
+        /// <summary>
+        ///     Which forge answered for it. Carried so that whatever shows a request can say
+        ///     where it lives without having to trace the account back.
+        /// </summary>
+        public ForgeKind Kind { get; init; }
         public string Url { get; init; } = string.Empty;
         public DateTime CreatedAt { get; init; }
 

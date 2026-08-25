@@ -122,6 +122,7 @@ namespace SourceGit.Models
                 SourceBranch = ShortBranch(ReadString(item, "sourceRefName")),
                 TargetBranch = ShortBranch(ReadString(item, "targetRefName")),
                 SourceRepository = repo.FullName,
+                Kind = ForgeKind.AzureDevOps,
                 State = ToState(status, isDraft),
                 Url = BuildWebUrl(repo, id),
                 CreatedAt = created,
