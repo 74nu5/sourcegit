@@ -1,0 +1,117 @@
+# "Can this fork still rebase on upstream?"
+#
+# The rebase itself stays manual: it rewrites history and a conflict can need
+# judgement. This workflow only asks the question every week, on a throwaway
+# branch, and opens an issue the day the answer becomes no.
+#
+# You learn about a conflict while it still costs two commits, not two hundred.
+
+name: Fork · upstream watch
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"      # monday morning
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/sourcegit-scm/sourcegit.git
+          git fetch upstream develop --quiet
+
+      - name: How far behind
+        id: gap
+        run: |
+          behind=$(git rev-list --count HEAD..upstream/develop)
+          echo "behind=$behind" >> "$GITHUB_OUTPUT"
+          echo "Behind by $behind commit(s)."
+          git log --oneline --reverse HEAD..upstream/develop | head -40
+
+      - name: Try the rebase on a throwaway branch
+        if: steps.gap.outputs.behind != '0'
+        id: rebase
+        continue-on-error: true
+        run: |
+          git config user.name "fork-watch"
+          git config user.email "fork-watch@local"
+          git checkout -b upstream-watch-probe
+          git rebase upstream/develop
+
+      - name: Build what came out
+        if: steps.gap.outputs.behind != '0' && steps.rebase.outcome == 'success'
+        id: build
+        continue-on-error: true
+        run: dotnet build src/SourceGit.csproj -v q --nologo
+
+      - name: Verdict
+        if: steps.gap.outputs.behind != '0'
+        run: |
+          echo "rebase : ${{ steps.rebase.outcome }}"
+          echo "build  : ${{ steps.build.outcome }}"
+
+      - name: Open an issue when it stops working
+        if: steps.gap.outputs.behind != '0' && (steps.rebase.outcome == 'failure' || steps.build.outcome == 'failure')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const behind = "${{ steps.gap.outputs.behind }}";
+            const what = "${{ steps.rebase.outcome }}" === "failure"
+              ? "the rebase hits a conflict"
+              : "the rebase is clean but the build then fails";
+
+            const title = `Fork drifting: ${what}`;
+            const body = [
+              `We are **${behind} commit(s)** behind \`sourcegit-scm/sourcegit@develop\`, and ${what}.`,
+              ``,
+              `Run locally to see it:`,
+              ``,
+              '```',
+              `./tools/sync-upstream.ps1 -Check`,
+              '```',
+              ``,
+              `Resolving it now costs less than letting the gap widen.`,
+              ``,
+              `_Opened by the weekly upstream watch._`,
+            ].join("\n");
+
+            // One open issue at a time: comment on the existing one rather than
+            // stacking a new issue every week.
+            const open = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              labels: "upstream-watch",
+            });
+
+            if (open.data.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: open.data[0].number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ["upstream-watch"],
+              });
+            }
