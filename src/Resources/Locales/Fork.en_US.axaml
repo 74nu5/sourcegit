@@ -12,6 +12,11 @@
   <x:String x:Key="Text.Histories.Header.Graph" xml:space="preserve">GRAPH</x:String>
   <x:String x:Key="Text.Histories.Header.Subject" xml:space="preserve">COMMIT MESSAGE</x:String>
   <x:String x:Key="Text.Histories.HiddenLanes.Tip" xml:space="preserve">Some branches share the last column because the graph reached its lane budget. Widen the window or use the compact placement to see more.</x:String>
+  <x:String x:Key="Text.PullRequest.State.Open" xml:space="preserve">OPEN</x:String>
+  <x:String x:Key="Text.PullRequest.State.Draft" xml:space="preserve">DRAFT</x:String>
+  <x:String x:Key="Text.PullRequest.State.Merged" xml:space="preserve">MERGED</x:String>
+  <x:String x:Key="Text.PullRequest.State.Closed" xml:space="preserve">CLOSED</x:String>
+  <x:String x:Key="Text.PullRequest.OpenInBrowser" xml:space="preserve">Click to open it in your browser</x:String>
   <x:String x:Key="Text.Preferences.Forge" xml:space="preserve">FORGES</x:String>
   <x:String x:Key="Text.Preferences.Forge.Empty" xml:space="preserve">No account selected. Use + to add one, choosing the forge it talks to.</x:String>
   <x:String x:Key="Text.Preferences.Forge.Url" xml:space="preserve">Address</x:String>

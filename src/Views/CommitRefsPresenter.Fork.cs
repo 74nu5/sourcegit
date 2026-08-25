@@ -79,6 +79,31 @@ namespace SourceGit.Views
         {
             base.OnPointerMoved(e);
 
+            // The mark answers for itself before the chip does: it is the smaller target and
+            // the more specific one.
+            var over = MarkerAt(e.GetPosition(this));
+            if (over != null)
+            {
+                if (!ReferenceEquals(_hovered, over))
+                {
+                    _hovered = over;
+                    ToolTip.SetTip(this, CreatePullRequestCard(over));
+                    ToolTip.SetPlacement(this, PlacementMode.Pointer);
+                    ToolTip.SetHorizontalOffset(this, 0);
+                    ToolTip.SetVerticalOffset(this, 0);
+                }
+
+                Cursor = HAND;
+                return;
+            }
+
+            if (_hovered != null)
+            {
+                _hovered = null;
+                Cursor = null;
+                ToolTip.SetTip(this, null);
+            }
+
             // Folded references are only reachable through the popup, and a trimmed name is
             // only readable there, so both call for the full chips.
             if (_collapsed || _truncated)
@@ -95,6 +120,125 @@ namespace SourceGit.Views
             }
 
             ToolTip.SetTip(this, null);
+        }
+
+        protected override void OnPointerExited(PointerEventArgs e)
+        {
+            base.OnPointerExited(e);
+
+            _hovered = null;
+            Cursor = null;
+        }
+
+        /// <summary>
+        ///     A click on the mark opens the request, and only a click on the mark: everywhere
+        ///     else the row keeps behaving as it always did.
+        /// </summary>
+        protected override void OnPointerPressed(PointerPressedEventArgs e)
+        {
+            var point = e.GetCurrentPoint(this);
+            if (point.Properties.IsLeftButtonPressed)
+            {
+                var over = MarkerAt(point.Position);
+                if (over != null && !string.IsNullOrEmpty(over.Url))
+                {
+                    Native.OS.OpenBrowser(over.Url);
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            base.OnPointerPressed(e);
+        }
+
+        /// <summary>
+        ///     The request whose mark sits under a point, or null. Filled while drawing, which
+        ///     is the only place the chips' real positions are known.
+        /// </summary>
+        private Models.PullRequest MarkerAt(Point point)
+        {
+            for (var i = 0; i < _markers.Count; i++)
+            {
+                if (_markers[i].Area.Contains(point))
+                    return _markers[i].Request;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     What the mark stands for, spelled out: the request, where it goes, and who
+        ///     opened it. Built here rather than as a resource because it belongs to no window.
+        /// </summary>
+        private Control CreatePullRequestCard(Models.PullRequest pr)
+        {
+            var panel = new StackPanel() { Orientation = Avalonia.Layout.Orientation.Vertical, MaxWidth = 420 };
+
+            panel.Children.Add(new TextBlock()
+            {
+                Text = $"#{pr.Id}  {pr.Title}",
+                FontWeight = FontWeight.Bold,
+                TextWrapping = TextWrapping.Wrap,
+            });
+
+            var line = new StackPanel() { Orientation = Avalonia.Layout.Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
+            line.Children.Add(new Border()
+            {
+                Background = StateBrush(pr.State),
+                CornerRadius = new CornerRadius(3),
+                Padding = new Thickness(5, 1),
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                Child = new TextBlock()
+                {
+                    Text = App.Text($"PullRequest.State.{pr.State}"),
+                    FontSize = 11,
+                    Foreground = Brushes.White,
+                },
+            });
+            line.Children.Add(new TextBlock()
+            {
+                Text = $"{pr.SourceBranch} → {pr.TargetBranch}",
+                Margin = new Thickness(8, 0, 0, 0),
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+            });
+            panel.Children.Add(line);
+
+            var who = pr.Author ?? string.Empty;
+            if (pr.CreatedAt.Year > 2000)
+                who = who.Length > 0 ? $"{who} · {pr.CreatedAt.ToLocalTime():d}" : $"{pr.CreatedAt.ToLocalTime():d}";
+
+            if (who.Length > 0)
+            {
+                panel.Children.Add(new TextBlock()
+                {
+                    Text = who,
+                    Margin = new Thickness(0, 6, 0, 0),
+                    FontSize = 11,
+                    Opacity = 0.75,
+                });
+            }
+
+            panel.Children.Add(new TextBlock()
+            {
+                Text = App.Text("PullRequest.OpenInBrowser"),
+                Margin = new Thickness(0, 8, 0, 0),
+                FontSize = 11,
+                Opacity = 0.55,
+            });
+
+            return panel;
+        }
+
+        private static IBrush StateBrush(Models.PullRequestState state)
+        {
+            return state switch
+            {
+                Models.PullRequestState.Draft => new SolidColorBrush(0xFF8B949E),
+                Models.PullRequestState.Merged => new SolidColorBrush(0xFF8957E5),
+                Models.PullRequestState.Closed => new SolidColorBrush(0xFFDA3633),
+                _ => new SolidColorBrush(0xFF3FB950),
+            };
         }
 
         /// <summary>
@@ -126,6 +270,10 @@ namespace SourceGit.Views
         /// </summary>
         private void Truncate(double available)
         {
+            // Called at the top of every Render, which makes it the one place that knows a new
+            // pass is starting: the marks about to be drawn replace the previous ones.
+            _markers.Clear();
+
             var drawn = _collapsed ? 1 : _items.Count;
             for (var i = 0; i < drawn; i++)
             {
@@ -209,6 +357,10 @@ namespace SourceGit.Views
             var cx = x + item.Width - ADORNMENT_GAP - MARKER * 0.5;
             var cy = y + 8.0;
             var r = MARKER * 0.5;
+
+            // A seven pixel diamond is a poor target for a mouse, so what answers to one is
+            // the height of the chip and twice the width of the mark.
+            _markers.Add((new Rect(cx - MARKER, y, MARKER * 2, 16), pr));
 
             var diamond = new StreamGeometry();
             using (var draw = diamond.Open())
@@ -321,6 +473,12 @@ namespace SourceGit.Views
         ///     counter, in which case they can only be reached through the context menu.
         /// </summary>
         public bool IsCollapsed => _collapsed;
+
+        private readonly List<(Rect Area, Models.PullRequest Request)> _markers = [];
+
+        private Models.PullRequest _hovered = null;
+
+        private static readonly Cursor HAND = new(StandardCursorType.Hand);
 
         private Dictionary<string, Models.PullRequest> _pullRequests = EMPTY_PULL_REQUESTS;
 
