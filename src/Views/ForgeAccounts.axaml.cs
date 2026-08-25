@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
@@ -30,9 +30,34 @@ namespace SourceGit.Views
             InitializeComponent();
         }
 
-        private void OnAddAccount(object sender, RoutedEventArgs e)
+        private void OnAddAzureDevOpsAccount(object sender, RoutedEventArgs e)
         {
-            var account = new Models.ForgeAccount() { Host = "dev.azure.com" };
+            Add(Models.ForgeKind.AzureDevOps, e);
+        }
+
+        private void OnAddGitHubAccount(object sender, RoutedEventArgs e)
+        {
+            Add(Models.ForgeKind.GitHub, e);
+        }
+
+        private void OnAddGitLabAccount(object sender, RoutedEventArgs e)
+        {
+            Add(Models.ForgeKind.GitLab, e);
+        }
+
+        private void OnAddGiteaAccount(object sender, RoutedEventArgs e)
+        {
+            Add(Models.ForgeKind.Gitea, e);
+        }
+
+        private void OnAddBitbucketAccount(object sender, RoutedEventArgs e)
+        {
+            Add(Models.ForgeKind.Bitbucket, e);
+        }
+
+        private void Add(Models.ForgeKind kind, RoutedEventArgs e)
+        {
+            var account = Models.ForgeAccount.CreateFor(kind);
             ViewModels.Preferences.Instance.ForgeAccounts.Add(account);
             SelectedAccount = account;
 

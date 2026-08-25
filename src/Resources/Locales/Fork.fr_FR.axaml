@@ -13,13 +13,19 @@
   <x:String x:Key="Text.Histories.Header.Subject" xml:space="preserve">MESSAGE DE COMMIT</x:String>
   <x:String x:Key="Text.Histories.HiddenLanes.Tip" xml:space="preserve">Certaines branches partagent la dernière colonne car le graphe a atteint son budget de lanes. Élargissez la fenêtre ou utilisez le placement compact pour en voir davantage.</x:String>
   <x:String x:Key="Text.Preferences.Forge" xml:space="preserve">FORGES</x:String>
-  <x:String x:Key="Text.Preferences.Forge.Empty" xml:space="preserve">Aucun compte sélectionné. Ajoutez-en un par forge à interroger : une organisation Azure DevOps, une instance GitHub ou GitLab.</x:String>
-  <x:String x:Key="Text.Preferences.Forge.Host" xml:space="preserve">Hôte</x:String>
-  <x:String x:Key="Text.Preferences.Forge.Host.Hint" xml:space="preserve">L'hôte tel qu'il apparaît dans l'URL du dépôt distant : dev.azure.com, github.com, ou l'adresse d'une instance auto-hébergée. Tout dépôt dont le distant pointe là utilise ce compte.</x:String>
-  <x:String x:Key="Text.Preferences.Forge.FromEnv" xml:space="preserve">Lire le jeton dans une variable d'environnement</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Empty" xml:space="preserve">Aucun compte sélectionné. Utilisez + pour en ajouter un, en choisissant la forge à laquelle il s’adresse.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Url" xml:space="preserve">Adresse</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Url.Hint" xml:space="preserve">Où se trouve la forge. À changer pour une instance auto-hébergée, un serveur GitHub Enterprise ou un Azure DevOps Server sur site.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Organization" xml:space="preserve">Organisation</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Organization.Watermark" xml:space="preserve">toutes les organisations de cette adresse</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Organization.Hint" xml:space="preserve">L’organisation sur Azure DevOps, le propriétaire ou l’organisation sur GitHub, le groupe sur GitLab. Laissez vide et le compte sert tous les dépôts hébergés à l’adresse ci-dessus.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Project" xml:space="preserve">Projet</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Project.Watermark" xml:space="preserve">tous les projets de l’organisation</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Project.Hint" xml:space="preserve">Azure DevOps classe les dépôts en organisation / projet / dépôt. En nommer un restreint ce compte à celui-ci, ce qu’exige un jeton limité à un seul projet. Le compte le plus précis qui convient à un dépôt est celui qui sert.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.FromEnv" xml:space="preserve">Lire le jeton dans une variable d’environnement</x:String>
   <x:String x:Key="Text.Preferences.Forge.Token" xml:space="preserve">Jeton</x:String>
   <x:String x:Key="Text.Preferences.Forge.Token.Hint" xml:space="preserve">Case ci-dessus cochée, le nom de la variable qui contient le jeton (ex. AZURE_DEVOPS_PAT). Décochée, le jeton lui-même.</x:String>
-  <x:String x:Key="Text.Preferences.Forge.Privacy" xml:space="preserve">Les préférences sont stockées en clair : un jeton saisi ici est lisible par tout ce qui peut lire votre répertoire personnel. Nommer une variable d'environnement l'en tient à l'écart.</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Privacy" xml:space="preserve">Les préférences sont stockées en clair : un jeton saisi ici est lisible par tout ce qui peut lire votre répertoire personnel. Nommer une variable d’environnement l’en tient à l’écart.</x:String>
   <x:String x:Key="Text.Repository.BranchPlacement" xml:space="preserve">PLACEMENT DES BRANCHES</x:String>
   <x:String x:Key="Text.Repository.BranchPlacement.Compact" xml:space="preserve">Compact</x:String>
   <x:String x:Key="Text.Repository.BranchPlacement.Stable" xml:space="preserve">Lanes stables</x:String>
