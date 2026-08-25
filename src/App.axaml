@@ -12,6 +12,10 @@
         <ResourceInclude Source="/Resources/Themes.axaml"/>
       </ResourceDictionary.MergedDictionaries>
 
+      <!-- Fork-only strings, see Locales/Fork.*.axaml -->
+      <ResourceInclude x:Key="Fork.en_US" Source="/Resources/Locales/Fork.en_US.axaml"/>
+      <ResourceInclude x:Key="Fork.fr_FR" Source="/Resources/Locales/Fork.fr_FR.axaml"/>
+
       <ResourceInclude x:Key="de_DE" Source="/Resources/Locales/de_DE.axaml"/>
       <ResourceInclude x:Key="el_GR" Source="/Resources/Locales/el_GR.axaml"/>
       <ResourceInclude x:Key="en_US" Source="/Resources/Locales/en_US.axaml"/>

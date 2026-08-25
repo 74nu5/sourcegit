@@ -10,7 +10,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SourceGit.ViewModels
 {
-    public class Histories : ObservableObject
+    public partial class Histories : ObservableObject
     {
         public bool IsLoading
         {
@@ -97,12 +97,6 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
-        ///     Number of branches that had to share the last lane, and whether to say so.
-        /// </summary>
-        public int HiddenLanes => _graph?.HiddenLanes ?? 0;
-        public bool HasHiddenLanes => HiddenLanes > 0;
-
-        /// <summary>
         ///     Width of the dedicated graph column, capped so that a repository with a large
         ///     number of concurrent branches cannot squeeze the subject out of view.
         /// </summary>
@@ -122,22 +116,6 @@ namespace SourceGit.ViewModels
                 if (_repo.UIStates.GraphColumnWidth != value)
                 {
                     _repo.UIStates.GraphColumnWidth = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Manual width of the branch column, or 0 to size it to its contents.
-        /// </summary>
-        public double BranchColumnWidth
-        {
-            get => _repo.UIStates.BranchColumnWidth;
-            set
-            {
-                if (_repo.UIStates.BranchColumnWidth != value)
-                {
-                    _repo.UIStates.BranchColumnWidth = value;
                     OnPropertyChanged();
                 }
             }
@@ -568,23 +546,6 @@ namespace SourceGit.ViewModels
                 GenerateGraph(_commits);
         }
 
-        /// <summary>
-        ///     Commits and branches are loaded by two independent tasks, so ownership is
-        ///     resolved again whenever either of them lands.
-        /// </summary>
-        public void ResolveBranchOwnership()
-        {
-            ResolveBranchOwnership(_commits);
-        }
-
-        private void ResolveBranchOwnership(List<Models.Commit> commits)
-        {
-            if (Preferences.Instance.BranchColumnMode == Models.BranchColumnMode.AllRows)
-                Models.BranchOwnership.Resolve(commits, _repo.Branches);
-            else
-                Models.BranchOwnership.Clear(commits);
-        }
-
         private void GenerateGraph(List<Models.Commit> commits)
         {
             var firstParentOnly = _repo.UIStates.HistoryShowFlags.HasFlag(Models.HistoryShowFlags.FirstParentOnly);
@@ -599,9 +560,6 @@ namespace SourceGit.ViewModels
 
             Graph = Models.CommitGraph.Generate(commits, firstParentOnly, highlighting, extraHeads, Preferences.Instance.GraphLaneMode);
         }
-
-        private const double MIN_GRAPH_COLUMN_WIDTH = 24;
-        private const double MAX_GRAPH_COLUMN_WIDTH = 240;
 
         private Repository _repo = null;
         private Models.Branch _currentBranch = null;

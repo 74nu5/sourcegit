@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
@@ -115,6 +116,34 @@ namespace SourceGit
 
             app.Resources.MergedDictionaries.Add(targetLocale);
             app._activeLocale = targetLocale;
+
+            ApplyForkLocale(app, finalLocaleKey);
+        }
+
+        /// <summary>
+        ///     Stacks this fork's own strings on top of the active locale. Keeping them out of
+        ///     the upstream locale files spares us the conflicts those files would otherwise
+        ///     bring on every rebase, en_US alone receiving well over a hundred commits a year.
+        ///     English is stacked first so an untranslated key still resolves.
+        /// </summary>
+        private static void ApplyForkLocale(App app, string localeKey)
+        {
+            foreach (var dict in app._activeForkLocales)
+                app.Resources.MergedDictionaries.Remove(dict);
+            app._activeForkLocales.Clear();
+
+            Stack(app, "Fork.en_US");
+            if (!localeKey.Equals("en_US", StringComparison.Ordinal))
+                Stack(app, $"Fork.{localeKey}");
+        }
+
+        private static void Stack(App app, string key)
+        {
+            if (app.Resources[key] is not ResourceDictionary dict)
+                return;
+
+            app.Resources.MergedDictionaries.Add(dict);
+            app._activeForkLocales.Add(dict);
         }
 
         public static void SetTheme(string theme, string themeOverridesFile)
@@ -600,6 +629,7 @@ namespace SourceGit
         private Models.IpcChannel _ipcChannel = null;
         private ViewModels.Launcher _launcher = null;
         private ResourceDictionary _activeLocale = null;
+        private List<ResourceDictionary> _activeForkLocales = [];
         private ResourceDictionary _themeOverrides = null;
         private ResourceDictionary _fontsOverrides = null;
     }
