@@ -26,6 +26,7 @@
   <x:String x:Key="Text.Preferences.Forge.Test" xml:space="preserve">Tester la connexion</x:String>
   <x:String x:Key="Text.Preferences.Forge.Test.Hint" xml:space="preserve">Envoie une seule requête authentifiée et rapporte la réponse. Cela prouve que l’adresse répond et que le jeton est accepté ; sur Azure DevOps, cela prouve en plus que l’organisation et le projet nommés ci-dessus sont bien ceux que le jeton ouvre.</x:String>
   <x:String x:Key="Text.Preferences.Forge.Test.Running" xml:space="preserve">Interrogation…</x:String>
+  <x:String x:Key="Text.Preferences.Forge.Test.Cancelled" xml:space="preserve">Test abandonné.</x:String>
   <x:String x:Key="Text.Preferences.Forge.Test.Ok" xml:space="preserve">Connexion établie.</x:String>
   <x:String x:Key="Text.Preferences.Forge.Test.NoToken" xml:space="preserve">Aucun jeton à envoyer.</x:String>
   <x:String x:Key="Text.Preferences.Forge.Test.NeedsOrganization" xml:space="preserve">Azure DevOps n’a rien à répondre sans organisation.</x:String>

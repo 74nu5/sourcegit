@@ -1,8 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
+using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,113 +6,47 @@ using System.Threading.Tasks;
 namespace SourceGit.Models
 {
     /// <summary>
-    ///     What a connection attempt found. The view turns these into sentences, so that the
-    ///     model never has to know which language the user reads.
-    /// </summary>
-    public enum ForgeTestOutcome
-    {
-        Ok,
-        NoToken,
-        NeedsOrganization,
-        BadAddress,
-        Unauthorized,
-        Forbidden,
-        NotFound,
-        Unreachable,
-        Timeout,
-        Unexpected,
-    }
-
-    /// <summary>
-    ///     The outcome plus whatever is worth naming: who the forge said we are, the status it
-    ///     answered with, the reason a socket refused. Never the token.
-    /// </summary>
-    public record ForgeTestResult(ForgeTestOutcome Outcome, string Detail)
-    {
-        public bool IsOk => Outcome == ForgeTestOutcome.Ok;
-    }
-
-    /// <summary>
     ///     Asks a forge one question — "who am I?" — and reports what came back.
     ///
-    ///     This is the first thing that reaches the network, and it is deliberately narrow: one
-    ///     request, no pagination, no cache, nothing running on its own. It exists so that a
-    ///     wrong token is found here, where the user is looking at the field, rather than later
-    ///     as a badge that silently never appears.
+    ///     Everything about talking to a forge lives in <see cref="ForgeTransport"/>; what is
+    ///     left here is the only thing that is really about testing a connection: knowing the
+    ///     cheapest authenticated address each forge offers, and reading a name out of the
+    ///     answer.
     ///
-    ///     The per-forge knowledge it holds — where the API lives and how each one wants to be
-    ///     told who is calling — is what the connectors will need next, which is why it lives
-    ///     apart from the panel that calls it.
+    ///     It exists so that a wrong token is found while the user is looking at the field,
+    ///     rather than later, as a badge that silently never appears.
     /// </summary>
     public static class ForgeConnection
     {
-        public static async Task<ForgeTestResult> TestAsync(ForgeAccount account, CancellationToken cancel)
+        public static async Task<ForgeResult<string>> TestAsync(ForgeAccount account, CancellationToken cancel)
         {
             if (account == null)
-                return new ForgeTestResult(ForgeTestOutcome.Unexpected, null);
+                return ForgeResult<string>.Failure(ForgeStatus.Unexpected);
 
-            var token = account.ResolveToken();
-            if (string.IsNullOrEmpty(token))
-                return new ForgeTestResult(ForgeTestOutcome.NoToken, null);
+            // Anonymous requests are the transport's business to allow; a connection test has
+            // nothing to prove without credentials.
+            if (string.IsNullOrEmpty(account.ResolveToken()))
+                return ForgeResult<string>.Failure(ForgeStatus.NoToken);
 
-            var root = NormalizeBase(account.Url);
+            var root = ForgeTransport.NormalizeBase(account.Url);
             if (root == null)
-                return new ForgeTestResult(ForgeTestOutcome.BadAddress, null);
+                return ForgeResult<string>.Failure(ForgeStatus.BadAddress);
 
             // Azure DevOps has no address to ask "who am I" at: everything hangs below an
             // organisation. Testing without one would prove nothing about the token.
             var org = account.Organization?.Trim() ?? string.Empty;
             if (account.Kind == ForgeKind.AzureDevOps && org.Length == 0)
-                return new ForgeTestResult(ForgeTestOutcome.NeedsOrganization, null);
+                return ForgeResult<string>.Failure(ForgeStatus.NeedsOrganization);
 
             var endpoint = BuildProbeEndpoint(account, root, org);
             if (endpoint == null)
-                return new ForgeTestResult(ForgeTestOutcome.BadAddress, null);
+                return ForgeResult<string>.Failure(ForgeStatus.BadAddress);
 
-            try
-            {
-                using var client = new HttpClient();
-                client.Timeout = TimeSpan.FromSeconds(15);
+            var reply = await ForgeTransport.GetAsync(account, endpoint, cancel).ConfigureAwait(false);
+            if (!reply.IsOk)
+                return ForgeResult<string>.Failure(reply.Status, reply.Detail);
 
-                using var req = new HttpRequestMessage(HttpMethod.Get, endpoint);
-                Authenticate(req, account.Kind, token);
-
-                using var rsp = await client.SendAsync(req, cancel).ConfigureAwait(false);
-
-                // Azure DevOps answers a bad token with its sign-in page and a 203 rather than
-                // a 401, so the status alone would read as success.
-                var media = rsp.Content.Headers.ContentType?.MediaType ?? string.Empty;
-                if (rsp.StatusCode == HttpStatusCode.NonAuthoritativeInformation || media.Contains("html", StringComparison.OrdinalIgnoreCase))
-                    return new ForgeTestResult(ForgeTestOutcome.Unauthorized, null);
-
-                if (!rsp.IsSuccessStatusCode)
-                {
-                    var outcome = rsp.StatusCode switch
-                    {
-                        HttpStatusCode.Unauthorized => ForgeTestOutcome.Unauthorized,
-                        HttpStatusCode.Forbidden => ForgeTestOutcome.Forbidden,
-                        HttpStatusCode.NotFound => ForgeTestOutcome.NotFound,
-                        _ => ForgeTestOutcome.Unexpected,
-                    };
-
-                    return new ForgeTestResult(outcome, $"HTTP {(int)rsp.StatusCode}");
-                }
-
-                var body = await rsp.Content.ReadAsStringAsync(cancel).ConfigureAwait(false);
-                return new ForgeTestResult(ForgeTestOutcome.Ok, ReadIdentity(account.Kind, body));
-            }
-            catch (OperationCanceledException) when (!cancel.IsCancellationRequested)
-            {
-                return new ForgeTestResult(ForgeTestOutcome.Timeout, null);
-            }
-            catch (HttpRequestException e)
-            {
-                return new ForgeTestResult(ForgeTestOutcome.Unreachable, e.Message);
-            }
-            catch (Exception e)
-            {
-                return new ForgeTestResult(ForgeTestOutcome.Unexpected, e.Message);
-            }
+            return ForgeResult<string>.Success(ReadIdentity(account.Kind, reply.Body));
         }
 
         /// <summary>
@@ -157,37 +87,6 @@ namespace SourceGit.Models
                 default:
                     return null;
             }
-        }
-
-        /// <summary>
-        ///     Each forge invented its own way of being told who is calling.
-        /// </summary>
-        public static void Authenticate(HttpRequestMessage req, ForgeKind kind, string token)
-        {
-            switch (kind)
-            {
-                case ForgeKind.AzureDevOps:
-                    // A personal access token goes in as the password of an empty user.
-                    var basic = Convert.ToBase64String(Encoding.ASCII.GetBytes($":{token}"));
-                    req.Headers.Authorization = new AuthenticationHeaderValue("Basic", basic);
-                    break;
-
-                case ForgeKind.GitLab:
-                    req.Headers.Add("PRIVATE-TOKEN", token);
-                    break;
-
-                case ForgeKind.Gitea:
-                    req.Headers.Authorization = new AuthenticationHeaderValue("token", token);
-                    break;
-
-                default:
-                    req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                    break;
-            }
-
-            // GitHub rejects a request without one, and every other forge ignores it.
-            req.Headers.UserAgent.ParseAdd("SourceGit");
-            req.Headers.Accept.ParseAdd("application/json");
         }
 
         /// <summary>
@@ -236,29 +135,6 @@ namespace SourceGit.Models
             {
                 return null;
             }
-        }
-
-        /// <summary>
-        ///     An address the user typed, made usable: no trailing slash, and https assumed
-        ///     when no scheme was given. Anything that is not http or https is refused rather
-        ///     than handed to the network stack.
-        /// </summary>
-        private static string NormalizeBase(string url)
-        {
-            var text = (url ?? string.Empty).Trim().TrimEnd('/');
-            if (text.Length == 0)
-                return null;
-
-            if (!text.Contains("://", StringComparison.Ordinal))
-                text = $"https://{text}";
-
-            if (!Uri.TryCreate(text, UriKind.Absolute, out var uri))
-                return null;
-
-            var isWeb = uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
-                        uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase);
-
-            return isWeb && !string.IsNullOrEmpty(uri.Host) ? text : null;
         }
 
         private static readonly string[] IDENTITY_FIELDS = ["login", "username", "display_name", "name", "nickname"];

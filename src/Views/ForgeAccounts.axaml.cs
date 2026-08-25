@@ -145,7 +145,7 @@ namespace SourceGit.Views
             TestSucceeded = null;
             TestMessage = App.Text("Preferences.Forge.Test.Running");
 
-            Models.ForgeTestResult result;
+            Models.ForgeResult<string> result;
             try
             {
                 result = await Models.ForgeConnection.TestAsync(account, cancel.Token).ConfigureAwait(true);
@@ -176,10 +176,14 @@ namespace SourceGit.Views
         ///     One sentence for the outcome, and whatever the forge said appended to it. The
         ///     model never builds this: it does not know which language the user reads.
         /// </summary>
-        private static string Describe(Models.ForgeTestResult result)
+        private static string Describe(Models.ForgeResult<string> result)
         {
-            var sentence = App.Text($"Preferences.Forge.Test.{result.Outcome}");
-            return string.IsNullOrEmpty(result.Detail) ? sentence : $"{sentence} ({result.Detail})";
+            var sentence = App.Text($"Preferences.Forge.Test.{result.Status}");
+
+            // On success the "detail" is who the forge said we are, which is the whole point
+            // of asking; on failure it is the status it refused with.
+            var aside = result.IsOk ? result.Value : result.Detail;
+            return string.IsNullOrEmpty(aside) ? sentence : $"{sentence} ({aside})";
         }
 
         private void ClearTestResult()
