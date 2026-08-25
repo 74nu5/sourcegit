@@ -1,4 +1,6 @@
-﻿using Avalonia.Data.Converters;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Data.Converters;
 using Avalonia.Media;
 
 namespace SourceGit.Converters
@@ -21,6 +23,19 @@ namespace SourceGit.Converters
                 Models.ForgeKind.Gitea => new SolidColorBrush(0xFF609926),
                 Models.ForgeKind.Bitbucket => new SolidColorBrush(0xFF2684FF),
                 _ => Brushes.Gray,
+            });
+
+        /// <summary>
+        ///     Grey while nothing is settled, then the verdict. Green and red are picked to
+        ///     stay legible on both themes rather than taken from the palette, which has no
+        ///     entry for "this worked".
+        /// </summary>
+        public static readonly FuncValueConverter<bool?, IBrush> TestResultToBrush =
+            new(ok => ok switch
+            {
+                true => new SolidColorBrush(0xFF4CAF50),
+                false => new SolidColorBrush(0xFFE05252),
+                _ => Application.Current?.FindResource("Brush.FG2") as IBrush,
             });
     }
 }

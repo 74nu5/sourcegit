@@ -152,6 +152,32 @@
                          TextWrapping="Wrap"
                          Text="{DynamicResource Text.Preferences.Forge.Token.Hint}"/>
 
+              <!-- A Grid, not a StackPanel: a horizontal stack offers infinite width, so the
+                   message would never wrap and a long refusal would be cut off mid-sentence. -->
+              <Grid Margin="0,12,0,0" ColumnDefinitions="Auto,*">
+                <Button Grid.Column="0"
+                        Classes="flat"
+                        Height="28"
+                        Padding="10,0"
+                        VerticalAlignment="Top"
+                        Click="OnTestConnection"
+                        IsEnabled="{Binding !#ThisControl.IsTesting}"
+                        Content="{DynamicResource Text.Preferences.Forge.Test}"/>
+
+                <TextBlock Grid.Column="1"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"
+                           Text="{Binding #ThisControl.TestMessage}"
+                           Foreground="{Binding #ThisControl.TestSucceeded, Converter={x:Static c:ForgeConverters.TestResultToBrush}}"/>
+              </Grid>
+
+              <TextBlock Margin="0,6,0,0"
+                         FontSize="11"
+                         Foreground="{DynamicResource Brush.FG2}"
+                         TextWrapping="Wrap"
+                         Text="{DynamicResource Text.Preferences.Forge.Test.Hint}"/>
+
               <Border Margin="0,16,0,0"
                       Padding="10,8"
                       CornerRadius="3"
