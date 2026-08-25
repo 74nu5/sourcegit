@@ -78,18 +78,42 @@ from the tag message, and a lightweight tag would publish an empty release:
 
 ```sh
 git checkout main
-git tag -a v2026.18-3b -m "..."
-git push origin v2026.18-3b
+git tag -a v2026.18-3b.1 -m "..."
+git push origin v2026.18-3b.1
 ```
 
-The tag triggers `Release`, which builds and attaches six packages: Windows x64 and
-ARM64, macOS Intel and Apple Silicon, Linux x64 and ARM64. No secrets, no signing.
-Twenty to forty minutes.
+The tag triggers `Release`, which builds and attaches ten packages: zips for Windows
+and macOS, AppImage, deb and rpm for Linux, each in x64 and arm64. No secrets, no
+signing. Twenty to forty minutes.
 
-Version numbers keep upstream's `YYYY.MM` and add a suffix: `v2026.18-3b`. The
+Version numbers keep upstream's `YYYY.MM` and add a suffix: `v2026.18-3b.1`. The
 `VERSION` file must stay purely numeric — it feeds `AssemblyVersion`, which rejects
 suffixes. The suffix lives in the string `git describe` produces, which is what the
 About window shows.
+
+### When a release fails, bump the number
+
+**A tag consumed by a release is spent for good.** Deleting the release does not free
+it, and neither does turning immutable releases off: the ref can never be created
+again. Pushing the same tag a second time is refused with
+
+    remote: Cannot create ref due to creations being restricted.
+
+which names neither the tag nor the reason. So when a run fails, fix the cause and tag
+`v2026.18-3b.2`. Do not try to reuse the number.
+
+**A release is all or nothing.** One failing package cancels the others in its matrix
+and skips the `Release` job entirely — a run whose Windows and macOS packages all
+succeeded can still publish nothing. Read the job list, not the summary.
+
+Two traps already dealt with, worth knowing before touching the packaging:
+
+- **RPM rejects a dash in `Version:`**, where it separates version from release.
+  `package.linux.sh` folds `2026.18-3b.1` into `2026.18.3b.1` for that format alone,
+  which is why the rpm filename differs from the deb's.
+- **A published release is immutable**, so assets cannot be added afterwards.
+  `release.yml` downloads the artifacts first and hands them to `gh release create`
+  in one call.
 
 ## Writing code that survives a rebase
 
