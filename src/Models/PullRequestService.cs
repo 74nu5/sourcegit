@@ -104,6 +104,9 @@ namespace SourceGit.Models
         {
             [ForgeKind.AzureDevOps] = new AzureDevOpsPullRequests(),
             [ForgeKind.GitHub] = new GitHubPullRequests(),
+            [ForgeKind.GitLab] = new GitLabMergeRequests(),
+            [ForgeKind.Gitea] = new GiteaPullRequests(),
+            [ForgeKind.Bitbucket] = new BitbucketPullRequests(),
         };
 
         private static readonly ForgeCache<List<PullRequest>> CACHE = new(FRESH_FOR, RETRY_FAILURE_AFTER);

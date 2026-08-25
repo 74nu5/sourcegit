@@ -33,7 +33,7 @@ namespace SourceGit.Models
             for (var page = 0; page < MAX_PAGES; page++)
             {
                 var url = BuildUrl(root, repo, page * PAGE_SIZE);
-                var reply = await ForgeTransport.GetAsync(account, url, cancel).ConfigureAwait(false);
+                var reply = await ForgeTransport.GetAsync(account, url, cancel, ForgeTransport.LIST_TIMEOUT).ConfigureAwait(false);
                 if (!reply.IsOk)
                     return ForgeResult<List<PullRequest>>.Failure(reply.Status, reply.Detail);
 
