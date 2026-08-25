@@ -9,7 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SourceGit.ViewModels
 {
-    public class Preferences : ObservableObject
+    public partial class Preferences : ObservableObject
     {
         [JsonIgnore]
         public static Preferences Instance
@@ -215,36 +215,6 @@ namespace SourceGit.ViewModels
         {
             get => _useTwoColumnsLayoutInHistories;
             set => SetProperty(ref _useTwoColumnsLayoutInHistories, value);
-        }
-
-        public bool SplitGraphColumnInHistories
-        {
-            get => _splitGraphColumnInHistories;
-            set => SetProperty(ref _splitGraphColumnInHistories, value);
-        }
-
-        public bool ShowBranchColumnInHistories
-        {
-            get => _showBranchColumnInHistories;
-            set => SetProperty(ref _showBranchColumnInHistories, value);
-        }
-
-        public Models.GraphLaneMode GraphLaneMode
-        {
-            get => _graphLaneMode;
-            set => SetProperty(ref _graphLaneMode, value);
-        }
-
-        public bool ColorizeRowsByBranch
-        {
-            get => _colorizeRowsByBranch;
-            set => SetProperty(ref _colorizeRowsByBranch, value);
-        }
-
-        public Models.BranchColumnMode BranchColumnMode
-        {
-            get => _branchColumnMode;
-            set => SetProperty(ref _branchColumnMode, value);
         }
 
         public bool DisplayTimeAsPeriodInHistories
@@ -844,11 +814,6 @@ namespace SourceGit.ViewModels
 
         private bool _showTagsInGraph = true;
         private bool _useTwoColumnsLayoutInHistories = false;
-        private bool _splitGraphColumnInHistories = false;
-        private bool _showBranchColumnInHistories = false;
-        private Models.GraphLaneMode _graphLaneMode = Models.GraphLaneMode.Compact;
-        private bool _colorizeRowsByBranch = false;
-        private Models.BranchColumnMode _branchColumnMode = Models.BranchColumnMode.RefsOnly;
         private bool _displayTimeAsPeriodInHistories = false;
         private bool _useSideBySideDiff = false;
         private bool _ignoreWhitespaceChangesInDiff = false;

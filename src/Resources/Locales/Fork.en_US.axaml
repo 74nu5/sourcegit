@@ -1,0 +1,24 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    Strings added by this fork, kept out of the upstream locale files so that the
+    hundred-odd commits a year they receive never collide with ours. Merged after
+    the active locale in App.SetLocale, so these entries win.
+
+    A key missing from a translation falls back to the English one below it, which
+    is the same behaviour the upstream files have between themselves.
+  -->
+  <x:String x:Key="Text.Histories.Header.Branch" xml:space="preserve">BRANCH / TAG</x:String>
+  <x:String x:Key="Text.Histories.Header.Graph" xml:space="preserve">GRAPH</x:String>
+  <x:String x:Key="Text.Histories.Header.Subject" xml:space="preserve">COMMIT MESSAGE</x:String>
+  <x:String x:Key="Text.Histories.HiddenLanes.Tip" xml:space="preserve">Some branches share the last column because the graph reached its lane budget. Widen the window or use the compact placement to see more.</x:String>
+  <x:String x:Key="Text.Repository.BranchPlacement" xml:space="preserve">BRANCH PLACEMENT</x:String>
+  <x:String x:Key="Text.Repository.BranchPlacement.Compact" xml:space="preserve">Compact</x:String>
+  <x:String x:Key="Text.Repository.BranchPlacement.Stable" xml:space="preserve">Stable Lanes</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns" xml:space="preserve">COLUMNS</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.AllRows" xml:space="preserve">Branch Column: All Rows</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.ColorizeRows" xml:space="preserve">Colorize Rows By Branch</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.RefsOnly" xml:space="preserve">Branch Column: Refs Only</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.ShowBranch" xml:space="preserve">Branch / Tag Column</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.SplitGraph" xml:space="preserve">Separate Graph Column</x:String>
+</ResourceDictionary>

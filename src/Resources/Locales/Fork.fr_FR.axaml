@@ -1,0 +1,24 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    Strings added by this fork, kept out of the upstream locale files so that the
+    hundred-odd commits a year they receive never collide with ours. Merged after
+    the active locale in App.SetLocale, so these entries win.
+
+    A key missing from a translation falls back to the English one below it, which
+    is the same behaviour the upstream files have between themselves.
+  -->
+  <x:String x:Key="Text.Histories.Header.Branch" xml:space="preserve">BRANCHE / TAG</x:String>
+  <x:String x:Key="Text.Histories.Header.Graph" xml:space="preserve">GRAPHE</x:String>
+  <x:String x:Key="Text.Histories.Header.Subject" xml:space="preserve">MESSAGE DE COMMIT</x:String>
+  <x:String x:Key="Text.Histories.HiddenLanes.Tip" xml:space="preserve">Certaines branches partagent la dernière colonne car le graphe a atteint son budget de lanes. Élargissez la fenêtre ou utilisez le placement compact pour en voir davantage.</x:String>
+  <x:String x:Key="Text.Repository.BranchPlacement" xml:space="preserve">PLACEMENT DES BRANCHES</x:String>
+  <x:String x:Key="Text.Repository.BranchPlacement.Compact" xml:space="preserve">Compact</x:String>
+  <x:String x:Key="Text.Repository.BranchPlacement.Stable" xml:space="preserve">Lanes stables</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns" xml:space="preserve">COLONNES</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.AllRows" xml:space="preserve">Colonne branche : toutes les lignes</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.ColorizeRows" xml:space="preserve">Colorer les lignes par branche</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.RefsOnly" xml:space="preserve">Colonne branche : refs seules</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.ShowBranch" xml:space="preserve">Colonne branche / tag</x:String>
+  <x:String x:Key="Text.Repository.HistoriesColumns.SplitGraph" xml:space="preserve">Colonne graphe séparée</x:String>
+</ResourceDictionary>
