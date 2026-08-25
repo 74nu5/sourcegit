@@ -1,0 +1,21 @@
+<Project>
+  <!--
+    Settings for this fork. MSBuild picks this file up on its own, so nothing in the
+    upstream project files has to know about it — which is the point: it is a file of
+    ours, and a rebase never has to merge it.
+  -->
+  <PropertyGroup>
+    <!--
+      Turns off the update check.
+
+      The check asks sourcegit-scm.github.io for the latest upstream version and
+      compares it with ours. Since this fork carries the same version number as the
+      release it branched from, the day upstream publishes a newer one this build
+      would offer an update whose installer replaces it with the stock application —
+      quietly dropping everything this fork adds.
+
+      See App.Check4Update, guarded by DISABLE_UPDATE_DETECTION.
+    -->
+    <DisableUpdateDetection>true</DisableUpdateDetection>
+  </PropertyGroup>
+</Project>
