@@ -95,6 +95,19 @@ namespace SourceGit.Views
                 ev.Handled = true;
             };
 
+            var remoteIcon = new MenuItem();
+            remoteIcon.Header = App.Text("Repository.HistoriesColumns.RemoteIcon");
+            if (pref.ShowRemoteIconInsteadOfName)
+                remoteIcon.Icon = this.CreateMenuIcon("Icons.Check");
+            remoteIcon.Click += (_, ev) =>
+            {
+                pref.ShowRemoteIconInsteadOfName = !pref.ShowRemoteIconInsteadOfName;
+
+                // The chips are measured once and kept; only a reload builds them again.
+                repo.RefreshCommits();
+                ev.Handled = true;
+            };
+
             menu.Items.Add(new MenuItem() { Header = "-" });
             menu.Items.Add(branchPlacement);
             menu.Items.Add(compactLanes);
@@ -106,6 +119,7 @@ namespace SourceGit.Views
             menu.Items.Add(allRows);
             menu.Items.Add(splitGraph);
             menu.Items.Add(colorizeRows);
+            menu.Items.Add(remoteIcon);
         }
     }
 }
