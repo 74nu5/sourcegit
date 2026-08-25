@@ -252,6 +252,8 @@ namespace SourceGit.Views
                     }
                 }
 
+                DrawForkAdornments(context, item, x, y);
+
                 context.DrawRectangle(null, new Pen(item.Brush), entireRect);
 
                 var icon = CommitRefsIconCache.Instance.GetIcon(item.Decorator.Type);
@@ -390,6 +392,8 @@ namespace SourceGit.Views
                         }
                     }
                 }
+
+                MeasureForkAdornments(item);
 
                 x += item.Width + 4;
                 if (allowWrap)
