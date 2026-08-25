@@ -14,8 +14,14 @@ namespace SourceGit.Converters
     /// </summary>
     public static class ForgeConverters
     {
-        public static readonly FuncValueConverter<Models.ForgeKind, IBrush> ToBrush =
-            new(kind => kind switch
+        public static readonly FuncValueConverter<Models.ForgeKind, IBrush> ToBrush = new(BrushOf);
+
+        /// <summary>
+        ///     The same answer, reachable from code that draws rather than binds.
+        /// </summary>
+        public static IBrush BrushOf(Models.ForgeKind kind)
+        {
+            return kind switch
             {
                 Models.ForgeKind.AzureDevOps => new SolidColorBrush(0xFF0078D4),
                 Models.ForgeKind.GitHub => new SolidColorBrush(0xFF8B7FD4),
@@ -23,7 +29,8 @@ namespace SourceGit.Converters
                 Models.ForgeKind.Gitea => new SolidColorBrush(0xFF609926),
                 Models.ForgeKind.Bitbucket => new SolidColorBrush(0xFF2684FF),
                 _ => Brushes.Gray,
-            });
+            };
+        }
 
         /// <summary>
         ///     Grey while nothing is settled, then the verdict. Green and red are picked to

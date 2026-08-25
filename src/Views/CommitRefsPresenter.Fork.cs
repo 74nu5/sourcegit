@@ -97,9 +97,27 @@ namespace SourceGit.Views
                 return;
             }
 
-            if (_hovered != null)
+            var remote = RemoteAt(e.GetPosition(this));
+            if (remote != null)
+            {
+                if (!string.Equals(_hoveredRemote, remote, StringComparison.Ordinal))
+                {
+                    _hovered = null;
+                    _hoveredRemote = remote;
+                    ToolTip.SetTip(this, remote);
+                    ToolTip.SetPlacement(this, PlacementMode.Pointer);
+                    ToolTip.SetHorizontalOffset(this, 0);
+                    ToolTip.SetVerticalOffset(this, 0);
+                }
+
+                Cursor = null;
+                return;
+            }
+
+            if (_hovered != null || _hoveredRemote != null)
             {
                 _hovered = null;
+                _hoveredRemote = null;
                 Cursor = null;
                 ToolTip.SetTip(this, null);
             }
@@ -127,6 +145,7 @@ namespace SourceGit.Views
             base.OnPointerExited(e);
 
             _hovered = null;
+            _hoveredRemote = null;
             Cursor = null;
         }
 
@@ -155,6 +174,17 @@ namespace SourceGit.Views
         ///     The request whose mark sits under a point, or null. Filled while drawing, which
         ///     is the only place the chips' real positions are known.
         /// </summary>
+        private string RemoteAt(Point point)
+        {
+            for (var i = 0; i < _remoteAreas.Count; i++)
+            {
+                if (_remoteAreas[i].Area.Contains(point))
+                    return _remoteAreas[i].Name;
+            }
+
+            return null;
+        }
+
         private Models.PullRequest MarkerAt(Point point)
         {
             for (var i = 0; i < _markers.Count; i++)
@@ -259,6 +289,7 @@ namespace SourceGit.Views
                 UseCompactBranchNames = UseCompactBranchNames,
                 ShowTags = ShowTags,
                 _pullRequests = _pullRequests,
+                _remoteKinds = _remoteKinds,
             };
         }
 
@@ -273,6 +304,7 @@ namespace SourceGit.Views
             // Called at the top of every Render, which makes it the one place that knows a new
             // pass is starting: the marks about to be drawn replace the previous ones.
             _markers.Clear();
+            _remoteAreas.Clear();
 
             var drawn = _collapsed ? 1 : _items.Count;
             for (var i = 0; i < drawn; i++)
@@ -312,12 +344,20 @@ namespace SourceGit.Views
                 // A trimmed name has no room for the remotes it was sharing its chip with;
                 // the hover popup still shows them.
                 item.Remotes.Clear();
-                item.Label.MaxTextWidth = Math.Max(1, room - 24 - AdornmentWidth(item));
+
+                // Losing the remotes may be all it took to fit. Taking the whole of what is
+                // left regardless would pad the chip with the very space they had claimed,
+                // which reads as a name mysteriously followed by nothing.
+                var adornments = AdornmentWidth(item);
+                var needed = item.Label.Width + 24 + adornments;
+                var use = Math.Min(room, needed);
+
+                item.Label.MaxTextWidth = Math.Max(1, use - 24 - adornments);
                 item.Label.MaxTextHeight = double.PositiveInfinity;
                 item.Label.MaxLineCount = 1;
                 item.Label.Trimming = TextTrimming.CharacterEllipsis;
-                item.Width = room;
-                used += room + 4;
+                item.Width = use;
+                used += use + 4;
                 _truncated = true;
             }
         }
@@ -329,11 +369,22 @@ namespace SourceGit.Views
         /// </summary>
         private void MeasureForkAdornments(RenderItem item)
         {
+            // The remote names, if they are becoming icons, give back the width their text
+            // took before the icons claim their own.
+            var given = 0.0;
+            if (RemoteIconsFor(item).Count > 0)
+            {
+                foreach (var remote in item.Remotes)
+                    given += remote.Width + 9;
+
+                item.Remotes.Clear();
+            }
+
             var extra = AdornmentWidth(item);
-            if (extra <= 0)
+            if (extra <= 0 && given <= 0)
                 return;
 
-            item.Width += extra;
+            item.Width += extra - given;
             item.NaturalWidth = item.Width;
         }
 
@@ -346,15 +397,43 @@ namespace SourceGit.Views
         /// </summary>
         private void DrawForkAdornments(DrawingContext context, RenderItem item, double x, double y)
         {
-            var pr = PullRequestFor(item.Decorator);
-            if (pr == null || item.Width < MIN_CHIP_WIDTH)
+            if (item.Width < MIN_CHIP_WIDTH)
                 return;
 
+            // Laid out from the chip's right edge leftwards, which is what makes trimming
+            // work: the room reserved before a name is cut is exactly the room used here.
+            var right = x + item.Width - ADORNMENT_GAP;
+
+            var pr = PullRequestFor(item.Decorator);
+            if (pr != null)
+            {
+                DrawPullRequestMark(context, item, pr, right - MARKER * 0.5, y);
+                right -= MARKER + 4;
+            }
+
+            var kinds = RemoteIconsFor(item);
+            for (var i = kinds.Count - 1; i >= 0; i--)
+            {
+                var icon = CommitRefsIconCache.Instance.GetIcon(Models.DecoratorType.RemoteBranchHead);
+                if (icon == null)
+                    break;
+
+                right -= REMOTE_ICON;
+                using (context.PushTransform(Matrix.CreateTranslation(right, y + 3)))
+                    context.DrawGeometry(Converters.ForgeConverters.BrushOf(kinds[i].Kind), null, icon);
+
+                // Turning a name into a picture loses the name; hovering gives it back.
+                _remoteAreas.Add((new Rect(right - 2, y, REMOTE_ICON + 4, 16), kinds[i].Name));
+                right -= 4;
+            }
+        }
+
+        private void DrawPullRequestMark(DrawingContext context, RenderItem item, Models.PullRequest pr, double cx, double y)
+        {
             var brush = pr.State == Models.PullRequestState.Draft
                 ? item.Brush
                 : new SolidColorBrush(0xFF3FB950);
 
-            var cx = x + item.Width - ADORNMENT_GAP - MARKER * 0.5;
             var cy = y + 8.0;
             var r = MARKER * 0.5;
 
@@ -378,9 +457,59 @@ namespace SourceGit.Views
                 context.DrawGeometry(brush, null, diamond);
         }
 
+        /// <summary>
+        ///     The forges of the remotes folded into a chip, when their names are to be shown
+        ///     as icons — empty otherwise, and empty whenever nothing was folded.
+        ///
+        ///     Worked out from the commit's own references rather than kept alongside them:
+        ///     the chips are rebuilt on every measure, and a value cached beside them would
+        ///     only be one more thing able to fall out of step.
+        /// </summary>
+        private List<(string Name, Models.ForgeKind Kind)> RemoteIconsFor(RenderItem item)
+        {
+            if (!ViewModels.Preferences.Instance.ShowRemoteIconInsteadOfName || !UseCompactBranchNames)
+                return NO_REMOTES;
+
+            if (item?.Decorator == null || DataContext is not Models.Commit commit)
+                return NO_REMOTES;
+
+            if (item.Decorator.Type is not (Models.DecoratorType.CurrentBranchHead or Models.DecoratorType.LocalBranchHead))
+                return NO_REMOTES;
+
+            List<(string, Models.ForgeKind)> kinds = null;
+            foreach (var decorator in commit.Decorators)
+            {
+                if (decorator.Type != Models.DecoratorType.RemoteBranchHead)
+                    continue;
+
+                var slash = decorator.Name.IndexOf('/');
+                if (slash < 1 || slash == decorator.Name.Length - 1)
+                    continue;
+
+                if (!decorator.Name[(slash + 1)..].Equals(item.Decorator.Name, StringComparison.Ordinal))
+                    continue;
+
+                var remote = decorator.Name[..slash];
+                kinds ??= [];
+                kinds.Add((remote, _remoteKinds.TryGetValue(remote, out var kind) ? kind : Models.ForgeKind.Unknown));
+            }
+
+            return kinds ?? NO_REMOTES;
+        }
+
         private double AdornmentWidth(RenderItem item)
         {
-            return PullRequestFor(item?.Decorator) == null ? 0 : MARKER + ADORNMENT_GAP;
+            var width = PullRequestFor(item?.Decorator) == null ? 0 : MARKER + ADORNMENT_GAP;
+
+            var kinds = RemoteIconsFor(item);
+            if (kinds.Count > 0)
+            {
+                width += kinds.Count * (REMOTE_ICON + 4);
+                if (width <= REMOTE_ICON + 4)
+                    width += ADORNMENT_GAP;
+            }
+
+            return width;
         }
 
         /// <summary>
@@ -430,6 +559,10 @@ namespace SourceGit.Views
             if (this.FindAncestorOfType<Repository>() is not { DataContext: ViewModels.Repository repo })
                 return;
 
+            // Costs nothing and needs no network, so it is read whether or not the pull
+            // request indicator is on: the remote icons stand on their own.
+            _remoteKinds = repo.GetRemoteKinds();
+
             var cancel = new CancellationTokenSource();
             _prCancellation = cancel;
 
@@ -476,9 +609,24 @@ namespace SourceGit.Views
 
         private readonly List<(Rect Area, Models.PullRequest Request)> _markers = [];
 
+        private readonly List<(Rect Area, string Name)> _remoteAreas = [];
+
         private Models.PullRequest _hovered = null;
 
+        private string _hoveredRemote = null;
+
         private static readonly Cursor HAND = new(StandardCursorType.Hand);
+
+        private Dictionary<string, Models.ForgeKind> _remoteKinds = EMPTY_REMOTE_KINDS;
+
+        private static readonly Dictionary<string, Models.ForgeKind> EMPTY_REMOTE_KINDS = [];
+
+        private static readonly List<(string Name, Models.ForgeKind Kind)> NO_REMOTES = [];
+
+        /// <summary>
+        ///     Side of the remote icon, which the icon cache draws ten pixels square.
+        /// </summary>
+        private const double REMOTE_ICON = 10;
 
         private Dictionary<string, Models.PullRequest> _pullRequests = EMPTY_PULL_REQUESTS;
 

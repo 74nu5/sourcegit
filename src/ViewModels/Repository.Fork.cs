@@ -66,6 +66,28 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
+        ///     Which forge each remote lives on, by remote name.
+        ///
+        ///     A declared account wins over the address, because a self-hosted GitLab answers
+        ///     to a name nothing can recognise — being told is the only way to know.
+        /// </summary>
+        public Dictionary<string, Models.ForgeKind> GetRemoteKinds()
+        {
+            var map = new Dictionary<string, Models.ForgeKind>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var remote in Remotes)
+            {
+                if (!Models.Forge.TryParse(remote, out var parsed))
+                    continue;
+
+                var account = Preferences.Instance.FindForgeAccount(parsed);
+                map[remote.Name] = account?.Kind ?? parsed.Kind;
+            }
+
+            return map;
+        }
+
+        /// <summary>
         ///     Forget what this repository's forges told us, so the next question reaches
         ///     them. What a fetch or a manual refresh should do.
         /// </summary>

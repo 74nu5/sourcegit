@@ -77,6 +77,17 @@ namespace SourceGit.ViewModels
             set => SetProperty(ref _showPullRequestIndicator, value);
         }
 
+        /// <summary>
+        ///     Whether the "+origin" suffix on a chip becomes the remote's icon, tinted with
+        ///     the colours of the forge it lives on. Off by default, like everything else
+        ///     this fork adds.
+        /// </summary>
+        public bool ShowRemoteIconInsteadOfName
+        {
+            get => _showRemoteIconInsteadOfName;
+            set => SetProperty(ref _showRemoteIconInsteadOfName, value);
+        }
+
         public Models.BranchColumnMode BranchColumnMode
         {
             get => _branchColumnMode;
@@ -88,6 +99,7 @@ namespace SourceGit.ViewModels
         private Models.GraphLaneMode _graphLaneMode = Models.GraphLaneMode.Compact;
         private bool _colorizeRowsByBranch = false;
         private bool _showPullRequestIndicator = false;
+        private bool _showRemoteIconInsteadOfName = false;
         private Models.BranchColumnMode _branchColumnMode = Models.BranchColumnMode.RefsOnly;
     }
 }
