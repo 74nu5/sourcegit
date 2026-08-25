@@ -6,7 +6,8 @@
 .DESCRIPTION
     Upstream lands roughly 28 commits a week. Rebasing often is what keeps this fork
     cheap to maintain: four commits behind is a thirty-second job, two hundred is a
-    project you keep postponing. Run this weekly.
+    project you keep postponing. Run this weekly, from develop: that is the branch
+    upstream gets integrated into, main only ever fast-forwards from it.
 
     The rebase itself stays in your hands — it rewrites history and can need
     judgement — so this script stops and tells you where it hurts rather than
