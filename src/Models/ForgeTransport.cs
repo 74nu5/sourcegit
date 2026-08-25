@@ -77,10 +77,19 @@ namespace SourceGit.Models
     public static class ForgeTransport
     {
         /// <summary>
-        ///     Longer than a healthy forge ever needs, short enough that a wedged proxy does
-        ///     not hold a panel hostage.
+        ///     For something a person is waiting on, like the connection test: long enough for
+        ///     a slow forge, short enough that a wedged proxy does not hold a panel hostage.
         /// </summary>
         public static readonly TimeSpan DEFAULT_TIMEOUT = TimeSpan.FromSeconds(15);
+
+        /// <summary>
+        ///     For listing, which nobody is watching happen.
+        ///
+        ///     Fifteen seconds was a guess and the guess was wrong: codeberg.org, a real and
+        ///     ordinary Gitea instance, takes seventeen to return one page of pull requests.
+        ///     A badge that never appears on a slow forge is worse than one that appears late.
+        /// </summary>
+        public static readonly TimeSpan LIST_TIMEOUT = TimeSpan.FromSeconds(45);
 
         /// <summary>
         ///     A walk through pages stops here rather than following a forge into a loop. The
@@ -89,7 +98,7 @@ namespace SourceGit.Models
         /// </summary>
         public const int DEFAULT_MAX_PAGES = 20;
 
-        public static async Task<ForgeReply> GetAsync(ForgeAccount account, string url, CancellationToken cancel)
+        public static async Task<ForgeReply> GetAsync(ForgeAccount account, string url, CancellationToken cancel, TimeSpan? timeout = null)
         {
             if (account == null || string.IsNullOrEmpty(url))
                 return new ForgeReply { Status = ForgeStatus.BadAddress };
@@ -111,7 +120,7 @@ namespace SourceGit.Models
             try
             {
                 using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancel);
-                deadline.CancelAfter(DEFAULT_TIMEOUT);
+                deadline.CancelAfter(timeout ?? DEFAULT_TIMEOUT);
 
                 using var req = new HttpRequestMessage(HttpMethod.Get, url);
                 Authenticate(req, account.Kind, token);
@@ -163,14 +172,15 @@ namespace SourceGit.Models
             ForgeAccount account,
             string firstUrl,
             CancellationToken cancel,
-            int maxPages = DEFAULT_MAX_PAGES)
+            int maxPages = DEFAULT_MAX_PAGES,
+            TimeSpan? timeout = null)
         {
             var pages = new List<string>();
             var url = firstUrl;
 
             for (var i = 0; i < maxPages; i++)
             {
-                var reply = await GetAsync(account, url, cancel).ConfigureAwait(false);
+                var reply = await GetAsync(account, url, cancel, timeout ?? LIST_TIMEOUT).ConfigureAwait(false);
                 if (!reply.IsOk)
                     return ForgeResult<List<string>>.Failure(reply.Status, reply.Detail);
 
