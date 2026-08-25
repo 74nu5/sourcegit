@@ -1,0 +1,128 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:SourceGit.Models"
+             xmlns:vm="using:SourceGit.ViewModels"
+             x:Class="SourceGit.Views.ForgeAccounts"
+             x:DataType="vm:Preferences"
+             x:Name="ThisControl">
+  <Grid Margin="8" ColumnDefinitions="240,*">
+    <!-- The accounts themselves -->
+    <Border Grid.Column="0"
+            BorderThickness="1" BorderBrush="{DynamicResource Brush.Border2}"
+            Background="{DynamicResource Brush.Contents}">
+      <Grid RowDefinitions="*,1,Auto">
+        <ListBox Grid.Row="0"
+                 Background="Transparent"
+                 ItemsSource="{Binding ForgeAccounts}"
+                 SelectedItem="{Binding #ThisControl.SelectedAccount, Mode=TwoWay}"
+                 SelectionMode="Single">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem">
+              <Setter Property="MinHeight" Value="0"/>
+              <Setter Property="Height" Value="38"/>
+              <Setter Property="Padding" Value="6,2"/>
+            </Style>
+          </ListBox.Styles>
+
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Vertical"/>
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="m:ForgeAccount">
+              <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
+                <Path Grid.Column="0" Width="14" Height="14"
+                      Data="{StaticResource Icons.Remote}"
+                      Fill="{DynamicResource Brush.FG2}"/>
+                <StackPanel Grid.Column="1" Orientation="Vertical" Margin="8,0">
+                  <TextBlock Text="{Binding Host}" TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="{Binding Description}"
+                             FontSize="11"
+                             Foreground="{DynamicResource Brush.FG2}"
+                             TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Rectangle Grid.Row="1" Height="1" Fill="{DynamicResource Brush.Border2}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"/>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Background="{DynamicResource Brush.ToolBar}">
+          <Button Classes="icon_button" Click="OnAddAccount">
+            <Path Width="14" Height="14" Data="{StaticResource Icons.Plus}"/>
+          </Button>
+
+          <Button Classes="icon_button" Click="OnRemoveSelectedAccount">
+            <Path Width="14" Height="14" Data="{StaticResource Icons.Minus}"/>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- What the selected one holds -->
+    <ContentControl Grid.Column="1" Margin="16,0,0,0">
+      <ContentControl.Content>
+        <Binding Path="#ThisControl.SelectedAccount">
+          <Binding.TargetNullValue>
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Path Width="64" Height="64"
+                    HorizontalAlignment="Center"
+                    Fill="{DynamicResource Brush.FG2}"
+                    Data="{StaticResource Icons.Remote}"/>
+              <TextBlock Margin="0,12,0,0"
+                         MaxWidth="360"
+                         TextWrapping="Wrap"
+                         TextAlignment="Center"
+                         Foreground="{DynamicResource Brush.FG2}"
+                         Text="{DynamicResource Text.Preferences.Forge.Empty}"/>
+            </StackPanel>
+          </Binding.TargetNullValue>
+        </Binding>
+      </ContentControl.Content>
+
+      <ContentControl.DataTemplates>
+        <DataTemplate DataType="m:ForgeAccount">
+          <StackPanel Orientation="Vertical" MaxWidth="560">
+            <TextBlock Text="{DynamicResource Text.Preferences.Forge.Host}" Margin="0,0,0,4"/>
+            <TextBox Height="28" CornerRadius="3" Text="{Binding Host, Mode=TwoWay}"/>
+            <TextBlock Margin="0,4,0,0"
+                       FontSize="11"
+                       Foreground="{DynamicResource Brush.FG2}"
+                       TextWrapping="Wrap"
+                       Text="{DynamicResource Text.Preferences.Forge.Host.Hint}"/>
+
+            <CheckBox Margin="0,16,0,0"
+                      Content="{DynamicResource Text.Preferences.Forge.FromEnv}"
+                      IsChecked="{Binding ReadTokenFromEnv, Mode=TwoWay}"/>
+
+            <TextBlock Margin="0,12,0,4" Text="{DynamicResource Text.Preferences.Forge.Token}"/>
+            <TextBox Height="28"
+                     CornerRadius="3"
+                     Text="{Binding Token, Mode=TwoWay}"
+                     PasswordChar="*"
+                     RevealPassword="{Binding ReadTokenFromEnv, Mode=OneWay}"/>
+            <TextBlock Margin="0,4,0,0"
+                       FontSize="11"
+                       Foreground="{DynamicResource Brush.FG2}"
+                       TextWrapping="Wrap"
+                       Text="{DynamicResource Text.Preferences.Forge.Token.Hint}"/>
+
+            <Border Margin="0,20,0,0"
+                    Padding="10,8"
+                    CornerRadius="3"
+                    Background="{DynamicResource Brush.Contents}"
+                    BorderThickness="1" BorderBrush="{DynamicResource Brush.Border2}">
+              <TextBlock TextWrapping="Wrap"
+                         FontSize="11"
+                         Foreground="{DynamicResource Brush.FG2}"
+                         Text="{DynamicResource Text.Preferences.Forge.Privacy}"/>
+            </Border>
+          </StackPanel>
+        </DataTemplate>
+      </ContentControl.DataTemplates>
+    </ContentControl>
+  </Grid>
+</UserControl>
