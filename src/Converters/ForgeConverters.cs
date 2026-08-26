@@ -32,6 +32,26 @@ namespace SourceGit.Converters
             };
         }
 
+        public static readonly FuncValueConverter<Models.PullRequestState, IBrush> StateToBrush =
+            new(BrushOf);
+
+        public static readonly FuncValueConverter<Models.PullRequestState, string> StateToLabel =
+            new(state => App.Text($"PullRequest.State.{state}"));
+
+        /// <summary>
+        ///     The colours a state is shown in, wherever it is shown.
+        /// </summary>
+        public static IBrush BrushOf(Models.PullRequestState state)
+        {
+            return state switch
+            {
+                Models.PullRequestState.Draft => new SolidColorBrush(0xFF8B949E),
+                Models.PullRequestState.Merged => new SolidColorBrush(0xFF8957E5),
+                Models.PullRequestState.Closed => new SolidColorBrush(0xFFDA3633),
+                _ => new SolidColorBrush(0xFF3FB950),
+            };
+        }
+
         /// <summary>
         ///     Grey while nothing is settled, then the verdict. Green and red are picked to
         ///     stay legible on both themes rather than taken from the palette, which has no

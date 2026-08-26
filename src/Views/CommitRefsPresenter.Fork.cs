@@ -386,7 +386,7 @@ namespace SourceGit.Views
 
             var pill = new Border()
             {
-                Background = StateBrush(pr.State),
+                Background = Converters.ForgeConverters.BrushOf(pr.State),
                 CornerRadius = new CornerRadius(9),
                 Padding = new Thickness(8, 2),
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
@@ -459,17 +459,6 @@ namespace SourceGit.Views
 
             var when = pr.CreatedAt.ToLocalTime().ToString("d");
             return who.Length > 0 ? $"{who} · {when}" : when;
-        }
-
-        private static IBrush StateBrush(Models.PullRequestState state)
-        {
-            return state switch
-            {
-                Models.PullRequestState.Draft => new SolidColorBrush(0xFF8B949E),
-                Models.PullRequestState.Merged => new SolidColorBrush(0xFF8957E5),
-                Models.PullRequestState.Closed => new SolidColorBrush(0xFFDA3633),
-                _ => new SolidColorBrush(0xFF3FB950),
-            };
         }
 
         /// <summary>

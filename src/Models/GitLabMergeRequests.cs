@@ -94,8 +94,12 @@ namespace SourceGit.Models
                 draft = item.TryGetProperty("work_in_progress", out var wip) && wip.ValueKind == JsonValueKind.True;
 
             var author = string.Empty;
+            var authorId = string.Empty;
             if (item.TryGetProperty("author", out var who) && who.ValueKind == JsonValueKind.Object)
-                author = ReadString(who, "username") ?? ReadString(who, "name") ?? string.Empty;
+            {
+                author = ReadString(who, "name") ?? ReadString(who, "username") ?? string.Empty;
+                authorId = ReadString(who, "username") ?? string.Empty;
+            }
 
             var created = DateTime.MinValue;
             var createdText = ReadString(item, "created_at");
@@ -107,6 +111,7 @@ namespace SourceGit.Models
                 Id = iid.GetInt64(),
                 Title = ReadString(item, "title") ?? string.Empty,
                 Author = author,
+                AuthorId = authorId,
                 SourceBranch = ReadString(item, "source_branch") ?? string.Empty,
                 TargetBranch = ReadString(item, "target_branch") ?? string.Empty,
                 State = ToState(ReadString(item, "state") ?? string.Empty, draft),

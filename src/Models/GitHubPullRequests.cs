@@ -119,6 +119,7 @@ namespace SourceGit.Models
                 Id = number.GetInt64(),
                 Title = ReadString(item, "title") ?? string.Empty,
                 Author = author,
+                AuthorId = author,
                 SourceBranch = ReadRef(item, "head"),
                 TargetBranch = ReadRef(item, "base"),
                 SourceRepository = ReadHeadRepository(item),

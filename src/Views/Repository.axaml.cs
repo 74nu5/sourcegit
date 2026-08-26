@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using Avalonia;
 using Avalonia.Controls;
@@ -194,6 +194,7 @@ namespace SourceGit.Views
                 return;
 
             var leftHeight = LeftSidebarGroups.Bounds.Height - 28.0 * 5 - 4;
+            leftHeight -= ReserveForkSidebarSpace(leftHeight);
             if (leftHeight <= 0)
                 return;
 

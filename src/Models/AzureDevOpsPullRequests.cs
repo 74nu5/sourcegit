@@ -106,8 +106,12 @@ namespace SourceGit.Models
             var isDraft = item.TryGetProperty("isDraft", out var draft) && draft.ValueKind == JsonValueKind.True;
 
             var author = string.Empty;
+            var authorId = string.Empty;
             if (item.TryGetProperty("createdBy", out var createdBy) && createdBy.ValueKind == JsonValueKind.Object)
+            {
                 author = ReadString(createdBy, "displayName") ?? ReadString(createdBy, "uniqueName") ?? string.Empty;
+                authorId = ReadString(createdBy, "uniqueName") ?? string.Empty;
+            }
 
             var created = DateTime.MinValue;
             var createdText = ReadString(item, "creationDate");
@@ -119,6 +123,7 @@ namespace SourceGit.Models
                 Id = id,
                 Title = ReadString(item, "title") ?? string.Empty,
                 Author = author,
+                AuthorId = authorId,
                 SourceBranch = ShortBranch(ReadString(item, "sourceRefName")),
                 TargetBranch = ShortBranch(ReadString(item, "targetRefName")),
                 SourceRepository = repo.FullName,

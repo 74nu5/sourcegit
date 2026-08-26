@@ -47,6 +47,9 @@
   <x:String x:Key="Text.Preferences.Forge.Token" xml:space="preserve">Token</x:String>
   <x:String x:Key="Text.Preferences.Forge.Token.Hint" xml:space="preserve">With the box above ticked, the name of the variable holding the token (e.g. AZURE_DEVOPS_PAT). Unticked, the token itself.</x:String>
   <x:String x:Key="Text.Preferences.Forge.Privacy" xml:space="preserve">Preferences are stored as plain text, so a token typed here is readable by anything that can read your home directory. Naming an environment variable keeps it out of the file.</x:String>
+  <x:String x:Key="Text.Repository.PullRequests" xml:space="preserve">PULL REQUESTS</x:String>
+  <x:String x:Key="Text.Repository.PullRequests.MineOnly" xml:space="preserve">Only the ones I opened</x:String>
+  <x:String x:Key="Text.Repository.PullRequests.Refresh" xml:space="preserve">Ask the forge again</x:String>
   <x:String x:Key="Text.Repository.BranchPlacement" xml:space="preserve">BRANCH PLACEMENT</x:String>
   <x:String x:Key="Text.Repository.BranchPlacement.Compact" xml:space="preserve">Compact</x:String>
   <x:String x:Key="Text.Repository.BranchPlacement.Stable" xml:space="preserve">Stable Lanes</x:String>

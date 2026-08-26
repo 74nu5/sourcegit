@@ -1,0 +1,115 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:SourceGit.Models"
+             xmlns:c="using:SourceGit.Converters"
+             xmlns:v="using:SourceGit.Views"
+             x:Class="SourceGit.Views.PullRequestsView"
+             x:Name="ThisControl">
+  <Grid RowDefinitions="Auto,Auto">
+    <!-- Header, laid out like the sections it sits under -->
+    <ToggleButton Grid.Row="0"
+                  Classes="group_expander"
+                  Height="28"
+                  IsChecked="{Binding #ThisControl.IsExpanded, Mode=TwoWay}">
+      <Grid ColumnDefinitions="16,*,Auto,Auto">
+        <Path Grid.Column="0" Width="10" Height="10"
+              Margin="2,0,0,0"
+              HorizontalAlignment="Left"
+              Data="{StaticResource Icons.Remote}"
+              Fill="{DynamicResource Brush.FG2}"/>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal">
+          <TextBlock Classes="group_header_label" Text="{DynamicResource Text.Repository.PullRequests}"/>
+          <TextBlock Classes="group_header_label" Margin="4,0,0,0" Text="{Binding #ThisControl.Counter}"/>
+        </StackPanel>
+
+        <ToggleButton Grid.Column="2"
+                      Classes="line_path"
+                      Width="14"
+                      IsChecked="{Binding #ThisControl.MineOnly, Mode=TwoWay}"
+                      ToolTip.Tip="{DynamicResource Text.Repository.PullRequests.MineOnly}">
+          <Path Width="11" Height="11" Data="{StaticResource Icons.User}"/>
+        </ToggleButton>
+
+        <Button Grid.Column="3"
+                Classes="icon_button"
+                Width="14"
+                Margin="8,0"
+                Click="OnRefresh"
+                ToolTip.Tip="{DynamicResource Text.Repository.PullRequests.Refresh}">
+          <Path Width="12" Height="12" Data="{StaticResource Icons.Loading}"/>
+        </Button>
+      </Grid>
+    </ToggleButton>
+
+    <!-- The requests themselves -->
+    <ListBox Grid.Row="1"
+             x:Name="Requests"
+             Height="0"
+             Classes="repo_left_content_list"
+             Margin="8,0,4,0"
+             Background="Transparent"
+             Focusable="False"
+             SelectionMode="Single"
+             ItemsSource="{Binding #ThisControl.Visible}"
+             IsVisible="{Binding #ThisControl.IsExpanded}">
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <VirtualizingStackPanel Orientation="Vertical"/>
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+
+      <ListBox.Styles>
+        <Style Selector="ListBoxItem">
+          <Setter Property="MinHeight" Value="0"/>
+          <Setter Property="Height" Value="24"/>
+          <Setter Property="Padding" Value="0"/>
+        </Style>
+      </ListBox.Styles>
+
+      <ListBox.ItemTemplate>
+        <DataTemplate DataType="m:PullRequest">
+          <Grid Height="24"
+                Background="Transparent"
+                ColumnDefinitions="16,Auto,*,Auto"
+                DoubleTapped="OnOpenPullRequest">
+            <Path Grid.Column="0" Width="10" Height="10"
+                  Data="{StaticResource Icons.Branch}"
+                  Fill="{Binding Kind, Converter={x:Static c:ForgeConverters.ToBrush}}"/>
+
+            <TextBlock Grid.Column="1"
+                       Margin="6,0,0,0"
+                       VerticalAlignment="Center"
+                       FontFamily="{DynamicResource Fonts.Monospace}"
+                       FontSize="11"
+                       Opacity="0.7"
+                       Text="{Binding Id, StringFormat='#{0}'}"/>
+
+            <TextBlock Grid.Column="2"
+                       Margin="6,0,0,0"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       Text="{Binding Title}"/>
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="4,0,4,0" VerticalAlignment="Center">
+              <Path Width="10" Height="10"
+                    Data="{StaticResource Icons.Error}"
+                    Fill="#FFDA3633"
+                    IsVisible="{Binding HasConflicts}"
+                    ToolTip.Tip="{DynamicResource Text.PullRequest.Conflict}"/>
+              <Border Margin="4,0,0,0"
+                      CornerRadius="3"
+                      Padding="4,0"
+                      Background="{Binding State, Converter={x:Static c:ForgeConverters.StateToBrush}}">
+                <TextBlock FontSize="9"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           Text="{Binding State, Converter={x:Static c:ForgeConverters.StateToLabel}}"/>
+              </Border>
+            </StackPanel>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </Grid>
+</UserControl>
