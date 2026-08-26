@@ -112,7 +112,31 @@ namespace SourceGit.ViewModels
                     found.Add(cached.Result.Value);
             }
 
+            // Always added, and last: a forge that answered is more precise, but git's own
+            // idea of who we are is the one that never fails.
+            var local = await GetGitIdentityAsync().ConfigureAwait(false);
+            if (local != null)
+                found.Add(local);
+
             return found;
+        }
+
+        /// <summary>
+        ///     Who git thinks we are here.
+        ///
+        ///     Worth as much as anything a forge could say and it costs no call: on Azure
+        ///     DevOps a request is filed under the author's work address, which is exactly
+        ///     what user.email holds. It is also the only answer left when the forge cannot
+        ///     give one — an Azure DevOps Server on premises, a Bitbucket Data Center.
+        /// </summary>
+        public async Task<Models.ForgeUser> GetGitIdentityAsync()
+        {
+            var email = await new Commands.Config(FullPath).GetAsync("user.email").ConfigureAwait(false);
+            var name = await new Commands.Config(FullPath).GetAsync("user.name").ConfigureAwait(false);
+
+            return string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(name)
+                ? null
+                : new Models.ForgeUser(string.Empty, name ?? string.Empty, email ?? string.Empty);
         }
 
         /// <summary>

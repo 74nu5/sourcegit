@@ -77,16 +77,45 @@ namespace SourceGit.Views
         {
             base.OnAttachedToVisualTree(e);
 
-            // The panel is built before the repository has read its remotes, so the first
-            // look always finds none and would hide this section for good. Listening is what
-            // makes it appear once they arrive.
-            if (this.FindAncestorOfType<Repository>() is { DataContext: ViewModels.Repository repo })
+            Watch();
+            Reload(false);
+        }
+
+        /// <summary>
+        ///     Switching tabs does not build a new panel: the same views are kept and handed
+        ///     another repository. Without this the section would keep showing the requests of
+        ///     whichever repository happened to be open when it was created.
+        /// </summary>
+        protected override void OnDataContextChanged(EventArgs e)
+        {
+            base.OnDataContextChanged(e);
+
+            _all = [];
+            _me = [];
+            Apply();
+
+            Watch();
+            Reload(false);
+        }
+
+        /// <summary>
+        ///     The panel is built before the repository has read its remotes, so the first
+        ///     look always finds none and would hide this section for good. Listening is what
+        ///     makes it appear once they arrive.
+        /// </summary>
+        private void Watch()
+        {
+            if (_watched != null)
+            {
+                _watched.PropertyChanged -= OnRepositoryChanged;
+                _watched = null;
+            }
+
+            if (DataContext is ViewModels.Repository repo)
             {
                 _watched = repo;
                 _watched.PropertyChanged += OnRepositoryChanged;
             }
-
-            Reload(false);
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -120,6 +149,16 @@ namespace SourceGit.Views
                 Announce();
         }
 
+        /// <summary>
+        ///     Flipped here rather than by a two-way binding onto this control's own property,
+        ///     which never wrote back from inside the header button.
+        /// </summary>
+        private void OnToggleMineOnly(object sender, RoutedEventArgs e)
+        {
+            MineOnly = !MineOnly;
+            e.Handled = true;
+        }
+
         private void OnRefresh(object sender, RoutedEventArgs e)
         {
             Reload(true);
@@ -145,7 +184,7 @@ namespace SourceGit.Views
             previous?.Cancel();
             previous?.Dispose();
 
-            if (this.FindAncestorOfType<Repository>() is not { DataContext: ViewModels.Repository repo })
+            if (DataContext is not ViewModels.Repository repo)
                 return;
 
             // No account covering this repository means nothing to list, and an empty section
