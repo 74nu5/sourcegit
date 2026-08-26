@@ -115,6 +115,7 @@ namespace SourceGit.Models
                 CreatedAt = created,
                 SourceRepository = ReadHeadRepository(item),
                 Kind = ForgeKind.Gitea,
+                MergeState = ReadMergeState(item),
             };
         }
 
@@ -131,6 +132,26 @@ namespace SourceGit.Models
                 return PullRequestState.Closed;
 
             return draft ? PullRequestState.Draft : PullRequestState.Open;
+        }
+
+        /// <summary>
+        ///     Only has_merge_conflicts is trusted, and it is often absent.
+        ///
+        ///     The tempting field is "mergeable", and it lies for this purpose: a draft
+        ///     request reports mergeable=false with no conflict anywhere near it. Reading it
+        ///     would paint a red warning on every draft in the tree.
+        /// </summary>
+        public static PullRequestMergeState ReadMergeState(JsonElement item)
+        {
+            if (!item.TryGetProperty("has_merge_conflicts", out var conflicts))
+                return PullRequestMergeState.Unknown;
+
+            return conflicts.ValueKind switch
+            {
+                JsonValueKind.True => PullRequestMergeState.Conflicting,
+                JsonValueKind.False => PullRequestMergeState.Clean,
+                _ => PullRequestMergeState.Unknown,
+            };
         }
 
         private static string ReadHeadRepository(JsonElement item)
