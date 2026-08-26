@@ -5,6 +5,7 @@ using System.Threading;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
@@ -163,6 +164,33 @@ namespace SourceGit.Views
         {
             Reload(true);
             e.Handled = true;
+        }
+
+        /// <summary>
+        ///     The same card the branch mark shows, opened on demand rather than on hover.
+        ///
+        ///     A row this narrow shows a truncated title and nothing else; what a person wants
+        ///     here is to read the whole of it without it vanishing when the pointer moves.
+        ///
+        ///     Built here rather than declared in XAML because a flyout is not in the visual
+        ///     tree of the button that owns it, so a binding inside it has no data context to
+        ///     inherit — the request would arrive null and the card would be empty.
+        /// </summary>
+        private void OnShowCard(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            if (sender is not Control { DataContext: Models.PullRequest pr } anchor)
+                return;
+
+            var flyout = new Flyout()
+            {
+                Content = PullRequestCard.Build(pr),
+                Placement = PlacementMode.RightEdgeAlignedTop,
+            };
+
+            FlyoutBase.SetAttachedFlyout(anchor, flyout);
+            FlyoutBase.ShowAttachedFlyout(anchor);
         }
 
         private void OnOpenPullRequest(object sender, TappedEventArgs e)
