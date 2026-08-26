@@ -26,7 +26,8 @@
         <ToggleButton Grid.Column="2"
                       Classes="line_path"
                       Width="14"
-                      IsChecked="{Binding #ThisControl.MineOnly, Mode=TwoWay}"
+                      IsChecked="{Binding #ThisControl.MineOnly, Mode=OneWay}"
+                      Click="OnToggleMineOnly"
                       ToolTip.Tip="{DynamicResource Text.Repository.PullRequests.MineOnly}">
           <Path Width="11" Height="11" Data="{StaticResource Icons.User}"/>
         </ToggleButton>
