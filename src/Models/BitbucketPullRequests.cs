@@ -97,8 +97,12 @@ namespace SourceGit.Models
                 return null;
 
             var author = string.Empty;
+            var authorId = string.Empty;
             if (item.TryGetProperty("author", out var who) && who.ValueKind == JsonValueKind.Object)
+            {
                 author = ReadString(who, "display_name") ?? ReadString(who, "nickname") ?? string.Empty;
+                authorId = ReadString(who, "nickname") ?? ReadString(who, "account_id") ?? string.Empty;
+            }
 
             var created = DateTime.MinValue;
             var createdText = ReadString(item, "created_on");
@@ -110,6 +114,7 @@ namespace SourceGit.Models
                 Id = id.GetInt64(),
                 Title = ReadString(item, "title") ?? string.Empty,
                 Author = author,
+                AuthorId = authorId,
                 SourceBranch = ReadBranch(item, "source"),
                 TargetBranch = ReadBranch(item, "destination"),
                 State = ToState(ReadString(item, "state") ?? string.Empty),

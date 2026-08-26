@@ -66,6 +66,63 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
+        ///     Every live pull request this repository's forges know about, newest first.
+        ///
+        ///     Unlike the map the branch marks use, this is not narrowed to branches that
+        ///     exist here: a list of the repository's requests is about the repository, and a
+        ///     request whose branch was never fetched still belongs on it.
+        /// </summary>
+        public async Task<List<Models.PullRequest>> GetPullRequestListAsync(CancellationToken cancel)
+        {
+            var found = new List<Models.PullRequest>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var (account, repo) in ResolveForges())
+            {
+                var cached = await Models.PullRequestService.ListAsync(account, repo, cancel).ConfigureAwait(false);
+                if (!cached.IsOk)
+                    continue;
+
+                foreach (var pr in cached.Result.Value)
+                {
+                    // Two remotes can point at the same repository under different names, and
+                    // the address is the one thing a request cannot share with another.
+                    if (pr.IsLive && seen.Add(pr.Url.Length > 0 ? pr.Url : $"{pr.Kind}|{pr.Id}"))
+                        found.Add(pr);
+                }
+            }
+
+            found.Sort((a, b) => b.CreatedAt.CompareTo(a.CreatedAt));
+            return found;
+        }
+
+        /// <summary>
+        ///     Who this repository's tokens say we are, one identity per forge — or an empty
+        ///     list when no forge can tell, in which case "mine" has nothing to mean and the
+        ///     filter says so rather than quietly showing nothing.
+        /// </summary>
+        public async Task<List<Models.ForgeUser>> GetForgeIdentitiesAsync(CancellationToken cancel)
+        {
+            var found = new List<Models.ForgeUser>();
+
+            foreach (var (account, _) in ResolveForges())
+            {
+                var cached = await Models.ForgeIdentityService.WhoAmIAsync(account, cancel).ConfigureAwait(false);
+                if (cached.IsOk && cached.Result.Value != null)
+                    found.Add(cached.Result.Value);
+            }
+
+            return found;
+        }
+
+        /// <summary>
+        ///     True when at least one configured account covers this repository. What decides
+        ///     whether the pull request section appears at all: no account, no section, rather
+        ///     than an empty one asking to be ignored.
+        /// </summary>
+        public bool HasForge() => ResolveForges().Count > 0;
+
+        /// <summary>
         ///     Which forge each remote lives on, by remote name.
         ///
         ///     A declared account wins over the address, because a self-hosted GitLab answers
