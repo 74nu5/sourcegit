@@ -1,0 +1,242 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+
+using Avalonia;
+using Avalonia.Collections;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.VisualTree;
+
+namespace SourceGit.Views
+{
+    /// <summary>
+    ///     The pull requests of a repository, as a section of the left panel.
+    ///
+    ///     It shows itself only when a configured account covers one of the repository's
+    ///     remotes; with no forge there is nothing to list, and an empty section asking to be
+    ///     ignored is worse than none.
+    /// </summary>
+    public partial class PullRequestsView : UserControl
+    {
+        public static readonly StyledProperty<bool> IsExpandedProperty =
+            AvaloniaProperty.Register<PullRequestsView, bool>(nameof(IsExpanded), true);
+
+        public bool IsExpanded
+        {
+            get => GetValue(IsExpandedProperty);
+            set => SetValue(IsExpandedProperty, value);
+        }
+
+        /// <summary>
+        ///     Show only what this token's owner opened.
+        /// </summary>
+        public static readonly StyledProperty<bool> MineOnlyProperty =
+            AvaloniaProperty.Register<PullRequestsView, bool>(nameof(MineOnly));
+
+        public bool MineOnly
+        {
+            get => GetValue(MineOnlyProperty);
+            set => SetValue(MineOnlyProperty, value);
+        }
+
+        public static readonly DirectProperty<PullRequestsView, AvaloniaList<Models.PullRequest>> VisibleProperty =
+            AvaloniaProperty.RegisterDirect<PullRequestsView, AvaloniaList<Models.PullRequest>>(
+                nameof(Visible),
+                static o => o.Visible);
+
+        public AvaloniaList<Models.PullRequest> Visible
+        {
+            get => _visible;
+            private set => SetAndRaise(VisibleProperty, ref _visible, value);
+        }
+
+        public static readonly DirectProperty<PullRequestsView, string> CounterProperty =
+            AvaloniaProperty.RegisterDirect<PullRequestsView, string>(
+                nameof(Counter),
+                static o => o.Counter);
+
+        public string Counter
+        {
+            get => _counter;
+            private set => SetAndRaise(CounterProperty, ref _counter, value);
+        }
+
+        /// <summary>
+        ///     How tall the list wants to be, so the panel can reserve room for it.
+        /// </summary>
+        public double DesiredListHeight => IsExpanded ? Math.Min(_visible.Count, 8) * 24.0 : 0;
+
+        public PullRequestsView()
+        {
+            InitializeComponent();
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+
+            // The panel is built before the repository has read its remotes, so the first
+            // look always finds none and would hide this section for good. Listening is what
+            // makes it appear once they arrive.
+            if (this.FindAncestorOfType<Repository>() is { DataContext: ViewModels.Repository repo })
+            {
+                _watched = repo;
+                _watched.PropertyChanged += OnRepositoryChanged;
+            }
+
+            Reload(false);
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTree(e);
+
+            if (_watched != null)
+            {
+                _watched.PropertyChanged -= OnRepositoryChanged;
+                _watched = null;
+            }
+
+            var pending = Interlocked.Exchange(ref _pending, null);
+            pending?.Cancel();
+            pending?.Dispose();
+        }
+
+        private void OnRepositoryChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ViewModels.Repository.Remotes))
+                Reload(false);
+        }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+
+            if (change.Property == MineOnlyProperty)
+                Apply();
+            else if (change.Property == IsExpandedProperty)
+                Announce();
+        }
+
+        private void OnRefresh(object sender, RoutedEventArgs e)
+        {
+            Reload(true);
+            e.Handled = true;
+        }
+
+        private void OnOpenPullRequest(object sender, TappedEventArgs e)
+        {
+            if (sender is Control { DataContext: Models.PullRequest pr } && !string.IsNullOrEmpty(pr.Url))
+                Native.OS.OpenBrowser(pr.Url);
+
+            e.Handled = true;
+        }
+
+        /// <summary>
+        ///     Asks the repository for its requests, and for who we are on each forge so that
+        ///     "mine" can mean something. Refreshing forgets first, which is the difference
+        ///     between the button and simply drawing again.
+        /// </summary>
+        private async void Reload(bool forget)
+        {
+            var previous = Interlocked.Exchange(ref _pending, null);
+            previous?.Cancel();
+            previous?.Dispose();
+
+            if (this.FindAncestorOfType<Repository>() is not { DataContext: ViewModels.Repository repo })
+                return;
+
+            // No account covering this repository means nothing to list, and an empty section
+            // asking to be ignored is worse than none.
+            IsVisible = repo.HasForge();
+            if (!IsVisible)
+            {
+                Announce();
+                return;
+            }
+
+            if (forget)
+                repo.InvalidatePullRequests();
+
+            var cancel = new CancellationTokenSource();
+            _pending = cancel;
+
+            var all = await repo.GetPullRequestListAsync(cancel.Token).ConfigureAwait(true);
+            var me = await repo.GetForgeIdentitiesAsync(cancel.Token).ConfigureAwait(true);
+
+            if (cancel.IsCancellationRequested || !ReferenceEquals(_pending, cancel))
+                return;
+
+            _all = all;
+            _me = me;
+            Apply();
+        }
+
+        private void Apply()
+        {
+            var kept = new AvaloniaList<Models.PullRequest>();
+
+            foreach (var pr in _all)
+            {
+                if (MineOnly && !IsMine(pr))
+                    continue;
+
+                kept.Add(pr);
+            }
+
+            Visible = kept;
+            Counter = kept.Count > 0 ? $"({kept.Count})" : string.Empty;
+            Announce();
+        }
+
+        /// <summary>
+        ///     Mine when any of this repository's forges says its token belongs to the author.
+        ///     A forge that cannot say who we are simply never claims anything, which is why
+        ///     the filter empties rather than lying.
+        /// </summary>
+        private bool IsMine(Models.PullRequest pr)
+        {
+            foreach (var user in _me)
+            {
+                if (user.Wrote(pr))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     The panel hands out heights by hand and has no way to notice this list grew, so
+        ///     it is told, and it comes back to ask for the height below.
+        /// </summary>
+        private void Announce()
+        {
+            if (this.FindAncestorOfType<Repository>() is { } view)
+                view.UpdateForkSidebarLayout();
+        }
+
+        /// <summary>
+        ///     Eight rows at most. Beyond that the list would crowd out the branches, which
+        ///     are what the panel is mostly for; the rest is a scroll away.
+        /// </summary>
+        public double Measure(double room)
+        {
+            Requests.Height = IsExpanded ? Math.Min(DesiredListHeight, Math.Max(0, room)) : 0;
+            return HEADER + Requests.Height;
+        }
+
+        /// <summary>
+        ///     The section's own header, the same height as the ones above it.
+        /// </summary>
+        private const double HEADER = 28;
+
+        private AvaloniaList<Models.PullRequest> _visible = [];
+        private List<Models.PullRequest> _all = [];
+        private List<Models.ForgeUser> _me = [];
+        private string _counter = string.Empty;
+        private CancellationTokenSource _pending = null;
+        private ViewModels.Repository _watched = null;
+    }
+}

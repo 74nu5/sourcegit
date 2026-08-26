@@ -48,6 +48,13 @@ namespace SourceGit.Models
         public string Author { get; init; } = string.Empty;
 
         /// <summary>
+        ///     The author as the forge files them — a login, a username, an address —
+        ///     alongside the name it shows. Which of the two appears on a request differs by
+        ///     forge, so telling "mine" from "someone else's" needs both.
+        /// </summary>
+        public string AuthorId { get; init; } = string.Empty;
+
+        /// <summary>
         ///     Branch names as git knows them — "feature/x", never "refs/heads/feature/x".
         ///     This is what the indicator matches a local branch against.
         /// </summary>

@@ -9,6 +9,34 @@ namespace SourceGit.Views
     /// </summary>
     public partial class Repository
     {
+        /// <summary>
+        ///     Room the pull request section needs, taken off the height the panel has to hand
+        ///     out to the sections upstream owns.
+        ///
+        ///     This is the single line this fork adds to UpdateLeftSidebarLayout, which is a
+        ///     hundred and twenty lines of hand-rolled cascade that upstream keeps editing.
+        ///     Zero when no forge covers the repository, in which case the section is not
+        ///     there at all and the panel behaves exactly as it always did.
+        /// </summary>
+        internal double ReserveForkSidebarSpace(double available)
+        {
+            var section = PullRequestsSection;
+            if (section is not { IsVisible: true })
+                return 0;
+
+            // A third of what is left, at most: the branches are what the panel is mostly for.
+            return section.Measure(available / 3);
+        }
+
+        /// <summary>
+        ///     Called by the section when its contents change, since the panel hands out
+        ///     heights by hand and cannot notice on its own.
+        /// </summary>
+        internal void UpdateForkSidebarLayout()
+        {
+            UpdateLeftSidebarLayout();
+        }
+
         private void AppendForkHistoryOptions(ContextMenu menu, ViewModels.Repository repo, ViewModels.Histories histories, ViewModels.Preferences pref)
         {
             var branchPlacement = new MenuItem();

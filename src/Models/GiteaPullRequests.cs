@@ -108,6 +108,7 @@ namespace SourceGit.Models
                 Id = number.GetInt64(),
                 Title = ReadString(item, "title") ?? string.Empty,
                 Author = author,
+                AuthorId = author,
                 SourceBranch = ReadEnd(item, "head", "ref"),
                 TargetBranch = ReadEnd(item, "base", "ref"),
                 State = ToState(ReadString(item, "state") ?? string.Empty, draft, merged),
