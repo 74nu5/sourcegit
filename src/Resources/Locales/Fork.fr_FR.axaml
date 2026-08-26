@@ -48,6 +48,7 @@
   <x:String x:Key="Text.Preferences.Forge.Token.Hint" xml:space="preserve">Case ci-dessus cochée, le nom de la variable qui contient le jeton (ex. AZURE_DEVOPS_PAT). Décochée, le jeton lui-même.</x:String>
   <x:String x:Key="Text.Preferences.Forge.Privacy" xml:space="preserve">Les préférences sont stockées en clair : un jeton saisi ici est lisible par tout ce qui peut lire votre répertoire personnel. Nommer une variable d’environnement l’en tient à l’écart.</x:String>
   <x:String x:Key="Text.Repository.PullRequests" xml:space="preserve">PULL REQUESTS</x:String>
+  <x:String x:Key="Text.Repository.PullRequests.Detail" xml:space="preserve">Afficher le détail</x:String>
   <x:String x:Key="Text.Repository.PullRequests.MineOnly" xml:space="preserve">Seulement celles que j’ai ouvertes</x:String>
   <x:String x:Key="Text.Repository.PullRequests.Refresh" xml:space="preserve">Réinterroger la forge</x:String>
   <x:String x:Key="Text.Repository.BranchPlacement" xml:space="preserve">PLACEMENT DES BRANCHES</x:String>
