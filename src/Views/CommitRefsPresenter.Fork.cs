@@ -87,10 +87,19 @@ namespace SourceGit.Views
                 if (!ReferenceEquals(_hovered, over))
                 {
                     _hovered = over;
+                    _hoveredRemote = null;
+
+                    // A tooltip already on screen keeps showing whatever it was given first,
+                    // so sliding from the branch name onto the mark would never reveal the
+                    // card. Closed and opened again, the new one takes — and opening it
+                    // outright also spares the wait, which suits a mark small enough that
+                    // reaching it is already deliberate.
+                    ToolTip.SetIsOpen(this, false);
                     ToolTip.SetTip(this, CreatePullRequestCard(over));
                     ToolTip.SetPlacement(this, PlacementMode.Pointer);
                     ToolTip.SetHorizontalOffset(this, 0);
                     ToolTip.SetVerticalOffset(this, 0);
+                    ToolTip.SetIsOpen(this, true);
                 }
 
                 Cursor = HAND;
@@ -104,10 +113,12 @@ namespace SourceGit.Views
                 {
                     _hovered = null;
                     _hoveredRemote = remote;
+                    ToolTip.SetIsOpen(this, false);
                     ToolTip.SetTip(this, remote);
                     ToolTip.SetPlacement(this, PlacementMode.Pointer);
                     ToolTip.SetHorizontalOffset(this, 0);
                     ToolTip.SetVerticalOffset(this, 0);
+                    ToolTip.SetIsOpen(this, true);
                 }
 
                 Cursor = null;
@@ -128,6 +139,7 @@ namespace SourceGit.Views
             {
                 if (ToolTip.GetTip(this) is not CommitRefsPresenter)
                 {
+                    ToolTip.SetIsOpen(this, false);
                     ToolTip.SetTip(this, CreateHoverPopup());
                     ToolTip.SetPlacement(this, PlacementMode.RightEdgeAlignedTop);
                     ToolTip.SetHorizontalOffset(this, -Bounds.Width);
@@ -206,14 +218,20 @@ namespace SourceGit.Views
         /// </summary>
         private Control CreatePullRequestCard(Models.PullRequest pr)
         {
+            // A fixed width, not a range. Left to choose between a minimum and a maximum the
+            // tooltip settled on the minimum and then laid its contents out wider, so a long
+            // title ran off the right edge of its own window. One width, and everything wraps
+            // inside it.
             var root = new StackPanel()
             {
                 Orientation = Avalonia.Layout.Orientation.Vertical,
-                MinWidth = 300,
-                MaxWidth = 460,
+                Width = 420,
             };
 
             root.Children.Add(CardHeader(pr));
+
+            if (pr.HasConflicts)
+                root.Children.Add(ConflictBanner());
 
             root.Children.Add(new TextBlock()
             {
@@ -265,6 +283,60 @@ namespace SourceGit.Views
             });
 
             return root;
+        }
+
+        /// <summary>
+        ///     The one thing on this card worth interrupting for.
+        ///
+        ///     Red, at the top, above the title: a request that no longer merges needs work
+        ///     before anything else on the card matters. Left as a band rather than a word in
+        ///     the corner, because a colour alone would be lost on whoever cannot see it.
+        /// </summary>
+        private static Control ConflictBanner()
+        {
+            var red = new SolidColorBrush(0xFFDA3633);
+
+            var row = new Grid() { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
+
+            if (App.Current?.FindResource("Icons.Error") is StreamGeometry warning)
+            {
+                var icon = new Avalonia.Controls.Shapes.Path()
+                {
+                    Width = 12,
+                    Height = 12,
+                    Data = warning,
+                    Fill = red,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
+                    Margin = new Thickness(0, 1, 0, 0),
+                };
+
+                Grid.SetColumn(icon, 0);
+                row.Children.Add(icon);
+            }
+
+            var text = new TextBlock()
+            {
+                Text = App.Text("PullRequest.Conflict"),
+                Margin = new Thickness(7, 0, 0, 0),
+                FontSize = 12,
+                FontWeight = FontWeight.SemiBold,
+                Foreground = red,
+                TextWrapping = TextWrapping.Wrap,
+            };
+
+            Grid.SetColumn(text, 1);
+            row.Children.Add(text);
+
+            return new Border()
+            {
+                Background = new SolidColorBrush(Color.FromUInt32(0xFFDA3633), 0.14),
+                BorderBrush = new SolidColorBrush(Color.FromUInt32(0xFFDA3633), 0.45),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(8, 6),
+                Margin = new Thickness(0, 9, 0, 0),
+                Child = row,
+            };
         }
 
         /// <summary>

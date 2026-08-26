@@ -22,6 +22,20 @@ namespace SourceGit.Models
     }
 
     /// <summary>
+    ///     Whether the request would merge as it stands.
+    ///
+    ///     Unknown is the honest answer for most forges: GitHub and Bitbucket say nothing
+    ///     about it when listing, and finding out would cost one request per request — the
+    ///     very arithmetic this whole layer exists to avoid.
+    /// </summary>
+    public enum PullRequestMergeState
+    {
+        Unknown,
+        Clean,
+        Conflicting,
+    }
+
+    /// <summary>
     ///     A pull request, said the same way whichever forge it came from.
     ///
     ///     Only what a branch indicator needs is kept. Anything richer belongs to whoever
@@ -56,6 +70,13 @@ namespace SourceGit.Models
         ///     where it lives without having to trace the account back.
         /// </summary>
         public ForgeKind Kind { get; init; }
+
+        /// <summary>
+        ///     Whether it still merges cleanly, when the forge said so while listing.
+        /// </summary>
+        public PullRequestMergeState MergeState { get; init; }
+
+        public bool HasConflicts => MergeState == PullRequestMergeState.Conflicting;
         public string Url { get; init; } = string.Empty;
         public DateTime CreatedAt { get; init; }
 

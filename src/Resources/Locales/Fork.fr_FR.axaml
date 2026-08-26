@@ -16,6 +16,7 @@
   <x:String x:Key="Text.PullRequest.State.Draft" xml:space="preserve">BROUILLON</x:String>
   <x:String x:Key="Text.PullRequest.State.Merged" xml:space="preserve">FUSIONNÉE</x:String>
   <x:String x:Key="Text.PullRequest.State.Closed" xml:space="preserve">FERMÉE</x:String>
+  <x:String x:Key="Text.PullRequest.Conflict" xml:space="preserve">En conflit avec sa branche cible</x:String>
   <x:String x:Key="Text.PullRequest.OpenInBrowser" xml:space="preserve">Cliquer pour l’ouvrir dans le navigateur</x:String>
   <x:String x:Key="Text.Preferences.Forge" xml:space="preserve">FORGES</x:String>
   <x:String x:Key="Text.Preferences.Forge.Empty" xml:space="preserve">Aucun compte sélectionné. Utilisez + pour en ajouter un, en choisissant la forge à laquelle il s’adresse.</x:String>

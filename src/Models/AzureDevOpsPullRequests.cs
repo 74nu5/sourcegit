@@ -123,6 +123,7 @@ namespace SourceGit.Models
                 TargetBranch = ShortBranch(ReadString(item, "targetRefName")),
                 SourceRepository = repo.FullName,
                 Kind = ForgeKind.AzureDevOps,
+                MergeState = ToMergeState(ReadString(item, "mergeStatus")),
                 State = ToState(status, isDraft),
                 Url = BuildWebUrl(repo, id),
                 CreatedAt = created,
@@ -136,6 +137,25 @@ namespace SourceGit.Models
         public static string BuildWebUrl(ForgeRepository repo, long id)
         {
             return $"https://{repo.Host}/{Esc(repo.Owner)}/{Esc(repo.Project)}/_git/{Esc(repo.Name)}/pullrequest/{id}";
+        }
+
+        /// <summary>
+        ///     Azure DevOps says outright whether a request conflicts. Anything other than a
+        ///     settled yes or no — still queued, still being worked out — is left unknown
+        ///     rather than reported as clean.
+        /// </summary>
+        public static PullRequestMergeState ToMergeState(string mergeStatus)
+        {
+            if (string.IsNullOrEmpty(mergeStatus))
+                return PullRequestMergeState.Unknown;
+
+            if (mergeStatus.Equals("conflicts", StringComparison.OrdinalIgnoreCase))
+                return PullRequestMergeState.Conflicting;
+
+            if (mergeStatus.Equals("succeeded", StringComparison.OrdinalIgnoreCase))
+                return PullRequestMergeState.Clean;
+
+            return PullRequestMergeState.Unknown;
         }
 
         public static PullRequestState ToState(string status, bool isDraft)
