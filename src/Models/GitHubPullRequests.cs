@@ -123,6 +123,10 @@ namespace SourceGit.Models
                 TargetBranch = ReadRef(item, "base"),
                 SourceRepository = ReadHeadRepository(item),
                 Kind = ForgeKind.GitHub,
+
+                // MergeState stays unknown on purpose: GitHub leaves "mergeable" out of the
+                // list entirely and only fills it in when a request is asked for by itself,
+                // which would cost one call per request.
                 State = ToState(state, isDraft, merged),
                 Url = ReadString(item, "html_url") ?? string.Empty,
                 CreatedAt = created,

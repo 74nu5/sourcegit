@@ -114,6 +114,7 @@ namespace SourceGit.Models
                 CreatedAt = created,
                 SourceRepository = ReadSourceProject(item, repo),
                 Kind = ForgeKind.GitLab,
+                MergeState = ReadMergeState(item),
             };
         }
 
@@ -132,6 +133,22 @@ namespace SourceGit.Models
                 return string.Empty;
 
             return source == target ? repo.FullName : $"gitlab-project:{source}";
+        }
+
+        /// <summary>
+        ///     GitLab answers plainly with has_conflicts, which it fills in while listing.
+        /// </summary>
+        public static PullRequestMergeState ReadMergeState(JsonElement item)
+        {
+            if (!item.TryGetProperty("has_conflicts", out var conflicts))
+                return PullRequestMergeState.Unknown;
+
+            return conflicts.ValueKind switch
+            {
+                JsonValueKind.True => PullRequestMergeState.Conflicting,
+                JsonValueKind.False => PullRequestMergeState.Clean,
+                _ => PullRequestMergeState.Unknown,
+            };
         }
 
         public static PullRequestState ToState(string state, bool draft)

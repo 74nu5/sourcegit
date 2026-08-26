@@ -117,6 +117,8 @@ namespace SourceGit.Models
                 CreatedAt = created,
                 SourceRepository = ReadSourceRepository(item),
                 Kind = ForgeKind.Bitbucket,
+
+                // MergeState stays unknown: Bitbucket says nothing about conflicts here.
             };
         }
 
