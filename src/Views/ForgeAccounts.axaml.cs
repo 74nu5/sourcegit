@@ -138,6 +138,7 @@ namespace SourceGit.Views
             catch (Exception ex)
             {
                 // From an event handler, an escaping exception ends the process.
+                Models.ForgeLog.Failed("connection test", ex);
                 Native.OS.LogException(ex);
             }
         }
