@@ -57,7 +57,7 @@ namespace SourceGit.Models
         public static string BuildUrl(string apiRoot, ForgeRepository repo)
         {
             return $"{apiRoot}/repos/{Uri.EscapeDataString(repo.Owner)}/{Uri.EscapeDataString(repo.Name)}/pulls" +
-                   "?state=all&per_page=100&sort=updated&direction=desc";
+                   "?state=open&per_page=100&sort=updated&direction=desc";
         }
 
         /// <summary>

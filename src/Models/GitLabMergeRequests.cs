@@ -44,7 +44,7 @@ namespace SourceGit.Models
         public static string BuildUrl(string root, ForgeRepository repo)
         {
             return $"{root}/api/v4/projects/{Uri.EscapeDataString(repo.FullName)}/merge_requests" +
-                   "?state=all&per_page=100&order_by=created_at&sort=desc";
+                   "?state=opened&per_page=100&order_by=created_at&sort=desc";
         }
 
         /// <summary>
