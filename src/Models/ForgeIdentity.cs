@@ -198,6 +198,11 @@ namespace SourceGit.Models
         public static void Clear() => CACHE.Clear();
 
         private static readonly IForgeIdentity SOURCE = new ForgeIdentity();
-        private static readonly ForgeCache<ForgeUser> CACHE = new(TimeSpan.FromHours(1), TimeSpan.FromMinutes(1));
+        /// <summary>
+        ///     A refusal here is not a passing thing: a token without the scope to read a
+        ///     profile will not grow one. Asking again every minute buys a failed request per
+        ///     minute and nothing else, so a refusal is kept as long as an answer.
+        /// </summary>
+        private static readonly ForgeCache<ForgeUser> CACHE = new(TimeSpan.FromHours(1), TimeSpan.FromHours(1));
     }
 }
