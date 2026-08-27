@@ -113,6 +113,31 @@ namespace SourceGit.Views
             e.Handled = true;
         }
 
+        /// <summary>
+        ///     Copies the selected account and selects the copy.
+        ///
+        ///     It lands directly below what it came from rather than at the end of the list,
+        ///     which keeps the accounts of one host together as they multiply.
+        ///
+        ///     Nothing renames it: an account has no name of its own, it is called after the
+        ///     scope it covers. The copy reads the same until that scope is narrowed, which is
+        ///     the very next thing the panel is showing.
+        /// </summary>
+        private void OnDuplicateSelectedAccount(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            var source = SelectedAccount;
+            if (source == null)
+                return;
+
+            var accounts = ViewModels.Preferences.Instance.ForgeAccounts;
+            var copy = source.Clone();
+
+            accounts.Insert(accounts.IndexOf(source) + 1, copy);
+            SelectedAccount = copy;
+        }
+
         private void OnRemoveSelectedAccount(object sender, RoutedEventArgs e)
         {
             if (SelectedAccount == null)
