@@ -239,11 +239,20 @@ namespace SourceGit.Views
                 // somebody else disposed throws rather than answering.
                 var token = cancel.Token;
 
+                Models.ForgeLog.Line($"list {repo.FullPath} : loading{(forget ? " (refresh)" : string.Empty)}");
+
                 var all = await repo.GetPullRequestListAsync(token).ConfigureAwait(true);
                 var me = await repo.GetForgeIdentitiesAsync(token).ConfigureAwait(true);
 
                 if (token.IsCancellationRequested || !ReferenceEquals(_pending, cancel))
+                {
+                    // The line that used to end the process: another load replaced this one
+                    // while it was in flight.
+                    Models.ForgeLog.Line($"list {repo.FullPath} : superseded, dropped");
                     return;
+                }
+
+                Models.ForgeLog.Line($"list {repo.FullPath} : {all.Count} live, {me.Count} identities");
 
                 _all = all;
                 _me = me;
@@ -251,6 +260,7 @@ namespace SourceGit.Views
             }
             catch (Exception ex)
             {
+                Models.ForgeLog.Failed("pull request list", ex);
                 Native.OS.LogException(ex);
             }
         }
