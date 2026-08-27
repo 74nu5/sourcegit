@@ -1,16 +1,21 @@
-# "Can this fork still rebase on upstream?"
+# Two questions about upstream, asked on their own clocks.
 #
-# The rebase itself stays manual: it rewrites history and a conflict can need
-# judgement. This workflow only asks the question every week, on a throwaway
-# branch, and opens an issue the day the answer becomes no.
+#   can we still rebase?   weekly, on a throwaway branch. You learn about a
+#                          conflict while it still costs two commits, not two
+#                          hundred.
+#   have they released?    daily, and it costs seconds. Our version numbers
+#                          carry theirs, so a release of ours only means
+#                          something if it is cut near one of theirs.
 #
-# You learn about a conflict while it still costs two commits, not two hundred.
+# Neither does anything but open an issue. Rebasing rewrites history and
+# releasing publishes binaries; both stay in a human's hands.
 
 name: Fork · upstream watch
 
 on:
   schedule:
-    - cron: "0 6 * * 1"      # monday morning
+    - cron: "0 6 * * 1"      # monday morning: the rebase probe
+    - cron: "0 7 * * *"      # every morning: the tag check alone
   workflow_dispatch:
 
 permissions:
@@ -19,6 +24,9 @@ permissions:
 
 jobs:
   watch:
+    # The daily run is for tags only. Rebasing and building every morning would
+    # buy nothing the Monday probe does not already say.
+    if: github.event.schedule != '0 7 * * *'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -118,3 +126,112 @@ jobs:
                 labels: ["upstream-watch"],
               });
             }
+
+  # ---------------------------------------------------------------------------
+  # "Have they released?"
+  #
+  # Our tags are theirs plus a suffix -- v2026.18-3b.4 -- so the line we are on
+  # reads straight off our own newest tag. Nothing is stored between runs: the
+  # two tag lists are the whole state.
+  released:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main            # the branch that carries our release tags
+          fetch-depth: 0
+
+      - name: Newest tag on each side
+        id: tags
+        run: |
+          upstream=https://github.com/sourcegit-scm/sourcegit.git
+
+          # vYYYY.NN only. Upstream tags nothing else today, but a stray tag
+          # would otherwise be read as a release and announced as one.
+          theirs=$(git ls-remote --tags --refs "$upstream" 'v*' |
+                   sed 's#.*refs/tags/##' |
+                   grep -E '^v[0-9]{4}\.[0-9]+$' |
+                   sort -V | tail -1)
+
+          # Ours all carry a suffix, which is what tells the two apart.
+          ours=$(git tag --list 'v*-*' | sort -V | tail -1)
+          line=${ours%%-*}
+
+          ahead=no
+          if [ -n "$theirs" ] && [ "$theirs" != "$line" ]; then
+            ahead=yes
+          fi
+
+          echo "theirs=$theirs" >> "$GITHUB_OUTPUT"
+          echo "ours=$ours" >> "$GITHUB_OUTPUT"
+          echo "ahead=$ahead" >> "$GITHUB_OUTPUT"
+
+          echo "upstream ${theirs:-none} / ours ${ours:-none} (line ${line:-none}) / new: $ahead"
+
+      - name: Do we already carry it
+        id: carried
+        if: steps.tags.outputs.ahead == 'yes'
+        run: |
+          # Fetched by name, so it cannot collide with ours: ours all have a suffix.
+          git fetch --no-tags --quiet \
+            https://github.com/sourcegit-scm/sourcegit.git \
+            tag "${{ steps.tags.outputs.theirs }}"
+
+          if git merge-base --is-ancestor "${{ steps.tags.outputs.theirs }}" HEAD; then
+            echo "carried=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "carried=no" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Say so, once
+        if: steps.tags.outputs.ahead == 'yes'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const theirs = "${{ steps.tags.outputs.theirs }}";
+            const ours = "${{ steps.tags.outputs.ours }}";
+            const carried = "${{ steps.carried.outputs.carried }}" === "yes";
+            const next = `${theirs}-3b.1`;
+            const title = `Upstream released ${theirs}`;
+
+            // The title carries the tag, so the issue list itself says whether
+            // this release has been announced already. No state to keep, and
+            // closing the issue does not bring it back.
+            const seen = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "all",
+              labels: "upstream-release",
+              per_page: 100,
+            });
+
+            if (seen.data.some(i => i.title === title)) {
+              core.info(`${title} — already opened, nothing to do.`);
+              return;
+            }
+
+            const body = [
+              `\`sourcegit-scm/sourcegit\` published **${theirs}**. Our newest release is \`${ours}\`.`,
+              ``,
+              carried
+                ? `\`main\` already contains that tag, so the next release can be cut as it stands.`
+                : `\`main\` does **not** contain that tag yet. Rebase first, or the number would claim a base we are not on.`,
+              ``,
+              `The next fork version is **\`${next}\`** — the suffix restarts at 1 because the part before it names the upstream line we track.`,
+              ``,
+              `Worth cutting soon: every day that passes, \`${ours}\` carries more of ${theirs} than of the version it is named after.`,
+              ``,
+              '```',
+              './tools/sync-upstream.ps1 -Check',
+              '```',
+              ``,
+              `_Opened by the daily upstream watch. See DEVELOPMENT.md, "Releasing"._`,
+            ].join("\n");
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ["upstream-release"],
+            });
