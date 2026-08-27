@@ -63,4 +63,5 @@
   <x:String x:Key="Text.Repository.HistoriesColumns.SplitGraph" xml:space="preserve">Colonne graphe séparée</x:String>
   <x:String x:Key="Text.Preferences.AI.Duplicate" xml:space="preserve">Dupliquer le service sélectionné, identifiants compris</x:String>
   <x:String x:Key="Text.Preferences.Forge.Duplicate" xml:space="preserve">Dupliquer le compte sélectionné, jeton compris</x:String>
+  <x:String x:Key="Text.Fork.Duplicate" xml:space="preserve">Dupliquer l'élément sélectionné</x:String>
 </ResourceDictionary>
