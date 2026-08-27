@@ -94,7 +94,11 @@ namespace SourceGit.Views
                     // outright also spares the wait, which suits a mark small enough that
                     // reaching it is already deliberate.
                     ToolTip.SetIsOpen(this, false);
-                    ToolTip.SetTip(this, PullRequestCard.Build(over, DataContext is Models.Commit ? this.FindAncestorOfType<Histories>()?.DataContext as ViewModels.Repository : null));
+                    // The repository, so the card can go and ask what stands in the way.
+                    // Not from the Histories view above us -- that one is bound to the
+                    // Histories view model, and the cast came back null, which reads exactly
+                    // like a forge with nothing to say.
+                    ToolTip.SetTip(this, PullRequestCard.Build(over, OwningRepository()));
                     ToolTip.SetPlacement(this, PlacementMode.Pointer);
                     ToolTip.SetHorizontalOffset(this, 0);
                     ToolTip.SetVerticalOffset(this, 0);
@@ -504,6 +508,18 @@ namespace SourceGit.Views
                 Models.ForgeLog.Failed("branch marks", ex);
                 Native.OS.LogException(ex);
             }
+        }
+
+        /// <summary>
+        ///     The repository this chip is drawn for, found the one way that works: the
+        ///     Repository view is what carries it, and every other ancestor carries a view
+        ///     model of its own.
+        /// </summary>
+        private ViewModels.Repository OwningRepository()
+        {
+            return this.FindAncestorOfType<Repository>() is { DataContext: ViewModels.Repository repo }
+                ? repo
+                : null;
         }
 
         private async System.Threading.Tasks.Task LoadPullRequestsAsync()
