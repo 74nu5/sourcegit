@@ -135,6 +135,12 @@ namespace SourceGit.Models
                 // A token never appears in an address, so this can be written down whole.
                 ForgeLog.Line($"GET {url} -> {status} ({(int)rsp.StatusCode}) {started.ElapsedMilliseconds}ms {body?.Length ?? 0}B");
 
+                // A refusal that does not say why costs an afternoon. Forges explain
+                // themselves in the body; the first line of it is enough and is never long
+                // enough to be a secret.
+                if (status != ForgeStatus.Ok && !string.IsNullOrEmpty(body))
+                    ForgeLog.Line($"     said: {Excerpt(body)}");
+
                 return new ForgeReply
                 {
                     Status = status,
@@ -207,6 +213,16 @@ namespace SourceGit.Models
         ///     True when the caller stopped short of the last page, which
         ///     <see cref="GetPagesAsync"/> reports rather than hides.
         /// </summary>
+        /// <summary>
+        ///     The first useful line of an error body, short enough for a log line. Never a
+        ///     secret: a token travels in a header and is never echoed back in an answer.
+        /// </summary>
+        private static string Excerpt(string body)
+        {
+            var text = body.Replace('\n', ' ').Replace('\r', ' ').Trim();
+            return text.Length > 200 ? text[..200] + "..." : text;
+        }
+
         public static bool WasTruncated<T>(ForgeResult<T> result) => result.IsOk && result.Detail == TRUNCATED;
 
         /// <summary>

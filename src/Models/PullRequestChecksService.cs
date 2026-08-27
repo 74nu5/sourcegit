@@ -337,13 +337,72 @@ namespace SourceGit.Models
                 $"vstfs:///CodeReview/CodeReviewId/{request.ProjectId}/{request.Id}");
 
             var url = $"{root}/{Uri.EscapeDataString(repo.Owner)}/{Uri.EscapeDataString(repo.Project)}" +
-                      $"/_apis/policy/evaluations?artifactId={artifact}&api-version=7.1";
+                      $"/_apis/policy/evaluations?artifactId={artifact}&api-version={POLICY_API}";
 
             var reply = await ForgeTransport.GetAsync(account, url, cancel).ConfigureAwait(false);
-            if (!reply.IsOk)
+            var checks = reply.IsOk ? Parse(reply.Body) : PullRequestChecks.None;
+
+            // Comments are asked separately rather than read off a policy, because the
+            // policy only exists if somebody configured one -- and an unanswered comment
+            // holds a merge up whether or not a rule says it should.
+            var threadsUrl = $"{root}/{Uri.EscapeDataString(repo.Owner)}/{Uri.EscapeDataString(repo.Project)}" +
+                             $"/_apis/git/repositories/{Uri.EscapeDataString(repo.Name)}" +
+                             $"/pullRequests/{request.Id}/threads?api-version=7.1";
+
+            var threads = await ForgeTransport.GetAsync(account, threadsUrl, cancel).ConfigureAwait(false);
+            if (threads.IsOk)
+            {
+                var open = CountActive(threads.Body);
+                if (open >= 0)
+                {
+                    checks = checks with
+                    {
+                        Discussions = open == 0 ? CheckState.Passed : CheckState.Failed,
+                        OpenDiscussions = open,
+                    };
+                }
+            }
+
+            if (!reply.IsOk && !threads.IsOk)
                 return ForgeResult<PullRequestChecks>.Failure(reply.Status, reply.Detail);
 
-            return ForgeResult<PullRequestChecks>.Success(Parse(reply.Body));
+            return ForgeResult<PullRequestChecks>.Success(checks);
+        }
+
+        /// <summary>
+        ///     How many conversations are still open, or -1 when the answer made no sense.
+        ///
+        ///     Only "active" counts. A thread the forge itself wrote -- "X added Y as a
+        ///     reviewer" -- carries no status at all, and a resolved one is filed under one of
+        ///     four different words, none of which means anything is still asked of anybody.
+        /// </summary>
+        public static int CountActive(string body)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                if (!doc.RootElement.TryGetProperty("value", out var list) || list.ValueKind != JsonValueKind.Array)
+                    return -1;
+
+                var open = 0;
+                foreach (var thread in list.EnumerateArray())
+                {
+                    if (thread.ValueKind != JsonValueKind.Object)
+                        continue;
+
+                    if (thread.TryGetProperty("isDeleted", out var deleted) && deleted.ValueKind == JsonValueKind.True)
+                        continue;
+
+                    if (PullRequestChecksService.Read(thread, "status") == "active")
+                        open++;
+                }
+
+                return open;
+            }
+            catch
+            {
+                return -1;
+            }
         }
 
         /// <summary>
@@ -404,6 +463,13 @@ namespace SourceGit.Models
                 return PullRequestChecks.None;
             }
         }
+
+        /// <summary>
+        ///     Policy evaluations has only ever shipped as a preview API. Asking for plain
+        ///     "7.1" is refused outright, with a 400 that says so in its body and nowhere
+        ///     else -- which is why the transport now logs that body.
+        /// </summary>
+        private const string POLICY_API = "7.1-preview.1";
 
         public static CheckState ToState(string status)
         {
