@@ -1,4 +1,4 @@
-<v:ChromelessWindow xmlns="https://github.com/avaloniaui"
+﻿<v:ChromelessWindow xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -880,6 +880,12 @@
 
                   <Button Classes="icon_button" Click="OnRemoveSelectedOpenAIService">
                     <Path Width="14" Height="14" Data="{StaticResource Icons.Minus}"/>
+                  </Button>
+
+                  <Button Classes="icon_button"
+                          Click="OnDuplicateSelectedOpenAIService"
+                          ToolTip.Tip="{DynamicResource Text.Preferences.AI.Duplicate}">
+                    <Path Width="14" Height="14" Data="{StaticResource Icons.Copy}"/>
                   </Button>
                 </StackPanel>
               </Grid>

@@ -61,4 +61,5 @@
   <x:String x:Key="Text.Repository.HistoriesColumns.RemoteIcon" xml:space="preserve">Remote As Icon Instead Of Name</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.ShowBranch" xml:space="preserve">Branch / Tag Column</x:String>
   <x:String x:Key="Text.Repository.HistoriesColumns.SplitGraph" xml:space="preserve">Separate Graph Column</x:String>
+  <x:String x:Key="Text.Preferences.AI.Duplicate" xml:space="preserve">Duplicate the selected service, credentials included</x:String>
 </ResourceDictionary>
