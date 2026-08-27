@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="using:SourceGit.Models"
              xmlns:c="using:SourceGit.Converters"
@@ -73,6 +73,12 @@
 
           <Button Classes="icon_button" Click="OnRemoveSelectedAccount">
             <Path Width="14" Height="14" Data="{StaticResource Icons.Minus}"/>
+          </Button>
+
+          <Button Classes="icon_button"
+                  Click="OnDuplicateSelectedAccount"
+                  ToolTip.Tip="{DynamicResource Text.Preferences.Forge.Duplicate}">
+            <Path Width="14" Height="14" Data="{StaticResource Icons.Copy}"/>
           </Button>
         </StackPanel>
       </Grid>

@@ -189,6 +189,36 @@ namespace SourceGit.Models
         }
 
         /// <summary>
+        ///     A copy of this account, credentials included.
+        ///
+        ///     One token usually reaches several organisations, or several projects of one
+        ///     organisation on Azure DevOps, and those accounts differ by a single field.
+        ///     Retyping an address and a token to narrow a scope is the friction this removes.
+        ///
+        ///     Every stored field is written out here, by hand: reflection does not survive
+        ///     trimming. That would let a field added later be dropped in silence, so the
+        ///     fork's harness walks the type and fails when this list stops covering it.
+        ///
+        ///     The computed ones -- Host, Name, Description -- are never copied. They follow
+        ///     from the fields above, and copying a derived value is how it starts disagreeing
+        ///     with what it derives from.
+        /// </summary>
+        public ForgeAccount Clone()
+        {
+            return new ForgeAccount
+            {
+                Kind = Kind,
+                Url = Url,
+                Organization = Organization,
+                Project = Project,
+
+                // The point of the copy: the same token, reaching a different scope.
+                Token = Token,
+                ReadTokenFromEnv = ReadTokenFromEnv,
+            };
+        }
+
+        /// <summary>
         ///     The token to send, or null when there is nothing usable. Read on every call
         ///     rather than cached: an environment variable can be set after startup, and a
         ///     stale null would keep an account silent for the rest of the session.
