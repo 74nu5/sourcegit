@@ -71,16 +71,21 @@ A scheduled job replays the same rebase every Monday on a throwaway branch and o
 an issue when it stops working. You learn about a conflict while it still costs two
 commits.
 
-Because `develop` is rewritten, both branches are force-pushed afterwards:
+Because `develop` is rewritten, both branches are force-pushed afterwards. `main`
+cannot fast-forward here — it sits on the history the rebase just replaced, so
+`--ff-only` fails on principle rather than on a mistake. Move the label instead:
 
 ```sh
 git push --force-with-lease origin develop
-git checkout main && git merge --ff-only develop
+git checkout main && git reset --hard develop
 git push --force-with-lease origin main
 ```
 
+Nothing is lost by that reset: `main` only ever held what `develop` held.
+
 Release tags are unaffected: a tag keeps its commit alive, so a published release
-still points at exactly the code that produced its binaries.
+still points at exactly the code that produced its binaries — reachable by its tag,
+no longer from `main`.
 
 ## Releasing
 
