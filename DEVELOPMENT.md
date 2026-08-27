@@ -41,6 +41,17 @@ git checkout develop && git merge --ff-only features/my-thing
 git branch -d features/my-thing
 ```
 
+A hook refuses a commit on `main` or `develop`, so that the flow above is the only way
+in. It lives in the repository and is turned on once per clone:
+
+```sh
+git config core.hooksPath tools/hooks
+```
+
+It stands aside for anything already under way — a rebase resolving a conflict, a
+revert, a bisect — so the weekly sync below is unaffected. `git commit --no-verify`
+goes ahead regardless, for the day you mean it.
+
 ## Taking upstream's work
 
 Weekly, from `develop`:
