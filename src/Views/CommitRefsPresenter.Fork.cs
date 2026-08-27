@@ -70,9 +70,8 @@ namespace SourceGit.Views
         {
             base.OnDetachedFromVisualTree(e);
 
-            var pending = Interlocked.Exchange(ref _prCancellation, null);
-            pending?.Cancel();
-            pending?.Dispose();
+            // Cancelled, never disposed: an answer may still be on its way to it.
+            Interlocked.Exchange(ref _prCancellation, null)?.Cancel();
         }
 
         protected override void OnPointerMoved(PointerEventArgs e)
@@ -489,23 +488,36 @@ namespace SourceGit.Views
         /// </summary>
         private async void EnsurePullRequests()
         {
-            var pending = Interlocked.Exchange(ref _prCancellation, null);
-            pending?.Cancel();
-            pending?.Dispose();
+            try
+            {
+                await LoadPullRequestsAsync();
+            }
+            catch (Exception ex)
+            {
+                // From an event handler, an escaping exception ends the process.
+                Native.OS.LogException(ex);
+            }
+        }
 
+        private async System.Threading.Tasks.Task LoadPullRequestsAsync()
+        {
             if (this.FindAncestorOfType<Repository>() is not { DataContext: ViewModels.Repository repo })
+            {
+                Interlocked.Exchange(ref _prCancellation, null)?.Cancel();
                 return;
+            }
 
             // Costs nothing and needs no network, so it is read whether or not the pull
             // request indicator is on: the remote icons stand on their own.
             _remoteKinds = repo.GetRemoteKinds();
 
             var cancel = new CancellationTokenSource();
-            _prCancellation = cancel;
+            Interlocked.Exchange(ref _prCancellation, cancel)?.Cancel();
 
-            var map = await repo.GetPullRequestsAsync(cancel.Token).ConfigureAwait(true);
+            var token = cancel.Token;
+            var map = await repo.GetPullRequestsAsync(token).ConfigureAwait(true);
 
-            if (cancel.IsCancellationRequested || !ReferenceEquals(_prCancellation, cancel))
+            if (token.IsCancellationRequested || !ReferenceEquals(_prCancellation, cancel))
                 return;
 
             if (map.Count == 0 && _pullRequests.Count == 0)

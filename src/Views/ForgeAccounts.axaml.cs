@@ -131,37 +131,53 @@ namespace SourceGit.Views
         {
             e.Handled = true;
 
+            try
+            {
+                await TestConnectionAsync();
+            }
+            catch (Exception ex)
+            {
+                // From an event handler, an escaping exception ends the process.
+                Native.OS.LogException(ex);
+            }
+        }
+
+        private async System.Threading.Tasks.Task TestConnectionAsync()
+        {
             var account = SelectedAccount;
             if (account == null || IsTesting)
                 return;
 
             // A second click, or moving to another account, abandons the answer to the first.
+            // Cancelled, never disposed: the first is still holding it.
             var cancel = new CancellationTokenSource();
-            var previous = Interlocked.Exchange(ref _testCancellation, cancel);
-            previous?.Cancel();
-            previous?.Dispose();
+            Interlocked.Exchange(ref _testCancellation, cancel)?.Cancel();
 
             IsTesting = true;
             TestSucceeded = null;
             TestMessage = App.Text("Preferences.Forge.Test.Running");
 
+            var token = cancel.Token;
+
             Models.ForgeResult<string> result;
             try
             {
-                result = await Models.ForgeConnection.TestAsync(account, cancel.Token).ConfigureAwait(true);
+                result = await Models.ForgeConnection.TestAsync(account, token).ConfigureAwait(true);
             }
             catch (OperationCanceledException)
             {
+                return;
+            }
+            catch (Exception ex)
+            {
+                Native.OS.LogException(ex);
                 return;
             }
             finally
             {
                 // ConfigureAwait(true) brought us back to the UI thread.
                 if (Interlocked.CompareExchange(ref _testCancellation, null, cancel) == cancel)
-                {
                     IsTesting = false;
-                    cancel.Dispose();
-                }
             }
 
             // The account may have changed under us while the request was in flight.
@@ -188,12 +204,7 @@ namespace SourceGit.Views
 
         private void ClearTestResult()
         {
-            var pending = Interlocked.Exchange(ref _testCancellation, null);
-            if (pending != null)
-            {
-                pending.Cancel();
-                pending.Dispose();
-            }
+            Interlocked.Exchange(ref _testCancellation, null)?.Cancel();
 
             IsTesting = false;
             TestSucceeded = null;

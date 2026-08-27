@@ -129,9 +129,9 @@ namespace SourceGit.Views
                 _watched = null;
             }
 
-            var pending = Interlocked.Exchange(ref _pending, null);
-            pending?.Cancel();
-            pending?.Dispose();
+            // Cancelled, never disposed: an answer may still be on its way to it, and
+            // reading a token from a disposed source throws.
+            Interlocked.Exchange(ref _pending, null)?.Cancel();
         }
 
         private void OnRepositoryChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -208,37 +208,51 @@ namespace SourceGit.Views
         /// </summary>
         private async void Reload(bool forget)
         {
-            var previous = Interlocked.Exchange(ref _pending, null);
-            previous?.Cancel();
-            previous?.Dispose();
-
-            if (DataContext is not ViewModels.Repository repo)
-                return;
-
-            // No account covering this repository means nothing to list, and an empty section
-            // asking to be ignored is worse than none.
-            IsVisible = repo.HasForge();
-            if (!IsVisible)
+            // Nothing may escape: this runs from an event handler, where an exception is
+            // not caught by anyone and takes the whole window down with it.
+            try
             {
-                Announce();
-                return;
+                if (DataContext is not ViewModels.Repository repo)
+                {
+                    Interlocked.Exchange(ref _pending, null)?.Cancel();
+                    return;
+                }
+
+                // No account covering this repository means nothing to list, and an empty
+                // section asking to be ignored is worse than none.
+                IsVisible = repo.HasForge();
+                if (!IsVisible)
+                {
+                    Interlocked.Exchange(ref _pending, null)?.Cancel();
+                    Announce();
+                    return;
+                }
+
+                if (forget)
+                    repo.InvalidatePullRequests();
+
+                var cancel = new CancellationTokenSource();
+                Interlocked.Exchange(ref _pending, cancel)?.Cancel();
+
+                // Copied once. Asking the source for it again after an await is what broke:
+                // switching tabs mid-load replaced this one, and the token of a source
+                // somebody else disposed throws rather than answering.
+                var token = cancel.Token;
+
+                var all = await repo.GetPullRequestListAsync(token).ConfigureAwait(true);
+                var me = await repo.GetForgeIdentitiesAsync(token).ConfigureAwait(true);
+
+                if (token.IsCancellationRequested || !ReferenceEquals(_pending, cancel))
+                    return;
+
+                _all = all;
+                _me = me;
+                Apply();
             }
-
-            if (forget)
-                repo.InvalidatePullRequests();
-
-            var cancel = new CancellationTokenSource();
-            _pending = cancel;
-
-            var all = await repo.GetPullRequestListAsync(cancel.Token).ConfigureAwait(true);
-            var me = await repo.GetForgeIdentitiesAsync(cancel.Token).ConfigureAwait(true);
-
-            if (cancel.IsCancellationRequested || !ReferenceEquals(_pending, cancel))
-                return;
-
-            _all = all;
-            _me = me;
-            Apply();
+            catch (Exception ex)
+            {
+                Native.OS.LogException(ex);
+            }
         }
 
         private void Apply()
