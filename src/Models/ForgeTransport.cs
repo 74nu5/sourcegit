@@ -125,11 +125,15 @@ namespace SourceGit.Models
                 using var req = new HttpRequestMessage(HttpMethod.Get, url);
                 Authenticate(req, account.Kind, token);
 
+                var started = System.Diagnostics.Stopwatch.StartNew();
                 using var rsp = await HTTP.SendAsync(req, HttpCompletionOption.ResponseContentRead, deadline.Token).ConfigureAwait(false);
                 var body = await rsp.Content.ReadAsStringAsync(deadline.Token).ConfigureAwait(false);
 
                 var media = rsp.Content.Headers.ContentType?.MediaType ?? string.Empty;
                 var status = Classify(rsp.StatusCode, media);
+
+                // A token never appears in an address, so this can be written down whole.
+                ForgeLog.Line($"GET {url} -> {status} ({(int)rsp.StatusCode}) {started.ElapsedMilliseconds}ms {body?.Length ?? 0}B");
 
                 return new ForgeReply
                 {
@@ -141,18 +145,22 @@ namespace SourceGit.Models
             }
             catch (OperationCanceledException) when (cancel.IsCancellationRequested)
             {
+                ForgeLog.Line($"GET {url} -> abandoned");
                 return new ForgeReply { Status = ForgeStatus.Cancelled };
             }
             catch (OperationCanceledException)
             {
+                ForgeLog.Line($"GET {url} -> timed out after {DEFAULT_TIMEOUT.TotalSeconds:0}s");
                 return new ForgeReply { Status = ForgeStatus.Timeout };
             }
             catch (HttpRequestException e)
             {
+                ForgeLog.Failed($"GET {url}", e);
                 return new ForgeReply { Status = ForgeStatus.Unreachable, Detail = e.Message };
             }
             catch (Exception e)
             {
+                ForgeLog.Failed($"GET {url}", e);
                 return new ForgeReply { Status = ForgeStatus.Unexpected, Detail = e.Message };
             }
             finally

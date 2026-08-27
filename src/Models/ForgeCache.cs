@@ -169,6 +169,8 @@ namespace SourceGit.Models
                 result = ForgeResult<T>.Failure(ForgeStatus.Unexpected, e.Message);
             }
 
+            ForgeLog.Line($"fetched {key} -> {result.Status}");
+
             var entry = new ForgeCached<T>(result, false, DateTime.UtcNow);
 
             lock (_lock)
