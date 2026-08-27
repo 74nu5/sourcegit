@@ -130,10 +130,66 @@ namespace SourceGit.Models
                 SourceRepository = repo.FullName,
                 Kind = ForgeKind.AzureDevOps,
                 MergeState = ToMergeState(ReadString(item, "mergeStatus")),
+
+                // Free: the votes come with the list. The build and the required policies do
+                // not -- those live behind policy/evaluations, one request per request, and
+                // are asked for only when a card is opened.
+                Checks = Models.Checks.FromVotes(ReadVotes(item)),
+
+                // Its policy engine names a request by the project's identifier, which only
+                // the list answer carries.
+                TargetRepository = repo.FullName,
+                ProjectId = ReadProjectId(item),
+                HeadSha = ReadCommit(item, "lastMergeSourceCommit"),
                 State = ToState(status, isDraft),
                 Url = BuildWebUrl(repo, id),
                 CreatedAt = created,
             };
+        }
+
+        /// <summary>
+        ///     repository.project.id, which is what the policy endpoint asks for.
+        /// </summary>
+        public static string ReadProjectId(JsonElement item)
+        {
+            if (!item.TryGetProperty("repository", out var repo) || repo.ValueKind != JsonValueKind.Object)
+                return string.Empty;
+
+            if (!repo.TryGetProperty("project", out var project) || project.ValueKind != JsonValueKind.Object)
+                return string.Empty;
+
+            return ReadString(project, "id") ?? string.Empty;
+        }
+
+        public static string ReadCommit(JsonElement item, string name)
+        {
+            return item.TryGetProperty(name, out var commit) && commit.ValueKind == JsonValueKind.Object
+                ? ReadString(commit, "commitId") ?? string.Empty
+                : string.Empty;
+        }
+
+        /// <summary>
+        ///     Every reviewer's vote, when the list carries them. An answer without a
+        ///     reviewers array yields none, and none means the approval state stays unknown
+        ///     rather than reading as "nobody approved".
+        /// </summary>
+        public static List<int> ReadVotes(JsonElement item)
+        {
+            var votes = new List<int>();
+
+            if (!item.TryGetProperty("reviewers", out var reviewers) || reviewers.ValueKind != JsonValueKind.Array)
+                return votes;
+
+            foreach (var reviewer in reviewers.EnumerateArray())
+            {
+                if (reviewer.ValueKind != JsonValueKind.Object)
+                    continue;
+
+                if (reviewer.TryGetProperty("vote", out var vote) && vote.ValueKind == JsonValueKind.Number)
+                    votes.Add(vote.GetInt32());
+            }
+
+            return votes;
         }
 
         /// <summary>

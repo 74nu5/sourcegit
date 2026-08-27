@@ -119,7 +119,13 @@ namespace SourceGit.Models
                 CreatedAt = created,
                 SourceRepository = ReadSourceProject(item, repo),
                 Kind = ForgeKind.GitLab,
+                TargetRepository = repo.FullName,
                 MergeState = ReadMergeState(item),
+
+                // Free: GitLab says why a merge request cannot be merged, while listing.
+                Checks = Checks.FromGitLab(
+                    ReadString(item, "detailed_merge_status"),
+                    ReadBool(item, "blocking_discussions_resolved")),
             };
         }
 
@@ -166,6 +172,19 @@ namespace SourceGit.Models
 
             // "locked" is an open request whose discussion is frozen.
             return draft ? PullRequestState.Draft : PullRequestState.Open;
+        }
+
+        private static bool? ReadBool(JsonElement owner, string name)
+        {
+            if (!owner.TryGetProperty(name, out var value))
+                return null;
+
+            return value.ValueKind switch
+            {
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                _ => null,
+            };
         }
 
         private static long? ReadNumber(JsonElement owner, string name)

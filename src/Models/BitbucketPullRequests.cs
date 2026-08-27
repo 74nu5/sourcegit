@@ -40,7 +40,7 @@ namespace SourceGit.Models
             var found = new List<PullRequest>();
             foreach (var page in pages.Value)
             {
-                if (Parse(page, found) < 0)
+                if (Parse(page, found, repo) < 0)
                     return ForgeResult<List<PullRequest>>.Failure(ForgeStatus.Unexpected, "unreadable answer");
             }
 
@@ -57,7 +57,7 @@ namespace SourceGit.Models
         ///     Reads one page into <paramref name="into"/> and returns how many entries it
         ///     held, or -1 when the answer made no sense.
         /// </summary>
-        public static int Parse(string body, List<PullRequest> into)
+        public static int Parse(string body, List<PullRequest> into, ForgeRepository repo = null)
         {
             if (string.IsNullOrEmpty(body))
                 return -1;
@@ -75,7 +75,7 @@ namespace SourceGit.Models
                 {
                     count++;
 
-                    var pr = ReadOne(item);
+                    var pr = ReadOne(item, repo);
                     if (pr != null)
                         into.Add(pr);
                 }
@@ -88,7 +88,7 @@ namespace SourceGit.Models
             }
         }
 
-        private static PullRequest ReadOne(JsonElement item)
+        private static PullRequest ReadOne(JsonElement item, ForgeRepository repo)
         {
             if (item.ValueKind != JsonValueKind.Object)
                 return null;
@@ -122,8 +122,13 @@ namespace SourceGit.Models
                 CreatedAt = created,
                 SourceRepository = ReadSourceRepository(item),
                 Kind = ForgeKind.Bitbucket,
+                TargetRepository = repo?.FullName ?? string.Empty,
 
                 // MergeState stays unknown: Bitbucket says nothing about conflicts here.
+
+                // The one condition it does answer for free. Not quite "unresolved comments",
+                // but the same question -- is anything still asked of the author.
+                Checks = Models.Checks.FromTaskCount(ReadInt(item, "task_count")),
             };
         }
 
@@ -175,6 +180,17 @@ namespace SourceGit.Models
                 return string.Empty;
 
             return ReadString(html, "href") ?? string.Empty;
+        }
+
+        /// <summary>
+        ///     A whole number, or -1 when the field is missing -- which is not the same as
+        ///     zero, and must not be read as "nothing left to do".
+        /// </summary>
+        private static int ReadInt(JsonElement owner, string name)
+        {
+            return owner.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number
+                ? value.GetInt32()
+                : -1;
         }
 
         private static string ReadString(JsonElement owner, string name)

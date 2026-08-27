@@ -33,7 +33,7 @@ namespace SourceGit.Models
                 if (!reply.IsOk)
                     return ForgeResult<List<PullRequest>>.Failure(reply.Status, reply.Detail);
 
-                var read = Parse(reply.Body, found);
+                var read = Parse(reply.Body, found, repo);
                 if (read < 0)
                     return ForgeResult<List<PullRequest>>.Failure(ForgeStatus.Unexpected, "unreadable answer");
 
@@ -54,7 +54,7 @@ namespace SourceGit.Models
         ///     Reads one page into <paramref name="into"/> and returns how many entries it
         ///     held, or -1 when the answer made no sense.
         /// </summary>
-        public static int Parse(string body, List<PullRequest> into)
+        public static int Parse(string body, List<PullRequest> into, ForgeRepository repo = null)
         {
             if (string.IsNullOrEmpty(body))
                 return -1;
@@ -70,7 +70,7 @@ namespace SourceGit.Models
                 {
                     count++;
 
-                    var pr = ReadOne(item);
+                    var pr = ReadOne(item, repo);
                     if (pr != null)
                         into.Add(pr);
                 }
@@ -83,7 +83,7 @@ namespace SourceGit.Models
             }
         }
 
-        private static PullRequest ReadOne(JsonElement item)
+        private static PullRequest ReadOne(JsonElement item, ForgeRepository repo)
         {
             if (item.ValueKind != JsonValueKind.Object)
                 return null;
@@ -115,6 +115,8 @@ namespace SourceGit.Models
                 Url = ReadString(item, "html_url") ?? string.Empty,
                 CreatedAt = created,
                 SourceRepository = ReadHeadRepository(item),
+                HeadSha = ReadEnd(item, "head", "sha"),
+                TargetRepository = repo?.FullName ?? string.Empty,
                 Kind = ForgeKind.Gitea,
                 MergeState = ReadMergeState(item),
             };
