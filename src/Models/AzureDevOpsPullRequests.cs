@@ -51,10 +51,11 @@ namespace SourceGit.Models
 
         public static string BuildUrl(string root, ForgeRepository repo, int skip)
         {
-            // searchCriteria.status=all is what brings back completed and abandoned ones; the
-            // default would only ever show what is still open.
+            // Only what is still open. Asking for every state brought back nine hundred
+            // requests on a real repository — six megabytes, ten pages, the page budget
+            // exhausted — to keep the seventy-four that are alive. Nothing shows the rest.
             return $"{root}/{Esc(repo.Owner)}/{Esc(repo.Project)}/_apis/git/repositories/{Esc(repo.Name)}/pullrequests" +
-                   $"?searchCriteria.status=all&$top={PAGE_SIZE}&$skip={skip}&api-version=7.1";
+                   $"?searchCriteria.status=active&$top={PAGE_SIZE}&$skip={skip}&api-version=7.1";
         }
 
         /// <summary>

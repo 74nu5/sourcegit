@@ -14,8 +14,8 @@ namespace SourceGit.Models
     ///     /rest/api/1.0 rather than /2.0, with its own shapes — and guessing at it without an
     ///     instance to try would be writing fiction.
     ///
-    ///     Every state has to be asked for by name: left alone, Bitbucket answers with the
-    ///     open ones only.
+    ///     Bitbucket answers with the open ones unless told otherwise, which happens to be
+    ///     exactly what is wanted: nothing here shows a request that is finished.
     /// </summary>
     public class BitbucketPullRequests : IPullRequestSource
     {
@@ -50,7 +50,7 @@ namespace SourceGit.Models
         public static string BuildUrl(ForgeRepository repo)
         {
             return $"https://api.bitbucket.org/2.0/repositories/{Uri.EscapeDataString(repo.Owner)}/{Uri.EscapeDataString(repo.Name)}/pullrequests" +
-                   "?state=OPEN&state=MERGED&state=DECLINED&state=SUPERSEDED&pagelen=50";
+                   "?state=OPEN&pagelen=50";
         }
 
         /// <summary>
