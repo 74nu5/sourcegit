@@ -144,6 +144,47 @@ namespace SourceGit.ViewModels
         ///     whether the pull request section appears at all: no account, no section, rather
         ///     than an empty one asking to be ignored.
         /// </summary>
+        /// <summary>
+        ///     What stands in the way of one pull request, asked of whichever account covers
+        ///     the repository it came from.
+        ///
+        ///     Called when a card opens, never while drawing a list: on most forges this is
+        ///     one request for one request, and a list of seventy would be seventy of them.
+        /// </summary>
+        public async Task<Models.PullRequestChecks> GetPullRequestChecksAsync(
+            Models.PullRequest pr,
+            CancellationToken cancel)
+        {
+            if (pr == null)
+                return Models.PullRequestChecks.None;
+
+            foreach (var (account, repo) in ResolveForges())
+            {
+                if (account.Kind != pr.Kind)
+                    continue;
+
+                // A fork and its upstream are two remotes on one forge, and both resolve to
+                // an account. Asking the wrong one does not fail loudly: it answers about
+                // another repository that happens to share the commit.
+                if (!string.IsNullOrEmpty(pr.TargetRepository) &&
+                    !repo.FullName.Equals(pr.TargetRepository, System.StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                var result = await Models.PullRequestChecksService
+                    .GetAsync(account, repo, pr, cancel)
+                    .ConfigureAwait(false);
+
+                Models.ForgeLog.Line($"checks {pr.Kind} #{pr.Id} -> {result.Status}");
+
+                if (result.IsOk)
+                    return Models.PullRequestChecksService.Merge(pr.Checks, result.Value);
+
+                return pr.Checks;
+            }
+
+            return pr.Checks;
+        }
+
         public bool HasForge() => ResolveForges().Count > 0;
 
         /// <summary>

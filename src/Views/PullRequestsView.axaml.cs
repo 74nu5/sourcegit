@@ -185,7 +185,7 @@ namespace SourceGit.Views
 
             var flyout = new Flyout()
             {
-                Content = PullRequestCard.Build(pr),
+                Content = PullRequestCard.Build(pr, DataContext as ViewModels.Repository),
                 Placement = PlacementMode.RightEdgeAlignedTop,
             };
 

@@ -64,4 +64,12 @@
   <x:String x:Key="Text.Preferences.AI.Duplicate" xml:space="preserve">Duplicate the selected service, credentials included</x:String>
   <x:String x:Key="Text.Preferences.Forge.Duplicate" xml:space="preserve">Duplicate the selected account, token included</x:String>
   <x:String x:Key="Text.Fork.Duplicate" xml:space="preserve">Duplicate the selected entry</x:String>
+  <x:String x:Key="PullRequest.Check.Merge" xml:space="preserve">Merges without conflict</x:String>
+  <x:String x:Key="PullRequest.Check.Build" xml:space="preserve">Build and checks</x:String>
+  <x:String x:Key="PullRequest.Check.Threads" xml:space="preserve">Open conversations</x:String>
+  <x:String x:Key="PullRequest.Check.Review" xml:space="preserve">Review</x:String>
+  <x:String x:Key="PullRequest.Check.Passed" xml:space="preserve">passed</x:String>
+  <x:String x:Key="PullRequest.Check.Failed" xml:space="preserve">failed</x:String>
+  <x:String x:Key="PullRequest.Check.Pending" xml:space="preserve">still running</x:String>
+  <x:String x:Key="PullRequest.Check.Unknown" xml:space="preserve">this forge does not say</x:String>
 </ResourceDictionary>

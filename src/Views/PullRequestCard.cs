@@ -22,7 +22,7 @@ namespace SourceGit.Views
         ///     more; on one line the second of them was simply cut off, which is the one thing
         ///     a card meant to inform must not do.
         /// </summary>
-        public static Control Build(Models.PullRequest pr)
+        public static Control Build(Models.PullRequest pr, ViewModels.Repository repo = null)
         {
             // A fixed width, not a range. Left to choose between a minimum and a maximum the
             // tooltip settled on the minimum and then laid its contents out wider, so a long
@@ -47,6 +47,9 @@ namespace SourceGit.Views
                 TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, 10, 0, 0),
             });
+
+            // Where it stands, before the branches: it is what a person opened the card for.
+            root.Children.Add(new PullRequestChecksRow(pr, repo));
 
             root.Children.Add(BranchBlock(pr.SourceBranch, true));
             root.Children.Add(new TextBlock()

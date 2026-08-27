@@ -94,7 +94,7 @@ namespace SourceGit.Views
                     // outright also spares the wait, which suits a mark small enough that
                     // reaching it is already deliberate.
                     ToolTip.SetIsOpen(this, false);
-                    ToolTip.SetTip(this, PullRequestCard.Build(over));
+                    ToolTip.SetTip(this, PullRequestCard.Build(over, DataContext is Models.Commit ? this.FindAncestorOfType<Histories>()?.DataContext as ViewModels.Repository : null));
                     ToolTip.SetPlacement(this, PlacementMode.Pointer);
                     ToolTip.SetHorizontalOffset(this, 0);
                     ToolTip.SetVerticalOffset(this, 0);

@@ -36,7 +36,7 @@ namespace SourceGit.Models
             var found = new List<PullRequest>();
             foreach (var page in pages.Value)
             {
-                if (Parse(page, found) < 0)
+                if (Parse(page, found, repo) < 0)
                     return ForgeResult<List<PullRequest>>.Failure(ForgeStatus.Unexpected, "unreadable answer");
             }
 
@@ -64,7 +64,7 @@ namespace SourceGit.Models
         ///     Reads one page into <paramref name="into"/> and returns how many entries it
         ///     held, or -1 when the answer made no sense.
         /// </summary>
-        public static int Parse(string body, List<PullRequest> into)
+        public static int Parse(string body, List<PullRequest> into, ForgeRepository repo = null)
         {
             if (string.IsNullOrEmpty(body))
                 return -1;
@@ -80,7 +80,7 @@ namespace SourceGit.Models
                 {
                     count++;
 
-                    var pr = ReadOne(item);
+                    var pr = ReadOne(item, repo);
                     if (pr != null)
                         into.Add(pr);
                 }
@@ -93,7 +93,7 @@ namespace SourceGit.Models
             }
         }
 
-        private static PullRequest ReadOne(JsonElement item)
+        private static PullRequest ReadOne(JsonElement item, ForgeRepository repo)
         {
             if (item.ValueKind != JsonValueKind.Object)
                 return null;
@@ -131,6 +131,11 @@ namespace SourceGit.Models
                 State = ToState(state, isDraft, merged),
                 Url = ReadString(item, "html_url") ?? string.Empty,
                 CreatedAt = created,
+
+                // Kept for the checks, which are reported against a commit rather than
+                // against the request.
+                HeadSha = ReadEnd(item, "head", "sha"),
+                TargetRepository = repo?.FullName ?? string.Empty,
             };
         }
 
@@ -167,8 +172,13 @@ namespace SourceGit.Models
 
         private static string ReadRef(JsonElement item, string side)
         {
+            return ReadEnd(item, side, "ref");
+        }
+
+        private static string ReadEnd(JsonElement item, string side, string field)
+        {
             return item.TryGetProperty(side, out var end) && end.ValueKind == JsonValueKind.Object
-                ? ReadString(end, "ref") ?? string.Empty
+                ? ReadString(end, field) ?? string.Empty
                 : string.Empty;
         }
 

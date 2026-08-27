@@ -84,6 +84,40 @@ namespace SourceGit.Models
         public PullRequestMergeState MergeState { get; init; }
 
         public bool HasConflicts => MergeState == PullRequestMergeState.Conflicting;
+
+        /// <summary>
+        ///     What stands between it and its target branch, as far as is known.
+        ///
+        ///     Filled from the list answer by the forges that volunteer it, and left empty by
+        ///     the ones that would charge a request per request for it -- those are asked
+        ///     later, and only about a request somebody opened.
+        /// </summary>
+        public PullRequestChecks Checks { get; init; } = PullRequestChecks.None;
+
+        /// <summary>
+        ///     The commit at the tip of the source branch. Kept because a build is reported
+        ///     against a commit, never against a pull request, on every forge that reports one
+        ///     at all. Empty when the list did not carry it, and then the build is simply not
+        ///     asked about.
+        /// </summary>
+        public string HeadSha { get; init; } = string.Empty;
+
+        /// <summary>
+        ///     Azure DevOps alone needs this: its policy engine names a pull request by the
+        ///     project's identifier rather than by its path.
+        /// </summary>
+        public string ProjectId { get; init; } = string.Empty;
+
+        /// <summary>
+        ///     The repository this was listed from, as its forge names it.
+        ///
+        ///     Not the same as <see cref="SourceRepository"/>, which on GitHub is usually a
+        ///     contributor's fork. A repository with two remotes on one forge -- a fork and
+        ///     its upstream -- has two accounts covering it, and without this the second
+        ///     question about a request would be asked of whichever came first. It was, and
+        ///     the answer came back plausible and wrong.
+        /// </summary>
+        public string TargetRepository { get; init; } = string.Empty;
         public string Url { get; init; } = string.Empty;
         public DateTime CreatedAt { get; init; }
 

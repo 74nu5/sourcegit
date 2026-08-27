@@ -64,4 +64,12 @@
   <x:String x:Key="Text.Preferences.AI.Duplicate" xml:space="preserve">Dupliquer le service sélectionné, identifiants compris</x:String>
   <x:String x:Key="Text.Preferences.Forge.Duplicate" xml:space="preserve">Dupliquer le compte sélectionné, jeton compris</x:String>
   <x:String x:Key="Text.Fork.Duplicate" xml:space="preserve">Dupliquer l'élément sélectionné</x:String>
+  <x:String x:Key="PullRequest.Check.Merge" xml:space="preserve">Fusionne sans conflit</x:String>
+  <x:String x:Key="PullRequest.Check.Build" xml:space="preserve">Build et vérifications</x:String>
+  <x:String x:Key="PullRequest.Check.Threads" xml:space="preserve">Conversations ouvertes</x:String>
+  <x:String x:Key="PullRequest.Check.Review" xml:space="preserve">Revue</x:String>
+  <x:String x:Key="PullRequest.Check.Passed" xml:space="preserve">au vert</x:String>
+  <x:String x:Key="PullRequest.Check.Failed" xml:space="preserve">en échec</x:String>
+  <x:String x:Key="PullRequest.Check.Pending" xml:space="preserve">en cours</x:String>
+  <x:String x:Key="PullRequest.Check.Unknown" xml:space="preserve">cette forge ne le dit pas</x:String>
 </ResourceDictionary>
