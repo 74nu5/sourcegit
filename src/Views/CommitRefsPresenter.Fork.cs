@@ -307,11 +307,17 @@ namespace SourceGit.Views
         {
             // The remote names, if they are becoming icons, give back the width their text
             // took before the icons claim their own.
+            //
+            // The arithmetic below mirrors, exactly, what Measure added for each remote a
+            // few lines above. It is upstream's, and it has already changed once under us:
+            // getting it wrong does not fail a build, it quietly leaves every chip the
+            // wrong width. Read that loop before touching this one.
             var given = 0.0;
             if (RemoteIconsFor(item).Count > 0)
             {
+                var single = HasSingleRemote;
                 foreach (var remote in item.Remotes)
-                    given += remote.Width + 9;
+                    given += single ? 18 : remote.WidthIncludingTrailingWhitespace + 22;
 
                 item.Remotes.Clear();
             }
