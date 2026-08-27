@@ -428,11 +428,18 @@ namespace SourceGit.Models
                     if (item.ValueKind != JsonValueKind.Object)
                         continue;
 
+                    if (!item.TryGetProperty("configuration", out var config) || config.ValueKind != JsonValueKind.Object)
+                        continue;
+
+                    // A policy that is switched off, or that the branch does not enforce,
+                    // stands between nothing and nothing. An optional build validation sits
+                    // at "queued" until somebody queues it by hand, and reading that as a
+                    // build in progress paints an amber light on a request that is ready.
+                    if (IsFalse(config, "isEnabled") || IsFalse(config, "isBlocking"))
+                        continue;
+
                     var type = string.Empty;
-                    if (item.TryGetProperty("configuration", out var config) &&
-                        config.ValueKind == JsonValueKind.Object &&
-                        config.TryGetProperty("type", out var kind) &&
-                        kind.ValueKind == JsonValueKind.Object)
+                    if (config.TryGetProperty("type", out var kind) && kind.ValueKind == JsonValueKind.Object)
                         type = PullRequestChecksService.Read(kind, "displayName") ?? string.Empty;
 
                     var state = ToState(PullRequestChecksService.Read(item, "status"));
@@ -470,6 +477,15 @@ namespace SourceGit.Models
         ///     else -- which is why the transport now logs that body.
         /// </summary>
         private const string POLICY_API = "7.1-preview.1";
+
+        /// <summary>
+        ///     True only when the flag is present and says no. A flag Azure DevOps left out
+        ///     is not a refusal, and treating it as one would drop every policy.
+        /// </summary>
+        private static bool IsFalse(JsonElement owner, string name)
+        {
+            return owner.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.False;
+        }
 
         public static CheckState ToState(string status)
         {
