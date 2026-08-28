@@ -109,7 +109,7 @@ namespace SourceGit.ViewModels
     ///     it does before deciding is prune the stale remote references -- without that,
     ///     nothing looks gone and the window opens reassuringly empty.
     /// </summary>
-    public class PruneBranches : Popup
+    public class PruneBranches : ObservableObject
     {
         public AvaloniaList<PrunableBranch> Items { get; } = [];
 
@@ -262,7 +262,10 @@ namespace SourceGit.ViewModels
             Summary = string.Format(App.Text("Prune.Summary"), picked, candidates, Items.Count);
         }
 
-        public override async Task<bool> Sure()
+        /// <summary>
+        ///     Deletes what is ticked, and says what git refused.
+        /// </summary>
+        public async Task DeleteSelectedAsync()
         {
             var targets = new List<PrunableBranch>();
             foreach (var item in Items)
@@ -272,13 +275,11 @@ namespace SourceGit.ViewModels
             }
 
             if (targets.Count == 0)
-                return true;
+                return;
 
             using var lockWatcher = _repo.LockWatcher();
-            ProgressDescription = App.Text("Prune.Deleting");
 
             var log = _repo.CreateLog("Prune Local Branches");
-            Use(log);
 
             // What git refused matters as much as what it removed: with -d it refuses a
             // branch that is not merged, and a window that reported nothing would leave
@@ -304,7 +305,6 @@ namespace SourceGit.ViewModels
             }
 
             _repo.MarkBranchesDirtyManually();
-            return true;
         }
 
         private readonly Repository _repo;

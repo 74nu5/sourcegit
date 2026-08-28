@@ -1,12 +1,20 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:SourceGit.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="460"
-             x:Class="SourceGit.Views.PruneBranches"
-             x:DataType="vm:PruneBranches">
-  <UserControl.Styles>
+﻿<v:ChromelessWindow xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:vm="using:SourceGit.ViewModels"
+                    xmlns:v="using:SourceGit.Views"
+                    mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="620"
+                    x:Class="SourceGit.Views.PruneBranches"
+                    x:DataType="vm:PruneBranches"
+                    x:Name="ThisControl"
+                    Icon="/App.ico"
+                    Title="{DynamicResource Text.Prune}"
+                    Width="900" Height="620"
+                    MinWidth="560" MinHeight="380"
+                    CanResize="True"
+                    WindowStartupLocation="CenterOwner">
+  <v:ChromelessWindow.Styles>
     <!-- Pas de convertisseur : deux classes suffisent, et rien d'amont n'est touche. -->
     <Style Selector="TextBlock.state">
       <Setter Property="Foreground" Value="{DynamicResource Brush.FG2}"/>
@@ -17,99 +25,134 @@
     <Style Selector="TextBlock.branch.locked">
       <Setter Property="Opacity" Value="0.5"/>
     </Style>
-  </UserControl.Styles>
+  </v:ChromelessWindow.Styles>
 
-  <StackPanel Orientation="Vertical" Margin="8,0">
-    <StackPanel Orientation="Horizontal">
-      <Path Width="16" Height="16" Data="{StaticResource Icons.Clear}"/>
-      <TextBlock FontSize="18"
-                 Margin="8,0,0,0"
-                 Classes="bold"
-                 Text="{DynamicResource Text.Prune}"/>
-    </StackPanel>
+  <Grid RowDefinitions="Auto,*">
+    <!-- TitleBar -->
+    <Grid Grid.Row="0" Height="28" IsVisible="{Binding !#ThisControl.UseSystemWindowFrame}">
+      <Border Background="{DynamicResource Brush.TitleBar}"
+              BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Brush.Border0}"
+              PointerPressed="BeginMoveWindow"/>
 
-    <TextBlock Margin="4,12,0,0"
-               Text="{DynamicResource Text.Prune.Tip}"
-               TextWrapping="Wrap"
-               Foreground="{DynamicResource Brush.FG2}"
-               FontStyle="Italic"/>
+      <Path Width="14" Height="14"
+            Margin="10,0,0,0"
+            HorizontalAlignment="Left"
+            Data="{StaticResource Icons.Clear}"
+            IsVisible="{OnPlatform True, macOS=False}"/>
 
-    <Border Margin="4,10,0,0"
-            Height="260"
-            Background="{DynamicResource Brush.Contents}"
-            BorderThickness="1"
-            BorderBrush="{DynamicResource Brush.Border1}"
-            CornerRadius="3">
-      <Grid>
-        <!-- Pendant l'elagage : rien a cocher, et on dit pourquoi. -->
-        <TextBlock Text="{DynamicResource Text.Prune.Pruning}"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Foreground="{DynamicResource Brush.FG2}"
-                   IsVisible="{Binding IsLoading}"/>
+      <TextBlock Classes="bold"
+                 Text="{DynamicResource Text.Prune}"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 IsHitTestVisible="False"/>
 
-        <ListBox Background="Transparent"
-                 ItemsSource="{Binding Items}"
-                 SelectionMode="Single"
-                 IsVisible="{Binding !IsLoading}"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-          <ListBox.Styles>
-            <Style Selector="ListBoxItem">
-              <Setter Property="MinHeight" Value="0"/>
-              <Setter Property="Padding" Value="4,2"/>
-            </Style>
-          </ListBox.Styles>
+      <v:CaptionButtons HorizontalAlignment="Right"
+                        IsCloseButtonOnly="True"
+                        IsVisible="{OnPlatform True, macOS=False}"/>
+    </Grid>
 
-          <ListBox.ItemTemplate>
-            <DataTemplate DataType="vm:PrunableBranch">
-              <Grid ColumnDefinitions="Auto,*,Auto,Auto" Height="24">
-                <CheckBox Grid.Column="0"
-                          Margin="0,0,6,0"
-                          MinWidth="0"
-                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                          IsEnabled="{Binding !IsLocked}"/>
+    <!-- BODY -->
+    <Grid Grid.Row="1" RowDefinitions="Auto,*,Auto,Auto,Auto" Margin="12,8,12,12">
+      <TextBlock Grid.Row="0"
+                 Margin="0,0,0,8"
+                 Text="{DynamicResource Text.Prune.Tip}"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource Brush.FG2}"
+                 FontStyle="Italic"/>
 
-                <TextBlock Grid.Column="1"
-                           Text="{Binding Name}"
-                           VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"
-                           ToolTip.Tip="{Binding Name}"
-                           Classes="branch"
-                           Classes.locked="{Binding IsLocked}"/>
+      <Border Grid.Row="1"
+              Background="{DynamicResource Brush.Contents}"
+              BorderThickness="1"
+              BorderBrush="{DynamicResource Brush.Border1}"
+              CornerRadius="3">
+        <Grid>
+          <!-- Pendant l'elagage : rien a cocher, et on dit pourquoi. -->
+          <TextBlock Text="{DynamicResource Text.Prune.Pruning}"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Foreground="{DynamicResource Brush.FG2}"
+                     IsVisible="{Binding IsLoading}"/>
 
-                <TextBlock Grid.Column="2"
-                           Margin="8,0"
-                           FontSize="10"
-                           VerticalAlignment="Center"
-                           Text="{Binding State}"
-                           Classes="state"
-                           Classes.warning="{Binding IsWarning}"/>
+          <ListBox Background="Transparent"
+                   ItemsSource="{Binding Items}"
+                   SelectionMode="Single"
+                   IsVisible="{Binding !IsLoading}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.Styles>
+              <Style Selector="ListBoxItem">
+                <Setter Property="MinHeight" Value="0"/>
+                <Setter Property="Padding" Value="6,2"/>
+              </Style>
+            </ListBox.Styles>
 
-                <TextBlock Grid.Column="3"
-                           MinWidth="82"
-                           FontSize="10"
-                           VerticalAlignment="Center"
-                           TextAlignment="Right"
-                           Text="{Binding Age}"
-                           Foreground="{DynamicResource Brush.FG2}"/>
-              </Grid>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
-      </Grid>
-    </Border>
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:PrunableBranch">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Height="24">
+                  <CheckBox Grid.Column="0"
+                            Margin="0,0,8,0"
+                            MinWidth="0"
+                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                            IsEnabled="{Binding !IsLocked}"/>
 
-    <TextBlock Margin="4,8,0,0"
-               FontSize="11"
-               Text="{Binding Summary}"
-               Foreground="{DynamicResource Brush.FG2}"/>
+                  <!-- La colonne qui compte : elle prend tout ce que la fenetre donne,
+                       et la fenetre s'agrandit. -->
+                  <TextBlock Grid.Column="1"
+                             Text="{Binding Name}"
+                             VerticalAlignment="Center"
+                             TextTrimming="CharacterEllipsis"
+                             ToolTip.Tip="{Binding Name}"
+                             Classes="branch"
+                             Classes.locked="{Binding IsLocked}"/>
 
-    <CheckBox Margin="4,8,0,0"
-              Content="{DynamicResource Text.Prune.IncludeNeverPushed}"
-              IsChecked="{Binding IncludeNeverPushed, Mode=TwoWay}"/>
+                  <TextBlock Grid.Column="2"
+                             Margin="12,0"
+                             FontSize="11"
+                             MinWidth="120"
+                             TextAlignment="Right"
+                             VerticalAlignment="Center"
+                             Text="{Binding State}"
+                             Classes="state"
+                             Classes.warning="{Binding IsWarning}"/>
 
-    <CheckBox Margin="4,4,0,0"
-              Content="{DynamicResource Text.Prune.Force}"
-              IsChecked="{Binding Force, Mode=TwoWay}"/>
-  </StackPanel>
-</UserControl>
+                  <TextBlock Grid.Column="3"
+                             MinWidth="92"
+                             FontSize="11"
+                             VerticalAlignment="Center"
+                             TextAlignment="Right"
+                             Text="{Binding Age}"
+                             Foreground="{DynamicResource Brush.FG2}"/>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <TextBlock Grid.Row="2"
+                 Margin="2,8,0,0"
+                 FontSize="11"
+                 Text="{Binding Summary}"
+                 Foreground="{DynamicResource Brush.FG2}"/>
+
+      <StackPanel Grid.Row="3" Orientation="Vertical" Margin="2,8,0,0">
+        <CheckBox Content="{DynamicResource Text.Prune.IncludeNeverPushed}"
+                  IsChecked="{Binding IncludeNeverPushed, Mode=TwoWay}"/>
+        <CheckBox Margin="0,4,0,0"
+                  Content="{DynamicResource Text.Prune.Force}"
+                  IsChecked="{Binding Force, Mode=TwoWay}"/>
+      </StackPanel>
+
+      <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+        <Button Classes="flat primary"
+                MinWidth="88"
+                Content="{DynamicResource Text.Prune.Delete}"
+                IsEnabled="{Binding !IsLoading}"
+                Click="OnDelete"/>
+        <Button Classes="flat"
+                Margin="8,0,0,0"
+                MinWidth="88"
+                Content="{DynamicResource Text.Cancel}"
+                Click="OnCancel"/>
+      </StackPanel>
+    </Grid>
+  </Grid>
+</v:ChromelessWindow>

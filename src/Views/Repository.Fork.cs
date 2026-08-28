@@ -158,8 +158,18 @@ namespace SourceGit.Views
         {
             e.Handled = true;
 
-            if (DataContext is ViewModels.Repository repo)
-                repo.PruneLocalBranches();
+            if (DataContext is not ViewModels.Repository repo)
+                return;
+
+            var window = new PruneBranches() { DataContext = repo.PrepareBranchPruning() };
+
+            // ShowDialog throws on a null owner, and GetTopLevel returns one only while the
+            // control is in a window -- which it is, but a handler that crashes the process
+            // to prove it is not worth the line saved.
+            if (TopLevel.GetTopLevel(this) is Avalonia.Controls.Window owner)
+                window.ShowDialog(owner);
+            else
+                window.Show();
         }
     }
 }

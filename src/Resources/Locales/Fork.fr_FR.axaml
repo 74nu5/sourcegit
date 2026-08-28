@@ -89,4 +89,5 @@
   <x:String x:Key="Text.Prune.Age.Today" xml:space="preserve">aujourd'hui</x:String>
   <x:String x:Key="Text.Prune.Age.Days" xml:space="preserve">il y a {0} j</x:String>
   <x:String x:Key="Text.Prune.Age.Months" xml:space="preserve">il y a {0} mois</x:String>
+  <x:String x:Key="Text.Prune.Delete" xml:space="preserve">Supprimer</x:String>
 </ResourceDictionary>
