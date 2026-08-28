@@ -92,4 +92,7 @@
   <x:String x:Key="Text.Prune.Delete" xml:space="preserve">Delete</x:String>
   <x:String x:Key="Text.Prune.IncludeOldGone" xml:space="preserve">Tick dead branches git cannot call merged, if untouched for</x:String>
   <x:String x:Key="Text.Prune.Months" xml:space="preserve">months or more</x:String>
+  <x:String x:Key="Text.Sidebar.Hide" xml:space="preserve">Hide this section</x:String>
+  <x:String x:Key="Text.Sidebar.Hidden" xml:space="preserve">hidden:</x:String>
+  <x:String x:Key="Text.Sidebar.Restore" xml:space="preserve">Show this section again</x:String>
 </ResourceDictionary>

@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using Avalonia.Controls;
 
 namespace SourceGit.Views
 {
@@ -20,6 +21,17 @@ namespace SourceGit.Views
         /// </summary>
         internal double ReserveForkSidebarSpace(double available)
         {
+            // Applied on every pass rather than from a hook of its own: upstream already
+            // calls this one each time it hands out heights, and a hidden section has to
+            // give its row back before those heights are computed, not after.
+            ApplySectionRowHeights();
+
+            // The chips that bring a section back are built here too, for the same reason:
+            // a repository opened with sections already hidden has to show them without
+            // waiting for somebody to hide a sixth one.
+            if (DataContext is ViewModels.Repository owner)
+                owner.RefreshHiddenSections();
+
             var section = PullRequestsSection;
             if (section is not { IsVisible: true })
                 return 0;
@@ -170,6 +182,102 @@ namespace SourceGit.Views
                 window.ShowDialog(owner);
             else
                 window.Show();
+        }
+
+        /// <summary>
+        ///     Right-clicking a section header offers to hide it. The gesture is the one
+        ///     already used on everything else in this panel, and costs no pixels for
+        ///     something done once per repository.
+        /// </summary>
+        private void OnSidebarSectionContextRequested(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            if (sender is not Control { Tag: string key } anchor || DataContext is not ViewModels.Repository repo)
+                return;
+
+            var hide = new MenuItem() { Header = App.Text("Sidebar.Hide") };
+            hide.Icon = this.CreateMenuIcon("Icons.EyeClose");
+            hide.Click += (_, ev) =>
+            {
+                switch (key)
+                {
+                    case "local":
+                        repo.IsLocalBranchSectionVisible = false;
+                        break;
+                    case "remote":
+                        repo.IsRemoteSectionVisible = false;
+                        break;
+                    case "tag":
+                        repo.IsTagSectionVisible = false;
+                        break;
+                    case "submodule":
+                        repo.IsSubmoduleSectionVisible = false;
+                        break;
+                    case "worktree":
+                        repo.IsWorktreeSectionVisible = false;
+                        break;
+                }
+
+                UpdateLeftSidebarLayoutFromFork();
+                ev.Handled = true;
+            };
+
+            var menu = new ContextMenu();
+            menu.Items.Add(hide);
+            menu.Open(anchor);
+        }
+
+        /// <summary>
+        ///     Applies a section's disappearance to the panel: its header row gives back its
+        ///     28 pixels, and the heights are handed out again.
+        ///
+        ///     The row has to be zeroed from code because its height is a literal in the
+        ///     grid's definition string -- hiding the button alone leaves the gap behind.
+        /// </summary>
+        internal void UpdateLeftSidebarLayoutFromFork()
+        {
+            if (DataContext is not ViewModels.Repository repo)
+                return;
+
+            repo.RefreshHiddenSections();
+            ApplySectionRowHeights();
+
+            // Posted rather than called: the row heights above only take effect at the next
+            // measure, and handing out list heights before that computes them against the
+            // grid as it was -- a restored section came back thirteen pixels short.
+            LeftSidebarGroups.InvalidateMeasure();
+            Avalonia.Threading.Dispatcher.UIThread.Post(UpdateLeftSidebarLayout,
+                Avalonia.Threading.DispatcherPriority.Loaded);
+        }
+
+        /// <summary>
+        ///     Gives a hidden section's header row its 28 pixels back.
+        ///
+        ///     It has to happen from code because that height is a literal inside the grid's
+        ///     definition string: hiding the button alone leaves the gap exactly where it was.
+        /// </summary>
+        private void ApplySectionRowHeights()
+        {
+            if (DataContext is not ViewModels.Repository repo)
+                return;
+
+            var rows = LeftSidebarGroups.RowDefinitions;
+            if (rows.Count < 10)
+                return;
+
+            void Row(int index, bool visible)
+            {
+                var wanted = visible ? 28.0 : 0.0;
+                if (Math.Abs(rows[index].Height.Value - wanted) > 0.01)
+                    rows[index].Height = new GridLength(wanted);
+            }
+
+            Row(0, repo.IsLocalBranchSectionVisible);
+            Row(2, repo.IsRemoteSectionVisible);
+            Row(4, repo.IsTagSectionVisible);
+            Row(6, repo.IsSubmoduleSectionVisible);
+            Row(8, repo.IsWorktreeSectionVisible);
         }
     }
 }

@@ -193,6 +193,123 @@ namespace SourceGit.ViewModels
             return new PruneBranches(this);
         }
 
+        /// <summary>
+        ///     Which sections of the left panel this repository shows.
+        ///
+        ///     Two booleans decide whether a list appears: visible, and expanded. The header
+        ///     answers to the first; the list under it needs both, which is why each has a
+        ///     property of its own rather than sharing one.
+        /// </summary>
+        public bool IsLocalBranchSectionVisible
+        {
+            get => UIStates.IsLocalBranchesVisibleInSideBar;
+            set => SetSectionVisible(v => UIStates.IsLocalBranchesVisibleInSideBar = v, UIStates.IsLocalBranchesVisibleInSideBar, value);
+        }
+
+        public bool IsRemoteSectionVisible
+        {
+            get => UIStates.IsRemotesVisibleInSideBar;
+            set => SetSectionVisible(v => UIStates.IsRemotesVisibleInSideBar = v, UIStates.IsRemotesVisibleInSideBar, value);
+        }
+
+        public bool IsTagSectionVisible
+        {
+            get => UIStates.IsTagsVisibleInSideBar;
+            set => SetSectionVisible(v => UIStates.IsTagsVisibleInSideBar = v, UIStates.IsTagsVisibleInSideBar, value);
+        }
+
+        public bool IsSubmoduleSectionVisible
+        {
+            get => UIStates.IsSubmodulesVisibleInSideBar;
+            set => SetSectionVisible(v => UIStates.IsSubmodulesVisibleInSideBar = v, UIStates.IsSubmodulesVisibleInSideBar, value);
+        }
+
+        public bool IsWorktreeSectionVisible
+        {
+            get => UIStates.IsWorktreesVisibleInSideBar;
+            set => SetSectionVisible(v => UIStates.IsWorktreesVisibleInSideBar = v, UIStates.IsWorktreesVisibleInSideBar, value);
+        }
+
+        public bool IsPullRequestSectionVisible
+        {
+            get => UIStates.IsPullRequestsVisibleInSideBar;
+            set => SetSectionVisible(v => UIStates.IsPullRequestsVisibleInSideBar = v, UIStates.IsPullRequestsVisibleInSideBar, value);
+        }
+
+        // A list needs its section shown and its group expanded. Both, every time.
+        public bool IsLocalBranchListVisible => IsLocalBranchSectionVisible && IsLocalBranchGroupExpanded;
+        public bool IsRemoteListVisible => IsRemoteSectionVisible && IsRemoteGroupExpanded;
+        public bool IsTagListVisible => IsTagSectionVisible && IsTagGroupExpanded;
+        public bool IsSubmoduleListVisible => IsSubmoduleSectionVisible && IsSubmoduleGroupExpanded;
+        public bool IsWorktreeListVisible => IsWorktreeSectionVisible && IsWorktreeGroupExpanded;
+
+        public SidebarSections HiddenSections { get; } = new();
+
+        /// <summary>
+        ///     How many section headers still take their 28 pixels. The panel hands out
+        ///     heights by hand and used to count five; counting them for real is the whole
+        ///     reason a hidden section gives its room back instead of leaving a gap.
+        /// </summary>
+        public int VisibleSectionHeaderCount()
+        {
+            var count = 0;
+            if (IsLocalBranchSectionVisible)
+                count++;
+            if (IsRemoteSectionVisible)
+                count++;
+            if (IsTagSectionVisible)
+                count++;
+            if (IsSubmoduleSectionVisible)
+                count++;
+            if (IsWorktreeSectionVisible)
+                count++;
+            return count;
+        }
+
+        private void SetSectionVisible(Action<bool> assign, bool current, bool value)
+        {
+            if (current == value)
+                return;
+
+            assign(value);
+            OnPropertyChanged(nameof(IsLocalBranchSectionVisible));
+            OnPropertyChanged(nameof(IsRemoteSectionVisible));
+            OnPropertyChanged(nameof(IsTagSectionVisible));
+            OnPropertyChanged(nameof(IsSubmoduleSectionVisible));
+            OnPropertyChanged(nameof(IsWorktreeSectionVisible));
+            OnPropertyChanged(nameof(IsPullRequestSectionVisible));
+            OnPropertyChanged(nameof(IsLocalBranchListVisible));
+            OnPropertyChanged(nameof(IsRemoteListVisible));
+            OnPropertyChanged(nameof(IsTagListVisible));
+            OnPropertyChanged(nameof(IsSubmoduleListVisible));
+            OnPropertyChanged(nameof(IsWorktreeListVisible));
+
+            RefreshHiddenSections();
+        }
+
+        /// <summary>
+        ///     Rebuilds the row of chips that brings a hidden section back.
+        /// </summary>
+        public void RefreshHiddenSections()
+        {
+            var hidden = new List<SidebarSection>();
+
+            void Consider(bool visible, string key, string label, Action restore)
+            {
+                if (!visible)
+                    hidden.Add(new SidebarSection { Key = key, Label = label, Restore = restore });
+            }
+
+            Consider(IsLocalBranchSectionVisible, "local", App.Text("Repository.LocalBranches"), () => IsLocalBranchSectionVisible = true);
+            Consider(IsRemoteSectionVisible, "remote", App.Text("Repository.Remotes"), () => IsRemoteSectionVisible = true);
+            Consider(IsTagSectionVisible, "tag", App.Text("Repository.Tags"), () => IsTagSectionVisible = true);
+            Consider(IsSubmoduleSectionVisible, "submodule", App.Text("Repository.Submodules"), () => IsSubmoduleSectionVisible = true);
+            Consider(IsWorktreeSectionVisible, "worktree", App.Text("Repository.Worktrees"), () => IsWorktreeSectionVisible = true);
+            Consider(IsPullRequestSectionVisible, "pr", App.Text("Repository.PullRequests"), () => IsPullRequestSectionVisible = true);
+
+            HiddenSections.Rebuild(hidden);
+        }
+
         public bool HasForge() => ResolveForges().Count > 0;
 
         /// <summary>

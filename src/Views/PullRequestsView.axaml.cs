@@ -220,7 +220,9 @@ namespace SourceGit.Views
 
                 // No account covering this repository means nothing to list, and an empty
                 // section asking to be ignored is worse than none.
-                IsVisible = repo.HasForge();
+                // Hidden on purpose, or nothing to show: either way the section is not there
+                // and the panel behaves as it always did.
+                IsVisible = repo.IsPullRequestSectionVisible && repo.HasForge();
                 if (!IsVisible)
                 {
                     Interlocked.Exchange(ref _pending, null)?.Cancel();

@@ -7,7 +7,7 @@ using Avalonia.Collections;
 
 namespace SourceGit.Models
 {
-    public class RepositoryUIStates
+    public partial class RepositoryUIStates
     {
         public HistoryShowFlags HistoryShowFlags
         {
