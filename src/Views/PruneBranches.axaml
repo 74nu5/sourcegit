@@ -25,6 +25,15 @@
     <Style Selector="TextBlock.branch.locked">
       <Setter Property="Opacity" Value="0.5"/>
     </Style>
+    <!-- Ce qui part doit se voir sans compter les cases. -->
+    <Style Selector="Border.row">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="CornerRadius" Value="3"/>
+    </Style>
+    <Style Selector="Border.row.picked">
+      <Setter Property="Background" Value="{DynamicResource Brush.Accent}"/>
+      <Setter Property="Opacity" Value="0.16"/>
+    </Style>
   </v:ChromelessWindow.Styles>
 
   <Grid RowDefinitions="Auto,*">
@@ -86,7 +95,11 @@
 
             <ListBox.ItemTemplate>
               <DataTemplate DataType="vm:PrunableBranch">
-                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Height="24">
+                <Grid>
+                  <!-- Le fond de la ligne cochee, sous le contenu pour ne rien delaver. -->
+                  <Border Classes="row" Classes.picked="{Binding IsSelected}"/>
+
+                  <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" Height="24" Margin="2,0">
                   <CheckBox Grid.Column="0"
                             Margin="0,0,8,0"
                             MinWidth="0"
@@ -103,23 +116,33 @@
                              Classes="branch"
                              Classes.locked="{Binding IsLocked}"/>
 
+                  <!-- L'avertissement se dit A COTE de l'etat, jamais a sa place :
+                       "morte ET non fusionnee" est precisement ce qu'on arbitre. -->
                   <TextBlock Grid.Column="2"
-                             Margin="12,0"
+                             Margin="12,0,0,0"
                              FontSize="11"
-                             MinWidth="120"
-                             TextAlignment="Right"
                              VerticalAlignment="Center"
-                             Text="{Binding State}"
-                             Classes="state"
-                             Classes.warning="{Binding IsWarning}"/>
+                             TextAlignment="Right"
+                             Text="{Binding Warning}"
+                             Classes="state warning"/>
 
                   <TextBlock Grid.Column="3"
+                             Margin="10,0"
+                             MinWidth="104"
+                             FontSize="11"
+                             VerticalAlignment="Center"
+                             TextAlignment="Right"
+                             Text="{Binding State}"
+                             Classes="state"/>
+
+                  <TextBlock Grid.Column="4"
                              MinWidth="92"
                              FontSize="11"
                              VerticalAlignment="Center"
                              TextAlignment="Right"
                              Text="{Binding Age}"
                              Foreground="{DynamicResource Brush.FG2}"/>
+                  </Grid>
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -136,6 +159,22 @@
       <StackPanel Grid.Row="3" Orientation="Vertical" Margin="2,8,0,0">
         <CheckBox Content="{DynamicResource Text.Prune.IncludeNeverPushed}"
                   IsChecked="{Binding IncludeNeverPushed, Mode=TwoWay}"/>
+        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+          <CheckBox VerticalAlignment="Center"
+                    Content="{DynamicResource Text.Prune.IncludeOldGone}"
+                    IsChecked="{Binding IncludeOldGone, Mode=TwoWay}"/>
+          <ComboBox Margin="6,0,0,0"
+                    Width="72"
+                    VerticalAlignment="Center"
+                    IsEnabled="{Binding IncludeOldGone}"
+                    ItemsSource="{Binding Source={x:Static vm:PruneBranches.MonthChoices}}"
+                    SelectedItem="{Binding OldGoneMonths, Mode=TwoWay}"/>
+          <TextBlock Margin="6,0,0,0"
+                     VerticalAlignment="Center"
+                     Text="{DynamicResource Text.Prune.Months}"
+                     Foreground="{DynamicResource Brush.FG2}"/>
+        </StackPanel>
+
         <CheckBox Margin="0,4,0,0"
                   Content="{DynamicResource Text.Prune.Force}"
                   IsChecked="{Binding Force, Mode=TwoWay}"/>

@@ -90,4 +90,6 @@
   <x:String x:Key="Text.Prune.Age.Days" xml:space="preserve">{0} d ago</x:String>
   <x:String x:Key="Text.Prune.Age.Months" xml:space="preserve">{0} months ago</x:String>
   <x:String x:Key="Text.Prune.Delete" xml:space="preserve">Delete</x:String>
+  <x:String x:Key="Text.Prune.IncludeOldGone" xml:space="preserve">Tick dead branches git cannot call merged, if untouched for</x:String>
+  <x:String x:Key="Text.Prune.Months" xml:space="preserve">months or more</x:String>
 </ResourceDictionary>

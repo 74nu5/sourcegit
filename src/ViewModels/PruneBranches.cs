@@ -63,9 +63,6 @@ namespace SourceGit.ViewModels
                 if (IsLocked)
                     return Locked;
 
-                if (IsUnmerged)
-                    return App.Text("Prune.State.Unmerged");
-
                 if (IsGone)
                     return App.Text("Prune.State.Gone");
 
@@ -73,7 +70,27 @@ namespace SourceGit.ViewModels
             }
         }
 
-        public bool IsWarning => !IsLocked && IsUnmerged;
+        /// <summary>
+        ///     Said beside the state rather than instead of it. Replacing it hid the very
+        ///     thing the reader is deciding on: whether the branch is dead as well as
+        ///     unmerged.
+        /// </summary>
+        public string Warning => !IsLocked && IsUnmerged ? App.Text("Prune.State.Unmerged") : string.Empty;
+
+        public bool IsWarning => Warning.Length > 0;
+
+        /// <summary>
+        ///     Days since its last commit. The rules read this one; the row reads the words
+        ///     below, which are the same number said out loud.
+        /// </summary>
+        public int AgeInDays
+        {
+            get
+            {
+                var when = DateTimeOffset.FromUnixTimeSeconds((long)Backend.CommitterDate).LocalDateTime;
+                return Math.Max(0, (int)(DateTime.Now - when).TotalDays);
+            }
+        }
 
         /// <summary>
         ///     How long ago its last commit was, because on sixty-five branches an age
@@ -83,8 +100,7 @@ namespace SourceGit.ViewModels
         {
             get
             {
-                var when = DateTimeOffset.FromUnixTimeSeconds((long)Backend.CommitterDate).LocalDateTime;
-                var days = (DateTime.Now - when).TotalDays;
+                var days = AgeInDays;
 
                 if (days < 1)
                     return App.Text("Prune.Age.Today");
@@ -124,6 +140,53 @@ namespace SourceGit.ViewModels
             set
             {
                 if (SetProperty(ref _includeNeverPushed, value))
+                    Preselect();
+            }
+        }
+
+        /// <summary>
+        ///     Ticks a dead branch that git cannot call merged, once it is old enough.
+        ///
+        ///     A squash merge rewrites the commits, so the branch it came from is never
+        ///     reachable from anything -- `--merged` will not name it, and neither will
+        ///     `branch -d`. On a forge that squashes by default this leaves nearly every dead
+        ///     branch unticked, which is exact and useless.
+        ///
+        ///     Age is the second witness, for when git has no evidence left to give: an
+        ///     upstream that was deleted months ago, on a branch nothing has touched since,
+        ///     is not work anybody is coming back to. It stays off by default, because it is
+        ///     a judgement rather than a fact.
+        /// </summary>
+        public bool IncludeOldGone
+        {
+            get => _includeOldGone;
+            set
+            {
+                if (!SetProperty(ref _includeOldGone, value))
+                    return;
+
+                // Every branch this rule adds is one git refuses without -D, so the box
+                // that allows it is ticked here rather than behind the reader's back --
+                // they can untick it, and then see forty refusals, which is their call.
+                if (value)
+                    Force = true;
+
+                Preselect();
+            }
+        }
+
+        /// <summary>
+        ///     How old "old enough" is. Offered as a few round numbers rather than a free
+        ///     field: the point is to pick a habit, not to tune a threshold.
+        /// </summary>
+        public static int[] MonthChoices { get; } = [1, 3, 6, 12];
+
+        public int OldGoneMonths
+        {
+            get => _oldGoneMonths;
+            set
+            {
+                if (SetProperty(ref _oldGoneMonths, value))
                     Preselect();
             }
         }
@@ -236,10 +299,20 @@ namespace SourceGit.ViewModels
         {
             foreach (var item in Items)
             {
-                item.IsSelected =
-                    !item.IsLocked &&
-                    !item.IsUnmerged &&
-                    (item.IsGone || (item.IsNeverPushed && _includeNeverPushed));
+                if (item.IsLocked)
+                {
+                    item.IsSelected = false;
+                    continue;
+                }
+
+                var kind = item.IsGone || (item.IsNeverPushed && _includeNeverPushed);
+
+                // Merged is the fact. Old and dead is the judgement, and only when asked --
+                // and never for a branch that was never pushed, which has no upstream whose
+                // disappearance could vouch for anything.
+                var old = _includeOldGone && item.IsGone && item.AgeInDays >= _oldGoneMonths * 30;
+
+                item.IsSelected = kind && (!item.IsUnmerged || old);
             }
 
             Describe();
@@ -311,6 +384,8 @@ namespace SourceGit.ViewModels
         private List<Models.Branch> _branches = [];
         private HashSet<string> _merged = [];
         private bool _includeNeverPushed = false;
+        private bool _includeOldGone = false;
+        private int _oldGoneMonths = 3;
         private bool _force = false;
         private bool _isLoading = true;
         private string _summary = string.Empty;
