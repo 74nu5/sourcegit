@@ -72,4 +72,21 @@
   <x:String x:Key="PullRequest.Check.Failed" xml:space="preserve">en échec</x:String>
   <x:String x:Key="PullRequest.Check.Pending" xml:space="preserve">en cours</x:String>
   <x:String x:Key="PullRequest.Check.Unknown" xml:space="preserve">cette forge ne le dit pas</x:String>
+  <x:String x:Key="Text.Prune" xml:space="preserve">Supprimer les branches locales mortes</x:String>
+  <x:String x:Key="Text.Prune.Tip" xml:space="preserve">Les références distantes obsolètes sont élaguées d'abord, puis toute branche locale dont l'équivalent distant a disparu est cochée. Une branche jamais poussée n'existe nulle part ailleurs : elle est listée, pas cochée.</x:String>
+  <x:String x:Key="Text.Prune.Pruning" xml:space="preserve">Élagage des références distantes…</x:String>
+  <x:String x:Key="Text.Prune.IncludeNeverPushed" xml:space="preserve">Cocher aussi les branches jamais poussées</x:String>
+  <x:String x:Key="Text.Prune.Force" xml:space="preserve">Supprimer même si non fusionnée (git branch -D)</x:String>
+  <x:String x:Key="Text.Prune.Deleting" xml:space="preserve">Suppression des branches sélectionnées…</x:String>
+  <x:String x:Key="Text.Prune.Summary" xml:space="preserve">{0} sélectionnée(s) · {1} candidates sur {2} branches locales</x:String>
+  <x:String x:Key="Text.Prune.Refused" xml:space="preserve">Git a refusé {0} branche(s), non fusionnée(s) : {1}. Cochez « supprimer même si non fusionnée » pour les retirer quand même.</x:String>
+  <x:String x:Key="Text.Prune.State.Gone" xml:space="preserve">amont disparu</x:String>
+  <x:String x:Key="Text.Prune.State.NeverPushed" xml:space="preserve">jamais poussée</x:String>
+  <x:String x:Key="Text.Prune.State.Tracked" xml:space="preserve">suivie</x:String>
+  <x:String x:Key="Text.Prune.State.Unmerged" xml:space="preserve">non fusionnée ici</x:String>
+  <x:String x:Key="Text.Prune.Locked.Current" xml:space="preserve">branche courante</x:String>
+  <x:String x:Key="Text.Prune.Locked.Worktree" xml:space="preserve">dans un worktree</x:String>
+  <x:String x:Key="Text.Prune.Age.Today" xml:space="preserve">aujourd'hui</x:String>
+  <x:String x:Key="Text.Prune.Age.Days" xml:space="preserve">il y a {0} j</x:String>
+  <x:String x:Key="Text.Prune.Age.Months" xml:space="preserve">il y a {0} mois</x:String>
 </ResourceDictionary>

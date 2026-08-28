@@ -149,5 +149,17 @@ namespace SourceGit.Views
             menu.Items.Add(colorizeRows);
             menu.Items.Add(remoteIcon);
         }
+
+        /// <summary>
+        ///     Opens the window that offers to remove the local branches that no longer
+        ///     stand for anything.
+        /// </summary>
+        private void OnPruneLocalBranches(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            if (DataContext is ViewModels.Repository repo)
+                repo.PruneLocalBranches();
+        }
     }
 }

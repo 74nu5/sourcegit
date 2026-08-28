@@ -1,0 +1,115 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SourceGit.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="460"
+             x:Class="SourceGit.Views.PruneBranches"
+             x:DataType="vm:PruneBranches">
+  <UserControl.Styles>
+    <!-- Pas de convertisseur : deux classes suffisent, et rien d'amont n'est touche. -->
+    <Style Selector="TextBlock.state">
+      <Setter Property="Foreground" Value="{DynamicResource Brush.FG2}"/>
+    </Style>
+    <Style Selector="TextBlock.state.warning">
+      <Setter Property="Foreground" Value="#FFE5534B"/>
+    </Style>
+    <Style Selector="TextBlock.branch.locked">
+      <Setter Property="Opacity" Value="0.5"/>
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Orientation="Vertical" Margin="8,0">
+    <StackPanel Orientation="Horizontal">
+      <Path Width="16" Height="16" Data="{StaticResource Icons.Clear}"/>
+      <TextBlock FontSize="18"
+                 Margin="8,0,0,0"
+                 Classes="bold"
+                 Text="{DynamicResource Text.Prune}"/>
+    </StackPanel>
+
+    <TextBlock Margin="4,12,0,0"
+               Text="{DynamicResource Text.Prune.Tip}"
+               TextWrapping="Wrap"
+               Foreground="{DynamicResource Brush.FG2}"
+               FontStyle="Italic"/>
+
+    <Border Margin="4,10,0,0"
+            Height="260"
+            Background="{DynamicResource Brush.Contents}"
+            BorderThickness="1"
+            BorderBrush="{DynamicResource Brush.Border1}"
+            CornerRadius="3">
+      <Grid>
+        <!-- Pendant l'elagage : rien a cocher, et on dit pourquoi. -->
+        <TextBlock Text="{DynamicResource Text.Prune.Pruning}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Foreground="{DynamicResource Brush.FG2}"
+                   IsVisible="{Binding IsLoading}"/>
+
+        <ListBox Background="Transparent"
+                 ItemsSource="{Binding Items}"
+                 SelectionMode="Single"
+                 IsVisible="{Binding !IsLoading}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem">
+              <Setter Property="MinHeight" Value="0"/>
+              <Setter Property="Padding" Value="4,2"/>
+            </Style>
+          </ListBox.Styles>
+
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:PrunableBranch">
+              <Grid ColumnDefinitions="Auto,*,Auto,Auto" Height="24">
+                <CheckBox Grid.Column="0"
+                          Margin="0,0,6,0"
+                          MinWidth="0"
+                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                          IsEnabled="{Binding !IsLocked}"/>
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Name}"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           ToolTip.Tip="{Binding Name}"
+                           Classes="branch"
+                           Classes.locked="{Binding IsLocked}"/>
+
+                <TextBlock Grid.Column="2"
+                           Margin="8,0"
+                           FontSize="10"
+                           VerticalAlignment="Center"
+                           Text="{Binding State}"
+                           Classes="state"
+                           Classes.warning="{Binding IsWarning}"/>
+
+                <TextBlock Grid.Column="3"
+                           MinWidth="82"
+                           FontSize="10"
+                           VerticalAlignment="Center"
+                           TextAlignment="Right"
+                           Text="{Binding Age}"
+                           Foreground="{DynamicResource Brush.FG2}"/>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+    </Border>
+
+    <TextBlock Margin="4,8,0,0"
+               FontSize="11"
+               Text="{Binding Summary}"
+               Foreground="{DynamicResource Brush.FG2}"/>
+
+    <CheckBox Margin="4,8,0,0"
+              Content="{DynamicResource Text.Prune.IncludeNeverPushed}"
+              IsChecked="{Binding IncludeNeverPushed, Mode=TwoWay}"/>
+
+    <CheckBox Margin="4,4,0,0"
+              Content="{DynamicResource Text.Prune.Force}"
+              IsChecked="{Binding Force, Mode=TwoWay}"/>
+  </StackPanel>
+</UserControl>

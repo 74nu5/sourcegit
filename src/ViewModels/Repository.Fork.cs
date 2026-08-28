@@ -185,6 +185,15 @@ namespace SourceGit.ViewModels
             return pr.Checks;
         }
 
+        /// <summary>
+        ///     The window that lists the local branches with the dead ones already ticked.
+        /// </summary>
+        public void PruneLocalBranches()
+        {
+            if (CanCreatePopup())
+                ShowPopup(new PruneBranches(this));
+        }
+
         public bool HasForge() => ResolveForges().Count > 0;
 
         /// <summary>

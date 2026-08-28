@@ -72,4 +72,21 @@
   <x:String x:Key="PullRequest.Check.Failed" xml:space="preserve">failed</x:String>
   <x:String x:Key="PullRequest.Check.Pending" xml:space="preserve">still running</x:String>
   <x:String x:Key="PullRequest.Check.Unknown" xml:space="preserve">this forge does not say</x:String>
+  <x:String x:Key="Text.Prune" xml:space="preserve">Remove dead local branches</x:String>
+  <x:String x:Key="Text.Prune.Tip" xml:space="preserve">Stale remote references are pruned first, then every local branch whose remote counterpart is gone is ticked. A branch that was never pushed exists nowhere else, so it is listed but left alone.</x:String>
+  <x:String x:Key="Text.Prune.Pruning" xml:space="preserve">Pruning stale remote references…</x:String>
+  <x:String x:Key="Text.Prune.IncludeNeverPushed" xml:space="preserve">Tick the branches that were never pushed as well</x:String>
+  <x:String x:Key="Text.Prune.Force" xml:space="preserve">Delete even if not merged (git branch -D)</x:String>
+  <x:String x:Key="Text.Prune.Deleting" xml:space="preserve">Deleting the selected branches…</x:String>
+  <x:String x:Key="Text.Prune.Summary" xml:space="preserve">{0} selected · {1} candidates out of {2} local branches</x:String>
+  <x:String x:Key="Text.Prune.Refused" xml:space="preserve">Git refused {0} branch(es), not merged: {1}. Tick "delete even if not merged" to remove them anyway.</x:String>
+  <x:String x:Key="Text.Prune.State.Gone" xml:space="preserve">upstream gone</x:String>
+  <x:String x:Key="Text.Prune.State.NeverPushed" xml:space="preserve">never pushed</x:String>
+  <x:String x:Key="Text.Prune.State.Tracked" xml:space="preserve">tracked</x:String>
+  <x:String x:Key="Text.Prune.State.Unmerged" xml:space="preserve">not merged here</x:String>
+  <x:String x:Key="Text.Prune.Locked.Current" xml:space="preserve">current branch</x:String>
+  <x:String x:Key="Text.Prune.Locked.Worktree" xml:space="preserve">in a worktree</x:String>
+  <x:String x:Key="Text.Prune.Age.Today" xml:space="preserve">today</x:String>
+  <x:String x:Key="Text.Prune.Age.Days" xml:space="preserve">{0} d ago</x:String>
+  <x:String x:Key="Text.Prune.Age.Months" xml:space="preserve">{0} months ago</x:String>
 </ResourceDictionary>
