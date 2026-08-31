@@ -236,6 +236,33 @@ namespace SourceGit.ViewModels
             set => SetSectionVisible(v => UIStates.IsPullRequestsVisibleInSideBar = v, UIStates.IsPullRequestsVisibleInSideBar, value);
         }
 
+        /// <summary>
+        ///     A computed property is only as good as what tells it to recompute.
+        ///
+        ///     The five list properties below read a section's own flag and the folding flag
+        ///     upstream owns -- and upstream's setter announces itself and nothing else. So
+        ///     folding a section rotated its chevron and left its list on screen: the binding
+        ///     was never told to look again. Every fold now re-announces the list that
+        ///     depends on it.
+        /// </summary>
+        protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+
+            var dependent = e.PropertyName switch
+            {
+                nameof(IsLocalBranchGroupExpanded) => nameof(IsLocalBranchListVisible),
+                nameof(IsRemoteGroupExpanded) => nameof(IsRemoteListVisible),
+                nameof(IsTagGroupExpanded) => nameof(IsTagListVisible),
+                nameof(IsSubmoduleGroupExpanded) => nameof(IsSubmoduleListVisible),
+                nameof(IsWorktreeGroupExpanded) => nameof(IsWorktreeListVisible),
+                _ => null,
+            };
+
+            if (dependent != null)
+                OnPropertyChanged(dependent);
+        }
+
         // A list needs its section shown and its group expanded. Both, every time.
         public bool IsLocalBranchListVisible => IsLocalBranchSectionVisible && IsLocalBranchGroupExpanded;
         public bool IsRemoteListVisible => IsRemoteSectionVisible && IsRemoteGroupExpanded;
