@@ -103,4 +103,7 @@
   <x:String x:Key="Text.Repository.ShowStashesInGraph" xml:space="preserve">Afficher les remises dans le graphe</x:String>
   <x:String x:Key="Text.Repository.ShowUncommittedInGraph" xml:space="preserve">Afficher le travail non commité dans le graphe</x:String>
   <x:String x:Key="Text.Graph.Uncommitted" xml:space="preserve">Modifications non commitées</x:String>
+  <x:String x:Key="Text.MergeConflictEditor.EditResult" xml:space="preserve">ÉDITER LE RÉSULTAT</x:String>
+  <x:String x:Key="Text.MergeConflictEditor.BackToBlocks" xml:space="preserve">REVENIR AUX BLOCS</x:String>
+  <x:String x:Key="Text.MergeConflictEditor.DiscardEdits" xml:space="preserve">Revenir aux blocs abandonnera ce que vous avez tapé. Continuer ?</x:String>
 </ResourceDictionary>
