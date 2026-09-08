@@ -1,4 +1,6 @@
 ﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 
 namespace SourceGit.Views
 {
@@ -31,6 +33,20 @@ namespace SourceGit.Views
         {
             get => GetValue(ShowBranchStripeProperty);
             set => SetValue(ShowBranchStripeProperty, value);
+        }
+
+        public static readonly StyledProperty<FontStyle> FontStyleProperty =
+            TextBlock.FontStyleProperty.AddOwner<CommitSubjectPresenter>();
+
+        /// <summary>
+        ///     Slant of the subject. Upstream builds its typefaces with
+        ///     <see cref="FontStyle.Normal"/> written in; this makes that a property so a row
+        ///     standing for something that is not a commit yet can say so in the text itself.
+        /// </summary>
+        public FontStyle FontStyle
+        {
+            get => GetValue(FontStyleProperty);
+            set => SetValue(FontStyleProperty, value);
         }
     }
 }

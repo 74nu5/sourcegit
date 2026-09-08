@@ -10,6 +10,15 @@
              x:Class="SourceGit.Views.Histories"
              x:DataType="vm:Histories"
              x:Name="ThisControl">
+  <UserControl.Styles>
+    <!-- The row standing for work that is not committed yet. It answers to no object in
+         the repository, so it says as much: the subject leans, and the graph gives it a
+         dot that is drawn open rather than filled. -->
+    <Style Selector="v|CommitSubjectPresenter.uncommitted">
+      <Setter Property="FontStyle" Value="Italic"/>
+    </Style>
+  </UserControl.Styles>
+
   <UserControl.Resources>
     <!-- Shared by the merged GRAPH & SUBJECT column and the standalone COMMIT MESSAGE one. -->
     <DataTemplate x:Key="CommitSubjectCell" DataType="m:Commit">
@@ -39,6 +48,7 @@
 
         <v:CommitSubjectPresenter Grid.Column="3"
                                   Height="26"
+                                  Classes.uncommitted="{Binding IsUncommitted, Mode=OneWay}"
                                   GraphColor="{Binding Color, Mode=OneWay}"
                                   ShowBranchStripe="{Binding Source={x:Static vm:Preferences.Instance}, Path=ColorizeRowsByBranch, Mode=OneWay}"
                                   FontFamily="{DynamicResource Fonts.Default}"

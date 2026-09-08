@@ -4,7 +4,7 @@ using Avalonia.Media;
 
 namespace SourceGit.Views
 {
-    public class CommitGraph : Control
+    public partial class CommitGraph : Control
     {
         public static readonly DirectProperty<CommitGraph, Models.CommitGraph> GraphProperty =
             AvaloniaProperty.RegisterDirect<CommitGraph, Models.CommitGraph>(
@@ -196,6 +196,11 @@ namespace SourceGit.Views
                     case Models.CommitGraph.DotType.Stash:
                         // Hollow and square: work set aside, not part of the history.
                         context.DrawRectangle(dotFill, pen, new Rect(center.X - 3.5, center.Y - 3.5, 7, 7));
+                        break;
+                    case Models.CommitGraph.DotType.Uncommitted:
+                        // As wide as the head dot so it carries, but drawn open and dashed:
+                        // nothing is fixed here yet.
+                        context.DrawEllipse(dotFill, DashedPen(pen), center, 6, 6);
                         break;
                     default:
                         context.DrawEllipse(dotFill, pen, center, 3, 3);
