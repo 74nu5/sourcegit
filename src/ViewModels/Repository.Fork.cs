@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -437,6 +438,105 @@ namespace SourceGit.ViewModels
         public bool HasHistoryFilters
         {
             get => _uiStates is { HistoryFilters.Count: > 0 };
+        }
+
+        /// <summary>
+        ///     Whether stashes are drawn in the graph.
+        /// </summary>
+        public bool ShowStashesInGraph
+        {
+            get => _uiStates is { ShowStashesInGraph: true };
+        }
+
+        public void ToggleStashesInGraph()
+        {
+            if (_uiStates == null)
+                return;
+
+            _uiStates.ShowStashesInGraph = !_uiStates.ShowStashesInGraph;
+            RefreshCommits();
+        }
+
+        /// <summary>
+        ///     The stashes the graph should carry, or an empty list.
+        ///
+        ///     Asked for again rather than read from the stashes page, which is refreshed by
+        ///     a task of its own and would be one beat behind. `git stash list` costs
+        ///     nothing.
+        /// </summary>
+        public async Task<List<Models.Stash>> LoadGraphStashesAsync()
+        {
+            if (!ShowStashesInGraph)
+                return [];
+
+            return await new Commands.QueryStashes(FullPath)
+                .GetResultAsync()
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        ///     The stash commits, added to the revision list by hand.
+        ///
+        ///     `--all` would not do: it reaches refs/stash, which is only the newest one.
+        ///     Every older stash is an entry in that ref's reflog and is reachable from
+        ///     nothing at all, so each has to be named.
+        /// </summary>
+        public static string GraphStashRevisions(List<Models.Stash> stashes)
+        {
+            if (stashes.Count == 0)
+                return string.Empty;
+
+            var builder = new StringBuilder();
+            foreach (var stash in stashes)
+                builder.Append(' ').Append(stash.SHA);
+
+            return builder.ToString();
+        }
+
+        /// <summary>
+        ///     Turn the stash commits into single nodes, and drop what came in with them.
+        ///
+        ///     A stash is three commits, not one: the work, the index, and the untracked
+        ///     files. Naming it in the revision list drags all three in, so the two extra
+        ///     ones are removed here and the stash keeps only its first parent -- the commit
+        ///     it was taken from. What is left hangs off the history where the work was
+        ///     interrupted, which is the whole point of showing it.
+        ///
+        ///     The two extras are reachable from nothing else, so removing them takes away
+        ///     exactly what naming the stash brought.
+        /// </summary>
+        public static void AttachGraphStashes(List<Models.Commit> commits, List<Models.Stash> stashes)
+        {
+            if (stashes.Count == 0)
+                return;
+
+            var names = new Dictionary<string, string>();
+            var internals = new HashSet<string>();
+
+            foreach (var stash in stashes)
+            {
+                names[stash.SHA] = stash.Name;
+                for (var i = 1; i < stash.Parents.Count; i++)
+                    internals.Add(stash.Parents[i]);
+            }
+
+            for (var i = commits.Count - 1; i >= 0; i--)
+            {
+                var commit = commits[i];
+
+                if (internals.Contains(commit.SHA) && !names.ContainsKey(commit.SHA))
+                {
+                    commits.RemoveAt(i);
+                    continue;
+                }
+
+                if (!names.TryGetValue(commit.SHA, out var name))
+                    continue;
+
+                commit.StashName = name;
+                if (commit.Parents.Count > 1)
+                    commit.Parents.RemoveRange(1, commit.Parents.Count - 1);
+            }
         }
 
         /// <summary>

@@ -13,7 +13,7 @@ namespace SourceGit.Models
         ByContent,
     }
 
-    public class Commit : ObservableObject
+    public partial class Commit : ObservableObject
     {
         public string SHA { get; set; } = string.Empty;
         public User Author { get; set; } = User.Invalid;

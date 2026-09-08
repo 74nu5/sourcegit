@@ -29,5 +29,11 @@
         ///     and `develop` on the next, and nobody wants to re-say it on every switch.
         /// </summary>
         public string PinnedLaneBranch { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     Whether stashes are drawn in the graph, hanging off the commit they were
+        ///     taken from. Off, like everything else this fork adds.
+        /// </summary>
+        public bool ShowStashesInGraph { get; set; } = false;
     }
 }

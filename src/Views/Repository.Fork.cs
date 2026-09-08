@@ -148,10 +148,24 @@ namespace SourceGit.Views
                 ev.Handled = true;
             };
 
+            // Stashes sit under the placement options rather than under upstream's show
+            // flags: those all map to a git argument, and this one does not -- it names
+            // revisions git would otherwise never walk to.
+            var stashesInGraph = new MenuItem();
+            stashesInGraph.Header = App.Text("Repository.ShowStashesInGraph");
+            if (repo.ShowStashesInGraph)
+                stashesInGraph.Icon = this.CreateMenuIcon("Icons.Check");
+            stashesInGraph.Click += (_, ev) =>
+            {
+                repo.ToggleStashesInGraph();
+                ev.Handled = true;
+            };
+
             menu.Items.Add(new MenuItem() { Header = "-" });
             menu.Items.Add(branchPlacement);
             menu.Items.Add(compactLanes);
             menu.Items.Add(stableLanes);
+            menu.Items.Add(stashesInGraph);
             menu.Items.Add(new MenuItem() { Header = "-" });
             menu.Items.Add(columns);
             menu.Items.Add(showBranchColumn);

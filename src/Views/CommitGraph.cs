@@ -193,6 +193,10 @@ namespace SourceGit.Views
                         context.DrawLine(dotFillPen, new Point(center.X, center.Y - 3), new Point(center.X, center.Y + 3));
                         context.DrawLine(dotFillPen, new Point(center.X - 3, center.Y), new Point(center.X + 3, center.Y));
                         break;
+                    case Models.CommitGraph.DotType.Stash:
+                        // Hollow and square: work set aside, not part of the history.
+                        context.DrawRectangle(dotFill, pen, new Rect(center.X - 3.5, center.Y - 3.5, 7, 7));
+                        break;
                     default:
                         context.DrawEllipse(dotFill, pen, center, 3, 3);
                         break;

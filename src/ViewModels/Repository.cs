@@ -1243,14 +1243,19 @@ namespace SourceGit.ViewModels
             {
                 await Dispatcher.UIThread.InvokeAsync(() => _histories.IsLoading = true);
 
+                var stashes = await LoadGraphStashesAsync().ConfigureAwait(false);
+
                 var builder = new StringBuilder();
                 builder
                     .Append('-').Append(Preferences.Instance.MaxHistoryCommits).Append(' ')
                     .Append(_uiStates.BuildHistoryParams(GitDir));
+                builder.Append(GraphStashRevisions(stashes));
 
                 var commits = await new Commands.QueryCommits(FullPath, builder.ToString())
                     .GetResultAsync()
                     .ConfigureAwait(false);
+
+                AttachGraphStashes(commits, stashes);
 
                 var merged = new HashSet<string>();
                 foreach (var c in commits)
@@ -1398,6 +1403,9 @@ namespace SourceGit.ViewModels
                         _stashesPage.Stashes = stashes;
 
                     StashesCount = stashes.Count;
+
+                    if (ShowStashesInGraph)
+                        RefreshCommits();
                 });
             }, token);
         }
