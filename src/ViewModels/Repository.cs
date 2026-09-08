@@ -1278,6 +1278,7 @@ namespace SourceGit.ViewModels
                     if (_histories != null)
                     {
                         _histories.IsLoading = false;
+                        AttachUncommittedRow(commits);
                         _histories.Commits = commits;
                         BisectState = _histories.UpdateBisectInfo();
 
@@ -1374,6 +1375,7 @@ namespace SourceGit.ViewModels
 
                     _workingCopy.SetData(changes);
                     LocalChangesCount = changes.Count;
+                    SyncUncommittedRow(changes.Count);
                     OnPropertyChanged(nameof(InProgressContext));
                     GetOwnerPage()?.ChangeDirtyState(Models.DirtyState.HasLocalChanges, changes.Count == 0);
                 });

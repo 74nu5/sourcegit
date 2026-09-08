@@ -540,6 +540,78 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
+        ///     Whether the work in progress gets a row at the head of the graph.
+        /// </summary>
+        public bool ShowUncommittedInGraph
+        {
+            get => _uiStates is { ShowUncommittedInGraph: true };
+        }
+
+        public void ToggleUncommittedInGraph()
+        {
+            if (_uiStates == null)
+                return;
+
+            _uiStates.ShowUncommittedInGraph = !_uiStates.ShowUncommittedInGraph;
+            _hadUncommittedRow = _uiStates.ShowUncommittedInGraph && LocalChangesCount > 0;
+            RefreshCommits();
+        }
+
+        /// <summary>
+        ///     Put the work in progress at the head of the graph, hanging off HEAD.
+        ///
+        ///     Three conditions, and each has a reason. Something to show, or the row would
+        ///     claim work that does not exist. A HEAD in the loaded window, or there is
+        ///     nothing to hang it from -- which is exactly what a filter that leaves the
+        ///     current branch out produces, and the row has to go with it. And the row goes
+        ///     first, because the list runs newest first and uncommitted work is newer than
+        ///     anything in it.
+        /// </summary>
+        public void AttachUncommittedRow(List<Models.Commit> commits)
+        {
+            if (!ShowUncommittedInGraph || IsBare || LocalChangesCount == 0)
+                return;
+
+            var head = commits.Find(x => x.IsCurrentHead);
+            if (head == null)
+                return;
+
+            var now = (ulong)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var row = new Models.Commit()
+            {
+                SHA = Models.Commit.UNCOMMITTED_SHA,
+                Subject = App.Text("Graph.Uncommitted"),
+                Author = Models.User.Invalid,
+                Committer = Models.User.Invalid,
+                AuthorTime = now,
+                CommitterTime = now,
+
+                // Drawn like the history it sits on rather than greyed out as an unmerged
+                // side branch: it is the tip of the branch that is checked out.
+                IsMerged = true,
+            };
+
+            row.Parents.Add(head.SHA);
+            commits.Insert(0, row);
+        }
+
+        /// <summary>
+        ///     Reload the history when the work in progress appears or disappears.
+        ///
+        ///     Only on that crossing: what changed inside the working copy is the working
+        ///     copy's business, and the row says nothing about it.
+        /// </summary>
+        public void SyncUncommittedRow(int count)
+        {
+            var wanted = ShowUncommittedInGraph && count > 0;
+            if (wanted == _hadUncommittedRow)
+                return;
+
+            _hadUncommittedRow = wanted;
+            RefreshCommits();
+        }
+
+        /// <summary>
         ///     The branch holding the leftmost lane of the graph, or an empty string.
         /// </summary>
         public string PinnedLaneBranch
@@ -573,6 +645,8 @@ namespace SourceGit.ViewModels
             _uiStates.PinnedLaneBranch = wanted;
             RefreshCommits();
         }
+
+        private bool _hadUncommittedRow = false;
 
         private static readonly Dictionary<string, Models.PullRequest> EMPTY = [];
     }

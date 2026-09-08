@@ -165,7 +165,18 @@ namespace SourceGit.Views
             menu.Items.Add(branchPlacement);
             menu.Items.Add(compactLanes);
             menu.Items.Add(stableLanes);
+            var uncommittedInGraph = new MenuItem();
+            uncommittedInGraph.Header = App.Text("Repository.ShowUncommittedInGraph");
+            if (repo.ShowUncommittedInGraph)
+                uncommittedInGraph.Icon = this.CreateMenuIcon("Icons.Check");
+            uncommittedInGraph.Click += (_, ev) =>
+            {
+                repo.ToggleUncommittedInGraph();
+                ev.Handled = true;
+            };
+
             menu.Items.Add(stashesInGraph);
+            menu.Items.Add(uncommittedInGraph);
             menu.Items.Add(new MenuItem() { Header = "-" });
             menu.Items.Add(columns);
             menu.Items.Add(showBranchColumn);

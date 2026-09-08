@@ -511,6 +511,9 @@ namespace SourceGit.ViewModels
             if (_ignoreSelectionChange)
                 return;
 
+            if (ShowUncommittedDetail())
+                return;
+
             if (_selectedCommits.Count == 0)
             {
                 _repo.SearchCommitContext.Selected = null;

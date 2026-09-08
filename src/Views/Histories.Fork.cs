@@ -266,6 +266,40 @@ namespace SourceGit.Views
             return submenu;
         }
 
+        /// <summary>
+        ///     The work in progress has no menu.
+        ///
+        ///     Every entry upstream builds acts on a revision -- reset here, cherry-pick,
+        ///     create a branch, copy the hash. There is no revision, so an empty menu is the
+        ///     honest answer, and a menu that offered any of them would be a trap.
+        /// </summary>
+        private bool SuppressMenuForUncommitted(List<Models.Commit> commits, ContextRequestedEventArgs e)
+        {
+            foreach (var c in commits)
+            {
+                if (!c.IsUncommitted)
+                    continue;
+
+                e.Handled = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Double-clicking the work in progress opens it, rather than trying to check out
+        ///     a branch at a revision that does not exist.
+        /// </summary>
+        private bool OpenUncommitted(ViewModels.Histories histories, Models.Commit commit)
+        {
+            if (histories == null || !commit.IsUncommitted)
+                return false;
+
+            histories.OpenWorkingCopy();
+            return true;
+        }
+
         private ColumnResizer _columnResizer = null;
     }
 }

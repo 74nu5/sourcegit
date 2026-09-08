@@ -35,5 +35,10 @@
         ///     taken from. Off, like everything else this fork adds.
         /// </summary>
         public bool ShowStashesInGraph { get; set; } = false;
+
+        /// <summary>
+        ///     Whether a row for the work in progress sits at the head of the graph.
+        /// </summary>
+        public bool ShowUncommittedInGraph { get; set; } = false;
     }
 }

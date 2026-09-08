@@ -101,4 +101,6 @@
   <x:String x:Key="Text.GraphLane.Pin" xml:space="preserve">Keep in Leftmost Lane</x:String>
   <x:String x:Key="Text.GraphLane.Unpin" xml:space="preserve">Release the Leftmost Lane</x:String>
   <x:String x:Key="Text.Repository.ShowStashesInGraph" xml:space="preserve">Show stashes in the graph</x:String>
+  <x:String x:Key="Text.Repository.ShowUncommittedInGraph" xml:space="preserve">Show uncommitted changes in the graph</x:String>
+  <x:String x:Key="Text.Graph.Uncommitted" xml:space="preserve">Uncommitted changes</x:String>
 </ResourceDictionary>

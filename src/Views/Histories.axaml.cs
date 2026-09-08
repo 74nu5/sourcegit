@@ -234,7 +234,7 @@ namespace SourceGit.Views
                 var builder = new StringBuilder();
                 foreach (var item in selected)
                 {
-                    if (item is Models.Commit commit)
+                    if (item is Models.Commit commit && !commit.IsUncommitted)
                         builder.Append(commit.SHA.AsSpan(0, 10)).Append(" - ").AppendLine(commit.Subject);
                 }
 
@@ -584,6 +584,9 @@ namespace SourceGit.Views
                     commits.Add(c);
             }
 
+            if (SuppressMenuForUncommitted(commits, e))
+                return;
+
             if (selected.Count > 1)
             {
                 var menu = CreateContextMenuForMultipleCommits(repo, commits);
@@ -626,6 +629,9 @@ namespace SourceGit.Views
                 CommitListContainer.SelectedItems is { Count: 1 } &&
                 e.Source is Control { DataContext: Models.Commit c })
             {
+                if (OpenUncommitted(histories, c))
+                    return;
+
                 if (histories.Bisect != null)
                 {
                     histories.CheckoutCommitDetached(c);

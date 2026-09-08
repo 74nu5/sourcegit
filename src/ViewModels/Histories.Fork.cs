@@ -47,6 +47,47 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
+        ///     Leave the graph for the working copy, where the uncommitted work actually is.
+        /// </summary>
+        public void OpenWorkingCopy()
+        {
+            _repo.SelectedViewIndex = 1;
+        }
+
+        /// <summary>
+        ///     Selecting the work in progress shows nothing rather than asking git about a
+        ///     commit that does not exist.
+        ///
+        ///     Everything downstream of a selected commit goes and reads it: the detail
+        ///     panel, the file tree, the diff. None of that has an answer here, and letting
+        ///     them try would put a git error on screen for a row that is behaving normally.
+        ///     A double click on the row is the way in, and it opens the working copy.
+        /// </summary>
+        private bool ShowUncommittedDetail()
+        {
+            var touched = false;
+            foreach (var c in _selectedCommits)
+            {
+                if (c.IsUncommitted)
+                {
+                    touched = true;
+                    break;
+                }
+            }
+
+            if (!touched)
+                return false;
+
+            _repo.SearchCommitContext.Selected = null;
+            DetailContext = new Models.Null();
+
+            if (_repo.UIStates.GraphHighlighting >= Models.CommitGraphHighlighting.SelectedCommitsOnly)
+                GenerateGraph(_commits);
+
+            return true;
+        }
+
+        /// <summary>
         ///     The commit the leftmost lane is held for, or null when nothing is pinned.
         ///
         ///     Resolved at draw time rather than stored: a pinned branch moves with every
