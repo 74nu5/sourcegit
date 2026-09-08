@@ -95,4 +95,7 @@
   <x:String x:Key="Text.Sidebar.Hide" xml:space="preserve">Hide this section</x:String>
   <x:String x:Key="Text.Sidebar.Hidden" xml:space="preserve">hidden:</x:String>
   <x:String x:Key="Text.Sidebar.Restore" xml:space="preserve">Show this section again</x:String>
+
+  <x:String x:Key="Text.GraphVisibility.Only" xml:space="preserve">Show Only This in Graph</x:String>
+  <x:String x:Key="Text.GraphVisibility.All" xml:space="preserve">Show Everything in Graph Again</x:String>
 </ResourceDictionary>

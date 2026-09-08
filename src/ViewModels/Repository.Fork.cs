@@ -396,6 +396,49 @@ namespace SourceGit.ViewModels
             return found;
         }
 
+        /// <summary>
+        ///     Show this branch in the graph, and nothing else.
+        ///
+        ///     Upstream already knows how: <c>SetBranchFilterMode</c> takes a
+        ///     <c>clearExists</c> flag that empties the filter list before adding the new
+        ///     one, and it pulls in the tracked remote branch on its own -- which is what
+        ///     anyone soloing a local branch means. Nothing had ever called it with
+        ///     <c>true</c>: the gesture was the missing half, not the mechanism.
+        /// </summary>
+        public void ShowOnlyInHistory(Models.Branch branch)
+        {
+            SetBranchFilterMode(branch, Models.FilterMode.Included, true, true);
+        }
+
+        public void ShowOnlyInHistory(BranchTreeNode node)
+        {
+            SetBranchFilterMode(node, Models.FilterMode.Included, true, true);
+        }
+
+        /// <summary>
+        ///     The same for a tag. <c>SetTagFilterMode</c> has no such flag, so the list is
+        ///     emptied here; the refresh it triggers rebuilds every mark in the trees from
+        ///     what is left, so nothing stays lit behind.
+        /// </summary>
+        public void ShowOnlyInHistory(Models.Tag tag)
+        {
+            _uiStates.HistoryFilters.Clear();
+            SetTagFilterMode(tag, Models.FilterMode.Included);
+        }
+
+        /// <summary>
+        ///     Whether anything is filtered at all, so that the way back is offered only
+        ///     where it would do something.
+        ///
+        ///     It matters more than it sounds: until now the only way to clear a filter was
+        ///     a button in a bar that itself only appears once a filter exists. Someone who
+        ///     hid a branch and forgot had to find that bar.
+        /// </summary>
+        public bool HasHistoryFilters
+        {
+            get => _uiStates is { HistoryFilters.Count: > 0 };
+        }
+
         private static readonly Dictionary<string, Models.PullRequest> EMPTY = [];
     }
 }

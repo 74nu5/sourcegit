@@ -403,6 +403,7 @@ namespace SourceGit.Views
                 }
 
                 menu.Items.Add(copy);
+                HistoryVisibility.Append(menu, this, repo, tag);
                 menu.Open(listBox);
             }
             else if (selected.Count > 0)
