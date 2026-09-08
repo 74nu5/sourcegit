@@ -439,6 +439,41 @@ namespace SourceGit.ViewModels
             get => _uiStates is { HistoryFilters.Count: > 0 };
         }
 
+        /// <summary>
+        ///     The branch holding the leftmost lane of the graph, or an empty string.
+        /// </summary>
+        public string PinnedLaneBranch
+        {
+            get => _uiStates?.PinnedLaneBranch ?? string.Empty;
+        }
+
+        public bool IsLanePinnedTo(Models.Branch branch)
+        {
+            return branch != null &&
+                   _uiStates != null &&
+                   branch.FullName.Equals(_uiStates.PinnedLaneBranch, StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        ///     Pin a branch to the leftmost lane, or unpin whatever is there.
+        ///
+        ///     Reloads rather than merely redrawing: the lane a commit sits in decides its
+        ///     left margin, and a margin is not observable -- changing one behind the grid's
+        ///     back leaves every row measured for the old layout.
+        /// </summary>
+        public void SetPinnedLaneBranch(Models.Branch branch)
+        {
+            if (_uiStates == null)
+                return;
+
+            var wanted = branch == null || IsLanePinnedTo(branch) ? string.Empty : branch.FullName;
+            if (wanted.Equals(_uiStates.PinnedLaneBranch, StringComparison.Ordinal))
+                return;
+
+            _uiStates.PinnedLaneBranch = wanted;
+            RefreshCommits();
+        }
+
         private static readonly Dictionary<string, Models.PullRequest> EMPTY = [];
     }
 }

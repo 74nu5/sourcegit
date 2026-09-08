@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace SourceGit.Models
 {
@@ -8,15 +9,29 @@ namespace SourceGit.Models
     /// </summary>
     public partial class CommitGraph
     {
-        private static bool HasCurrentHead(List<Commit> commits)
+        /// <summary>
+        ///     Which commit the leftmost lane is held for, or null when nobody claims it.
+        ///
+        ///     A pinned branch wins, so that the trunk stays in the same column whatever is
+        ///     checked out -- that is the whole point of pinning one. When the pin points
+        ///     outside the loaded window, or when nothing is pinned, the branch that is
+        ///     checked out takes the lane, which is what this fork has always done. Pinning
+        ///     adds a claimant; it never leaves the lane empty that would otherwise be held.
+        /// </summary>
+        private static string ResolveLaneAnchor(List<Commit> commits, string pinnedHead)
         {
+            Commit head = null;
+
             foreach (var c in commits)
             {
-                if (c.IsCurrentHead)
-                    return true;
+                if (!string.IsNullOrEmpty(pinnedHead) && c.SHA.Equals(pinnedHead, StringComparison.Ordinal))
+                    return c.SHA;
+
+                if (head == null && c.IsCurrentHead)
+                    head = c;
             }
 
-            return false;
+            return head?.SHA;
         }
 
         /// <summary>

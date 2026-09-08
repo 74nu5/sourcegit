@@ -97,7 +97,7 @@ namespace SourceGit.Models
         /// </summary>
         public int HiddenLanes { get; private set; } = 0;
 
-        public static CommitGraph Generate(List<Commit> commits, bool firstParentOnlyEnabled, CommitGraphHighlighting highlighting, HashSet<string> highlightExtraCommits, GraphLaneMode laneMode = GraphLaneMode.Compact)
+        public static CommitGraph Generate(List<Commit> commits, bool firstParentOnlyEnabled, CommitGraphHighlighting highlighting, HashSet<string> highlightExtraCommits, GraphLaneMode laneMode = GraphLaneMode.Compact, string pinnedHead = null)
         {
             const double unitWidth = 12;
             const double halfWidth = 6;
@@ -111,11 +111,15 @@ namespace SourceGit.Models
             var colorPicker = new ColorPicker();
             var defHighlighting = highlighting == CommitGraphHighlighting.All;
 
-            // Reserving lane 0 for the current branch only makes sense when that branch is
-            // actually part of the window, otherwise the leftmost lane would stay empty.
+            // Reserving lane 0 only makes sense when the branch it is held for is actually
+            // part of the window, otherwise the leftmost lane would stay empty.
             LaneAllocator laneAllocator = null;
+            string laneAnchor = null;
             if (laneMode == GraphLaneMode.Stable)
-                laneAllocator = new LaneAllocator(HasCurrentHead(commits));
+            {
+                laneAnchor = ResolveLaneAnchor(commits, pinnedHead);
+                laneAllocator = new LaneAllocator(laneAnchor != null);
+            }
 
             var rowIndex = -1;
 
@@ -224,7 +228,7 @@ namespace SourceGit.Models
 
                     if (commit.Parents.Count > 0)
                     {
-                        var lane = laneAllocator?.Acquire(rowIndex, commit.IsCurrentHead) ?? 0;
+                        var lane = laneAllocator?.Acquire(rowIndex, commit.SHA.Equals(laneAnchor, StringComparison.Ordinal)) ?? 0;
                         var startX = laneAllocator != null ? LaneX(lane) : offsetX;
                         major = new PathHelper(commit.Parents[0], isHighlighted, colorPicker.Next(), new Point(startX, offsetY)) { Lane = lane };
                         unsolved.Add(major);

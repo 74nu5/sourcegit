@@ -46,6 +46,22 @@ namespace SourceGit.ViewModels
                 Models.BranchOwnership.Clear(commits);
         }
 
+        /// <summary>
+        ///     The commit the leftmost lane is held for, or null when nothing is pinned.
+        ///
+        ///     Resolved at draw time rather than stored: a pinned branch moves with every
+        ///     commit, and what the graph needs is where it points now.
+        /// </summary>
+        private string ResolvePinnedLaneHead()
+        {
+            var full = _repo?.PinnedLaneBranch;
+            if (string.IsNullOrEmpty(full))
+                return null;
+
+            var branch = _repo.Branches.Find(x => x.FullName.Equals(full, System.StringComparison.Ordinal));
+            return branch?.Head;
+        }
+
         private const double MIN_GRAPH_COLUMN_WIDTH = 24;
         private const double MAX_GRAPH_COLUMN_WIDTH = 240;
     }

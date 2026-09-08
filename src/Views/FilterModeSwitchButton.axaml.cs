@@ -121,7 +121,7 @@ namespace SourceGit.Views
 
             menu.Items.Add(include);
             menu.Items.Add(exclude);
-            HistoryVisibility.Append(menu, this, repo, tag);
+            GraphBranchMenu.Append(menu, this, repo, tag);
         }
 
         private void FillContextMenuForBranch(ContextMenu menu, ViewModels.Repository repo, ViewModels.BranchTreeNode node, Models.FilterMode current)
@@ -162,7 +162,7 @@ namespace SourceGit.Views
 
             menu.Items.Add(include);
             menu.Items.Add(exclude);
-            HistoryVisibility.Append(menu, this, repo, node);
+            GraphBranchMenu.Append(menu, this, repo, node);
         }
 
         private Models.FilterMode _mode = Models.FilterMode.None;

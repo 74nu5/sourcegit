@@ -3,18 +3,14 @@
 namespace SourceGit.Views
 {
     /// <summary>
-    ///     "Show only this one" in the graph, and the way back.
+    ///     What this fork adds to the menu of a branch, a folder of branches and a tag:
+    ///     what the graph shows, and which column it shows it in.
     ///
-    ///     Filtering the graph down to a few branches has always been possible: upstream ships
-    ///     an include mode that means exactly "only these". What it never shipped is the
-    ///     gesture. Reaching it takes hovering a branch row until a small icon appears, then
-    ///     understanding that ticking it a second time on another branch adds to a set rather
-    ///     than replacing it -- so isolating one branch means first clearing whatever is
-    ///     already there. Hence upstream #1687, and twenty comments under it.
-    ///
-    ///     One entry, in the menus people actually open, doing the whole thing at once.
+    ///     Both were reachable before, and neither was findable. Filtering hid behind an icon
+    ///     that only appears on hover, and meant ticking one branch at a time; holding the
+    ///     leftmost lane was not offered at all, it simply followed whatever was checked out.
     /// </summary>
-    public static class HistoryVisibility
+    public static class GraphBranchMenu
     {
         public static void Append(ContextMenu menu, Control owner, ViewModels.Repository repo, Models.Branch branch)
         {
@@ -22,6 +18,7 @@ namespace SourceGit.Views
                 return;
 
             menu.Items.Add(new MenuItem() { Header = "-" });
+            AppendPin(menu, owner, repo, branch);
             menu.Items.Add(BuildOnly(owner, () => repo.ShowOnlyInHistory(branch)));
             AppendShowAll(menu, owner, repo);
         }
@@ -44,6 +41,32 @@ namespace SourceGit.Views
             menu.Items.Add(new MenuItem() { Header = "-" });
             menu.Items.Add(BuildOnly(owner, () => repo.ShowOnlyInHistory(tag)));
             AppendShowAll(menu, owner, repo);
+        }
+
+        /// <summary>
+        ///     Hold the leftmost lane for this branch, whatever is checked out.
+        ///
+        ///     Offered only where lanes are handed out at all: the compact placement puts a
+        ///     path at whatever rank it happens to hold among the live ones, so there is no
+        ///     column there to pin anything to.
+        /// </summary>
+        private static void AppendPin(ContextMenu menu, Control owner, ViewModels.Repository repo, Models.Branch branch)
+        {
+            if (ViewModels.Preferences.Instance.GraphLaneMode != Models.GraphLaneMode.Stable)
+                return;
+
+            var pinned = repo.IsLanePinnedTo(branch);
+
+            var pin = new MenuItem();
+            pin.Header = App.Text(pinned ? "GraphLane.Unpin" : "GraphLane.Pin");
+            pin.Icon = owner.CreateMenuIcon(pinned ? "Icons.Unlock" : "Icons.Lock");
+            pin.Click += (_, e) =>
+            {
+                repo.SetPinnedLaneBranch(branch);
+                e.Handled = true;
+            };
+
+            menu.Items.Add(pin);
         }
 
         /// <summary>

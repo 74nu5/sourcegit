@@ -20,5 +20,14 @@
         public bool IsSubmodulesVisibleInSideBar { get; set; } = true;
         public bool IsWorktreesVisibleInSideBar { get; set; } = true;
         public bool IsPullRequestsVisibleInSideBar { get; set; } = true;
+
+        /// <summary>
+        ///     Full name of the branch that holds the leftmost lane of the graph, or empty.
+        ///
+        ///     Per repository rather than per person for the same reason as the six above:
+        ///     the answer is a property of the history being read. It is `main` on one clone
+        ///     and `develop` on the next, and nobody wants to re-say it on every switch.
+        /// </summary>
+        public string PinnedLaneBranch { get; set; } = string.Empty;
     }
 }
