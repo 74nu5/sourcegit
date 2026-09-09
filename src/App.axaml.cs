@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -574,11 +573,7 @@ namespace SourceGit
                 try
                 {
                     // Fetch latest release information.
-                    using var client = new HttpClient();
-                    client.Timeout = TimeSpan.FromSeconds(5);
-
-                    var data = await client.GetStringAsync("https://sourcegit-scm.github.io/data/version.json");
-                    var ver = JsonSerializer.Deserialize(data, JsonCodeGen.Default.Version);
+                    var ver = await FetchLatestVersionAsync();
                     if (ver == null)
                         return;
 

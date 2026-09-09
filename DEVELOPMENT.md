@@ -176,11 +176,24 @@ over a real history before and after your change and compare the two.
 
 ## Things that would break if you forgot them
 
-**The update check is off**, through `DisableUpdateDetection` in `Directory.Build.props`.
-It has to stay off. This build carries the version number of the release it branched
-from, so the day upstream publishes a newer one, the check would offer an update whose
-installer replaces this fork with the stock application — quietly dropping everything
-here.
+**The update check points here, not upstream.** It reads this fork's releases API, it
+links to this fork's releases page, and it compares tags rather than assembly versions.
+`Models.ForkVersion` holds all three, and `DisableUpdateDetection` in
+`Directory.Build.props` still switches the whole thing off. What must never happen is
+one of the three drifting back: this build carries the version number of the release it
+branched from, so a check reading upstream would announce upstream's next release and
+send the user to install the stock application over this one.
+
+Tags are compared because the assembly version cannot tell `2026.19-3b.1` from
+`2026.19-3b.2` — `VERSION` feeds `AssemblyVersion`, which rejects a suffix. The tag
+comes from `git describe`, stamped into assembly metadata by `GenVersionInfo`. Two
+releases of the same month under different labels are left incomparable on purpose:
+nothing in the scheme says whether `-3b` precedes `-4a`, and a guess would offer a
+downgrade as an update.
+
+Nothing installs itself. The window opens the releases page in a browser, which is why
+turning the check on needed no thought about signing or checksums — and why turning it
+into a real self-update would.
 
 **This fork and an official install cannot run side by side.** They share
 `%APPDATA%\SourceGit` and the same process lock, so launching one while the other runs

@@ -6,16 +6,25 @@
   -->
   <PropertyGroup>
     <!--
-      Turns off the update check.
+      The update check, on.
 
-      The check asks sourcegit-scm.github.io for the latest upstream version and
-      compares it with ours. Since this fork carries the same version number as the
-      release it branched from, the day upstream publishes a newer one this build
-      would offer an update whose installer replaces it with the stock application —
-      quietly dropping everything this fork adds.
+      It was off for as long as it pointed at upstream. The check reads a version and
+      offers a download, and both came from sourcegit-scm: since this fork carries the
+      version number of the release it branched from, the day upstream published a
+      newer one the check would have announced it and sent the user to fetch the stock
+      application over this one.
 
-      See App.Check4Update, guarded by DISABLE_UPDATE_DETECTION.
+      Three things had to move before it could be turned on, and all three are named in
+      Models.ForkVersion:
+
+        - what it reads, now this fork's releases API rather than upstream's site;
+        - where the download button leads, now this fork's releases page;
+        - how versions compare. Upstream parses the tag as a System.Version, which
+          throws on vYYYY.MM-3b.N and would have left the check silently dead.
+
+      Setting this back to true still works and disables everything above, including
+      the menu entry and the preference, through DISABLE_UPDATE_DETECTION.
     -->
-    <DisableUpdateDetection>true</DisableUpdateDetection>
+    <DisableUpdateDetection>false</DisableUpdateDetection>
   </PropertyGroup>
 </Project>
