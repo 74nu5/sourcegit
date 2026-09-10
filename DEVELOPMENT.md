@@ -191,6 +191,13 @@ releases of the same month under different labels are left incomparable on purpo
 nothing in the scheme says whether `-3b` precedes `-4a`, and a guess would offer a
 downgrade as an update.
 
+It asks on every start, where upstream asks once a day and records when it last did.
+The throttle suits an application people open when they need something from it; this
+one is left running for days, so it would be checked on the morning it happened to be
+started and not again all week. `Preferences.ShouldCheck4UpdateOnEveryStartup` replaces
+it, and an application nobody closes is not started often enough for the request to
+matter against the sixty an hour GitHub allows per address.
+
 Nothing installs itself. The window opens the releases page in a browser, which is why
 turning the check on needed no thought about signing or checksums — and why turning it
 into a real self-update would.

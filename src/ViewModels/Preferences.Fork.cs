@@ -1,4 +1,6 @@
-﻿using Avalonia.Collections;
+﻿using System;
+
+using Avalonia.Collections;
 
 namespace SourceGit.ViewModels
 {
@@ -92,6 +94,30 @@ namespace SourceGit.ViewModels
         {
             get => _branchColumnMode;
             set => SetProperty(ref _branchColumnMode, value);
+        }
+
+        /// <summary>
+        ///     Whether to look for a new release as the application starts.
+        ///
+        ///     Upstream asks once a day and remembers when it last asked, which suits an
+        ///     application people open when they need something from it. This one is left
+        ///     running for days, and a daily throttle turns into almost never against that
+        ///     habit: the check fires on the first start after midnight, then not again for
+        ///     as long as the window stays open.
+        ///
+        ///     Asking on every start is affordable for the same reason the throttle was
+        ///     useless -- an application nobody closes is not started often -- and one
+        ///     unauthenticated request sits well inside the sixty an hour GitHub allows per
+        ///     address. The timestamp is still written, so going back to upstream's throttle
+        ///     would not find a stale value and fire on it.
+        /// </summary>
+        public bool ShouldCheck4UpdateOnEveryStartup()
+        {
+            if (!_check4UpdatesOnStartup)
+                return false;
+
+            LastCheckUpdateTime = DateTime.Now.Subtract(DateTime.UnixEpoch.ToLocalTime()).TotalSeconds;
+            return true;
         }
 
         private bool _splitGraphColumnInHistories = false;

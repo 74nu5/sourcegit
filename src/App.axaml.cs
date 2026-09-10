@@ -556,7 +556,7 @@ namespace SourceGit
             };
 
 #if !DISABLE_UPDATE_DETECTION
-            if (pref.ShouldCheck4UpdateOnStartup())
+            if (pref.ShouldCheck4UpdateOnEveryStartup())
                 Check4Update();
 #endif
         }
