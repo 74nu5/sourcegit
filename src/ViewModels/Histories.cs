@@ -10,7 +10,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SourceGit.ViewModels
 {
-    public class Histories : ObservableObject
+    public partial class Histories : ObservableObject
     {
         public bool IsLoading
         {
@@ -108,6 +108,7 @@ namespace SourceGit.ViewModels
             set
             {
                 GenerateGraph(value);
+                ResolveBranchOwnership(value);
                 if (SetProperty(ref _commits, value))
                     PostCommitsChanged();
             }
@@ -116,7 +117,40 @@ namespace SourceGit.ViewModels
         public Models.CommitGraph Graph
         {
             get => _graph;
-            set => SetProperty(ref _graph, value);
+            set
+            {
+                if (SetProperty(ref _graph, value))
+                {
+                    OnPropertyChanged(nameof(GraphColumnWidth));
+                    OnPropertyChanged(nameof(HiddenLanes));
+                    OnPropertyChanged(nameof(HasHiddenLanes));
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Width of the dedicated graph column, capped so that a repository with a large
+        ///     number of concurrent branches cannot squeeze the subject out of view.
+        /// </summary>
+        public double GraphColumnWidth
+        {
+            get
+            {
+                var manual = _repo.UIStates.GraphColumnWidth;
+                if (manual > 0)
+                    return manual;
+
+                var width = _graph?.Width ?? 0;
+                return Math.Clamp(width + 4, MIN_GRAPH_COLUMN_WIDTH, MAX_GRAPH_COLUMN_WIDTH);
+            }
+            set
+            {
+                if (_repo.UIStates.GraphColumnWidth != value)
+                {
+                    _repo.UIStates.GraphColumnWidth = value;
+                    OnPropertyChanged();
+                }
+            }
         }
 
         public Models.CommitGraphHighlighting GraphHighlighting
@@ -524,6 +558,9 @@ namespace SourceGit.ViewModels
             if (_ignoreSelectionChange)
                 return;
 
+            if (ShowUncommittedDetail())
+                return;
+
             if (_selectedCommits.Count == 0)
             {
                 _searchCommitContext.Selected = null;
@@ -574,7 +611,7 @@ namespace SourceGit.ViewModels
                     extraHeads.Add(c.SHA);
             }
 
-            Graph = Models.CommitGraph.Generate(commits, firstParentOnly, highlighting, extraHeads);
+            Graph = Models.CommitGraph.Generate(commits, firstParentOnly, highlighting, extraHeads, Preferences.Instance.GraphLaneMode, ResolvePinnedLaneHead());
         }
 
         private Repository _repo = null;

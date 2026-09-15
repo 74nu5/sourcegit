@@ -1,0 +1,131 @@
+﻿using System;
+
+using Avalonia.Collections;
+
+namespace SourceGit.ViewModels
+{
+    /// <summary>
+    ///     Settings this fork adds. Preferences.cs is a long file upstream keeps appending to;
+    ///     staying out of it removes a whole class of rebase conflicts.
+    /// </summary>
+    public partial class Preferences
+    {
+        public bool SplitGraphColumnInHistories
+        {
+            get => _splitGraphColumnInHistories;
+            set => SetProperty(ref _splitGraphColumnInHistories, value);
+        }
+
+        public bool ShowBranchColumnInHistories
+        {
+            get => _showBranchColumnInHistories;
+            set => SetProperty(ref _showBranchColumnInHistories, value);
+        }
+
+        public Models.GraphLaneMode GraphLaneMode
+        {
+            get => _graphLaneMode;
+            set => SetProperty(ref _graphLaneMode, value);
+        }
+
+        public bool ColorizeRowsByBranch
+        {
+            get => _colorizeRowsByBranch;
+            set => SetProperty(ref _colorizeRowsByBranch, value);
+        }
+
+        /// <summary>
+        ///     Credentials for the forges this fork talks to. Empty by default, and while it
+        ///     is empty nothing here ever reaches the network.
+        /// </summary>
+        public AvaloniaList<Models.ForgeAccount> ForgeAccounts
+        {
+            get;
+            set;
+        } = [];
+
+        /// <summary>
+        ///     The account to use for a repository, or null when none covers it.
+        ///
+        ///     The most specific one wins, so a token issued for a single Azure DevOps project
+        ///     can sit beside the organisation-wide one without either shadowing the other.
+        /// </summary>
+        public Models.ForgeAccount FindForgeAccount(Models.ForgeRepository repo)
+        {
+            Models.ForgeAccount best = null;
+            var bestScore = -1;
+
+            foreach (var account in ForgeAccounts)
+            {
+                var score = account.Match(repo);
+                if (score > bestScore)
+                {
+                    best = account;
+                    bestScore = score;
+                }
+            }
+
+            return best;
+        }
+
+        /// <summary>
+        ///     Whether a branch carrying an open pull request shows it. Off by default like
+        ///     everything else this fork adds — and while it is off, nothing here ever
+        ///     reaches the network.
+        /// </summary>
+        public bool ShowPullRequestIndicator
+        {
+            get => _showPullRequestIndicator;
+            set => SetProperty(ref _showPullRequestIndicator, value);
+        }
+
+        /// <summary>
+        ///     Whether the "+origin" suffix on a chip becomes the remote's icon, tinted with
+        ///     the colours of the forge it lives on. Off by default, like everything else
+        ///     this fork adds.
+        /// </summary>
+        public bool ShowRemoteIconInsteadOfName
+        {
+            get => _showRemoteIconInsteadOfName;
+            set => SetProperty(ref _showRemoteIconInsteadOfName, value);
+        }
+
+        public Models.BranchColumnMode BranchColumnMode
+        {
+            get => _branchColumnMode;
+            set => SetProperty(ref _branchColumnMode, value);
+        }
+
+        /// <summary>
+        ///     Whether to look for a new release as the application starts.
+        ///
+        ///     Upstream asks once a day and remembers when it last asked, which suits an
+        ///     application people open when they need something from it. This one is left
+        ///     running for days, and a daily throttle turns into almost never against that
+        ///     habit: the check fires on the first start after midnight, then not again for
+        ///     as long as the window stays open.
+        ///
+        ///     Asking on every start is affordable for the same reason the throttle was
+        ///     useless -- an application nobody closes is not started often -- and one
+        ///     unauthenticated request sits well inside the sixty an hour GitHub allows per
+        ///     address. The timestamp is still written, so going back to upstream's throttle
+        ///     would not find a stale value and fire on it.
+        /// </summary>
+        public bool ShouldCheck4UpdateOnEveryStartup()
+        {
+            if (!_check4UpdatesOnStartup)
+                return false;
+
+            LastCheckUpdateTime = DateTime.Now.Subtract(DateTime.UnixEpoch.ToLocalTime()).TotalSeconds;
+            return true;
+        }
+
+        private bool _splitGraphColumnInHistories = false;
+        private bool _showBranchColumnInHistories = false;
+        private Models.GraphLaneMode _graphLaneMode = Models.GraphLaneMode.Compact;
+        private bool _colorizeRowsByBranch = false;
+        private bool _showPullRequestIndicator = false;
+        private bool _showRemoteIconInsteadOfName = false;
+        private Models.BranchColumnMode _branchColumnMode = Models.BranchColumnMode.RefsOnly;
+    }
+}

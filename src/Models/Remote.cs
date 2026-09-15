@@ -78,6 +78,9 @@ namespace SourceGit.Models
                 return true;
             }
 
+            if (TryGetAzureDevOpsVisitURL(URL, out url))
+                return true;
+
             var match = REG_TO_VISIT_URL_CAPTURE().Match(URL);
             if (match.Success)
             {
