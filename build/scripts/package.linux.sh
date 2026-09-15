@@ -82,5 +82,10 @@ sed -i -e "s/^Version:.*/Version: $VERSION/" \
 # Build deb package with gzip compression
 dpkg-deb -Zgzip --root-owner-group --build resources/deb "sourcegit_$VERSION-1_$arch.deb"
 
-rpmbuild -bb --target="$target" resources/rpm/SPECS/build.spec --define "_topdir $(pwd)/resources/rpm" --define "_version $VERSION"
-mv "resources/rpm/RPMS/$target/sourcegit-$VERSION-1.$target.rpm" ./
+# RPM reserves '-' as the separator between version and release, and refuses it in
+# Version:. A fork tag such as 2026.18-3b therefore has to be folded into 2026.18.3b
+# for this package alone; the deb and the AppImage above carry the tag as it is.
+rpm_version="${VERSION//-/.}"
+
+rpmbuild -bb --target="$target" resources/rpm/SPECS/build.spec --define "_topdir $(pwd)/resources/rpm" --define "_version $rpm_version"
+mv "resources/rpm/RPMS/$target/sourcegit-$rpm_version-1.$target.rpm" ./

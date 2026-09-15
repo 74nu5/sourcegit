@@ -250,7 +250,8 @@ namespace SourceGit.Views
             if (DataContext is not ViewModels.Repository { UIStates: { } } vm)
                 return;
 
-            var leftHeight = LeftSidebarGroups.Bounds.Height - 28.0 * 5 - 4;
+            var leftHeight = LeftSidebarGroups.Bounds.Height - 28.0 * vm.VisibleSectionHeaderCount() - 4;
+            leftHeight -= ReserveForkSidebarSpace(leftHeight);
             if (leftHeight <= 0)
                 return;
 

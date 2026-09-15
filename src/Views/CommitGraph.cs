@@ -4,7 +4,7 @@ using Avalonia.Media;
 
 namespace SourceGit.Views
 {
-    public class CommitGraph : Control
+    public partial class CommitGraph : Control
     {
         public static readonly DirectProperty<CommitGraph, Models.CommitGraph> GraphProperty =
             AvaloniaProperty.RegisterDirect<CommitGraph, Models.CommitGraph>(
@@ -46,14 +46,15 @@ namespace SourceGit.Views
             if (_graph == null || _layout == null)
                 return;
 
+            var startX = _layout.StartX;
             var startY = _layout.StartY;
             var clipWidth = _layout.ClipWidth;
             var clipHeight = Bounds.Height;
             var rowHeight = _layout.RowHeight;
             var endY = startY + clipHeight + 28;
 
-            using (context.PushClip(new Rect(0, 0, clipWidth, clipHeight)))
-            using (context.PushTransform(Matrix.CreateTranslation(0, -startY)))
+            using (context.PushClip(new Rect(startX, 0, clipWidth, clipHeight)))
+            using (context.PushTransform(Matrix.CreateTranslation(startX, -startY)))
             {
                 DrawCurves(context, _graph, startY, endY, rowHeight);
                 DrawAnchors(context, _graph, startY, endY, rowHeight);
@@ -191,6 +192,15 @@ namespace SourceGit.Views
                         context.DrawEllipse(pen.Brush, null, center, 6, 6);
                         context.DrawLine(dotFillPen, new Point(center.X, center.Y - 3), new Point(center.X, center.Y + 3));
                         context.DrawLine(dotFillPen, new Point(center.X - 3, center.Y), new Point(center.X + 3, center.Y));
+                        break;
+                    case Models.CommitGraph.DotType.Stash:
+                        // Hollow and square: work set aside, not part of the history.
+                        context.DrawRectangle(dotFill, pen, new Rect(center.X - 3.5, center.Y - 3.5, 7, 7));
+                        break;
+                    case Models.CommitGraph.DotType.Uncommitted:
+                        // As wide as the head dot so it carries, but drawn open and dashed:
+                        // nothing is fixed here yet.
+                        context.DrawEllipse(dotFill, DashedPen(pen), center, 6, 6);
                         break;
                     default:
                         context.DrawEllipse(dotFill, pen, center, 3, 3);

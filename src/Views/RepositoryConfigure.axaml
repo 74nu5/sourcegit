@@ -1,4 +1,4 @@
-<v:ChromelessWindow xmlns="https://github.com/avaloniaui"
+﻿<v:ChromelessWindow xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -235,6 +235,12 @@
                 <Button Classes="icon_button" Command="{Binding RemoveSelectedCommitTemplate}">
                   <Path Width="14" Height="14" Data="{StaticResource Icons.Minus}"/>
                 </Button>
+
+                <Button Classes="icon_button"
+                        Click="OnDuplicateSelectedCommitTemplate"
+                        ToolTip.Tip="{DynamicResource Text.Fork.Duplicate}">
+                  <Path Width="14" Height="14" Data="{StaticResource Icons.Copy}"/>
+                </Button>
               </StackPanel>
             </Grid>
           </Border>
@@ -337,6 +343,12 @@
                   <Path Width="14" Height="14" Data="{StaticResource Icons.Minus}"/>
                 </Button>
 
+                <Button Classes="icon_button"
+                        Click="OnDuplicateSelectedIssueTracker"
+                        ToolTip.Tip="{DynamicResource Text.Fork.Duplicate}">
+                  <Path Width="14" Height="14" Data="{StaticResource Icons.Copy}"/>
+                </Button>
+
               </StackPanel>
             </Grid>
           </Border>
@@ -432,6 +444,14 @@
                         Width="28" Height="28"
                         Command="{Binding RemoveSelectedCustomAction}">
                   <Path Width="14" Height="14" Data="{StaticResource Icons.Minus}"/>
+                </Button>
+                <Button Grid.Column="2"
+                        Classes="icon_button"
+                        Width="28" Height="28"
+                        HorizontalAlignment="Left"
+                        Click="OnDuplicateSelectedCustomAction"
+                        ToolTip.Tip="{DynamicResource Text.Fork.Duplicate}">
+                  <Path Width="14" Height="14" Data="{StaticResource Icons.Copy}"/>
                 </Button>
                 <Button Grid.Column="3"
                         Classes="icon_button"

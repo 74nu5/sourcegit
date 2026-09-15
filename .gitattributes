@@ -12,3 +12,4 @@ control    text eol=lf
 
 .gitattributes export-ignore
 .gitignore     export-ignore
+tools/hooks/* text eol=lf
