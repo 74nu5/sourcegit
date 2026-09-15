@@ -6,7 +6,22 @@ using Avalonia.Media;
 
 namespace SourceGit.Models
 {
-    public record CommitGraphLayout(double StartY, double ClipWidth, double RowHeight);
+    public record CommitGraphLayout(double StartX, double StartY, double ClipWidth, double RowHeight);
+
+    public enum GraphLaneMode
+    {
+        /// <summary>
+        ///     A path sits at the rank it happens to hold among the live paths, so it drifts
+        ///     left whenever a path on its left ends. This is the historical behaviour.
+        /// </summary>
+        Compact = 0,
+
+        /// <summary>
+        ///     A path keeps the lane it was given when it was created until it ends, so a
+        ///     branch never changes column while it is alive.
+        /// </summary>
+        Stable,
+    }
 
     public enum CommitGraphHighlighting
     {
@@ -17,7 +32,7 @@ namespace SourceGit.Models
         SelectedCommitsOnlyFirstParent,
     }
 
-    public class CommitGraph
+    public partial class CommitGraph
     {
         public static List<Pen> Pens { get; } = [];
 
@@ -57,6 +72,8 @@ namespace SourceGit.Models
             Default,
             Head,
             Merge,
+            Stash,
+            Uncommitted,
         }
 
         public class Dot
@@ -71,7 +88,18 @@ namespace SourceGit.Models
         public List<Link> Links { get; } = [];
         public List<Dot> Dots { get; } = [];
 
-        public static CommitGraph Generate(List<Commit> commits, bool firstParentOnlyEnabled, CommitGraphHighlighting highlighting, HashSet<string> highlightExtraCommits)
+        /// <summary>
+        ///     Horizontal room the curves need, in pixels.
+        /// </summary>
+        public double Width { get; private set; } = 0;
+
+        /// <summary>
+        ///     Number of paths that had to share the last lane because the lane budget was
+        ///     exhausted. Always 0 in <see cref="GraphLaneMode.Compact"/>.
+        /// </summary>
+        public int HiddenLanes { get; private set; } = 0;
+
+        public static CommitGraph Generate(List<Commit> commits, bool firstParentOnlyEnabled, CommitGraphHighlighting highlighting, HashSet<string> highlightExtraCommits, GraphLaneMode laneMode = GraphLaneMode.Compact, string pinnedHead = null)
         {
             const double unitWidth = 12;
             const double halfWidth = 6;
@@ -85,9 +113,25 @@ namespace SourceGit.Models
             var colorPicker = new ColorPicker();
             var defHighlighting = highlighting == CommitGraphHighlighting.All;
 
+            // Reserving lane 0 only makes sense when the branch it is held for is actually
+            // part of the window, otherwise the leftmost lane would stay empty.
+            LaneAllocator laneAllocator = null;
+            string laneAnchor = null;
+            if (laneMode == GraphLaneMode.Stable)
+            {
+                laneAnchor = ResolveLaneAnchor(commits, pinnedHead);
+                laneAllocator = new LaneAllocator(laneAnchor != null);
+            }
+
+            var rowIndex = -1;
+
+            // Horizontal position of a lane, matching the compact layout for the same rank.
+            static double LaneX(int lane) => 4 - halfWidth + (lane + 1) * unitWidth;
+
             foreach (var commit in commits)
             {
                 PathHelper major = null;
+                rowIndex++;
 
                 // Update current y offset
                 offsetY += unitHeight;
@@ -106,14 +150,15 @@ namespace SourceGit.Models
                             major = l;
                             isHighlighted = major.IsHighlighted;
 
+                            var majorX = laneAllocator != null ? LaneX(l.Lane) : offsetX;
                             if (commit.Parents.Count > 0)
                             {
                                 major.Next = commit.Parents[0];
-                                major.Goto(offsetX, offsetY, halfHeight);
+                                major.Goto(majorX, offsetY, halfHeight);
                             }
                             else
                             {
-                                major.End(offsetX, offsetY, halfHeight);
+                                major.End(majorX, offsetY, halfHeight);
                                 ended.Add(l);
                             }
                         }
@@ -129,7 +174,7 @@ namespace SourceGit.Models
                     else
                     {
                         offsetX += unitWidth;
-                        l.Pass(offsetX, offsetY, halfHeight);
+                        l.Pass(laneAllocator != null ? LaneX(l.Lane) : offsetX, offsetY, halfHeight);
                     }
                 }
 
@@ -137,6 +182,7 @@ namespace SourceGit.Models
                 foreach (var l in ended)
                 {
                     colorPicker.Recycle(l.Path.Color);
+                    laneAllocator?.Release(l.Lane, rowIndex);
                     unsolved.Remove(l);
                 }
                 ended.Clear();
@@ -184,7 +230,9 @@ namespace SourceGit.Models
 
                     if (commit.Parents.Count > 0)
                     {
-                        major = new PathHelper(commit.Parents[0], isHighlighted, colorPicker.Next(), new Point(offsetX, offsetY));
+                        var lane = laneAllocator?.Acquire(rowIndex, commit.SHA.Equals(laneAnchor, StringComparison.Ordinal)) ?? 0;
+                        var startX = laneAllocator != null ? LaneX(lane) : offsetX;
+                        major = new PathHelper(commit.Parents[0], isHighlighted, colorPicker.Next(), new Point(startX, offsetY)) { Lane = lane };
                         unsolved.Add(major);
                         temp.Paths.Add(major.Path);
                     }
@@ -199,7 +247,11 @@ namespace SourceGit.Models
                 var position = new Point(major?.LastX ?? offsetX, offsetY);
                 var dotColor = major?.Path.Color ?? 0;
                 var anchor = new Dot() { Center = position, Color = dotColor, IsHighlighted = isHighlighted };
-                if (commit.IsCurrentHead)
+                if (commit.IsUncommitted)
+                    anchor.Type = DotType.Uncommitted;
+                else if (commit.IsStash)
+                    anchor.Type = DotType.Stash;
+                else if (commit.IsCurrentHead)
                     anchor.Type = DotType.Head;
                 else if (commit.Parents.Count > 1)
                     anchor.Type = DotType.Merge;
@@ -239,8 +291,11 @@ namespace SourceGit.Models
                         {
                             offsetX += unitWidth;
 
+                            var lane = laneAllocator?.Acquire(rowIndex, false) ?? 0;
+                            var laneX = laneAllocator != null ? LaneX(lane) : offsetX;
+
                             // Create new curve for parent commit that not includes before
-                            var l = new PathHelper(parentHash, isHighlighted, colorPicker.Next(), position, new Point(offsetX, position.Y + halfHeight));
+                            var l = new PathHelper(parentHash, isHighlighted, colorPicker.Next(), position, new Point(laneX, position.Y + halfHeight)) { Lane = lane };
                             unsolved.Add(l);
                             temp.Paths.Add(l.Path);
                         }
@@ -249,7 +304,12 @@ namespace SourceGit.Models
 
                 // Margins & colors (used by Views.Histories).
                 commit.Color = dotColor;
-                commit.LeftMargin = Math.Max(offsetX, maxOffsetOld) + halfWidth + 2;
+                commit.LeftMargin = laneAllocator != null
+                    ? LaneX(laneAllocator.MaxLane) + halfWidth + 2
+                    : Math.Max(offsetX, maxOffsetOld) + halfWidth + 2;
+
+                if (commit.LeftMargin > temp.Width)
+                    temp.Width = commit.LeftMargin;
             }
 
             // Deal with curves haven't ended yet.
@@ -261,9 +321,21 @@ namespace SourceGit.Models
                 if (path.Path.Points.Count == 1 && Math.Abs(path.Path.Points[0].Y - endY) < 0.0001)
                     continue;
 
-                path.End((i + 0.5) * unitWidth + 4, endY + halfHeight, halfHeight);
+                path.End(laneAllocator != null ? LaneX(path.Lane) : (i + 0.5) * unitWidth + 4, endY + halfHeight, halfHeight);
             }
             unsolved.Clear();
+
+            if (laneAllocator != null)
+            {
+                temp.HiddenLanes = laneAllocator.Overflow;
+
+                // Every row shares the same margin in stable mode, and the last rows may have
+                // been laid out before the widest lane was reached.
+                var width = LaneX(laneAllocator.MaxLane) + halfWidth + 2;
+                foreach (var commit in commits)
+                    commit.LeftMargin = width;
+                temp.Width = width;
+            }
 
             return temp;
         }
@@ -295,6 +367,7 @@ namespace SourceGit.Models
             public Path Path { get; private set; }
             public string Next { get; set; }
             public double LastX { get; private set; }
+            public int Lane { get; set; } = 0;
             public bool IsHighlighted { get => Path.IsHighlighted; }
 
             public PathHelper(string next, bool IsHighlighted, int color, Point start)

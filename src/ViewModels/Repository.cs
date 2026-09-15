@@ -12,7 +12,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SourceGit.ViewModels
 {
-    public class Repository : ObservableObject, Models.IRepository
+    public partial class Repository : ObservableObject, Models.IRepository
     {
         public bool IsBare
         {
@@ -1128,6 +1128,7 @@ namespace SourceGit.ViewModels
                     Remotes = remotes;
                     Branches = branches;
                     CurrentBranch = branches.Find(x => x.IsCurrent);
+                    _histories?.ResolveBranchOwnership();
                     LocalBranchTrees = builder.Locals;
                     RemoteBranchTrees = builder.Remotes;
 
@@ -1195,14 +1196,19 @@ namespace SourceGit.ViewModels
             {
                 await Dispatcher.UIThread.InvokeAsync(() => _histories.IsLoading = true);
 
+                var stashes = await LoadGraphStashesAsync().ConfigureAwait(false);
+
                 var builder = new StringBuilder();
                 builder
                     .Append('-').Append(Preferences.Instance.MaxHistoryCommits).Append(' ')
                     .Append(_uiStates.BuildHistoryParams(GitDir));
+                builder.Append(GraphStashRevisions(stashes));
 
                 var commits = await new Commands.QueryCommits(FullPath, builder.ToString())
                     .GetResultAsync()
                     .ConfigureAwait(false);
+
+                AttachGraphStashes(commits, stashes);
 
                 var merged = new HashSet<string>();
                 foreach (var c in commits)
@@ -1225,6 +1231,7 @@ namespace SourceGit.ViewModels
                     if (_histories != null)
                     {
                         _histories.IsLoading = false;
+                        AttachUncommittedRow(commits);
                         _histories.Commits = commits;
                         BisectState = _histories.UpdateBisectInfo();
 
@@ -1321,6 +1328,7 @@ namespace SourceGit.ViewModels
 
                     _workingCopy.SetData(changes);
                     LocalChangesCount = changes.Count;
+                    SyncUncommittedRow(changes.Count);
                     OnPropertyChanged(nameof(InProgressContext));
                     GetOwnerPage()?.ChangeDirtyState(Models.DirtyState.HasLocalChanges, changes.Count == 0);
                 });
@@ -1350,6 +1358,9 @@ namespace SourceGit.ViewModels
                         _stashesPage.Stashes = stashes;
 
                     StashesCount = stashes.Count;
+
+                    if (ShowStashesInGraph)
+                        RefreshCommits();
                 });
             }, token);
         }

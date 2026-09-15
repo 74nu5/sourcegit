@@ -6,6 +6,9 @@ on:
 
 jobs:
   notify-homebrew:
+    # The Homebrew tap belongs to the upstream project; a fork publishing a release of
+    # its own has no business poking it.
+    if: github.repository == 'sourcegit-scm/sourcegit'
     runs-on: ubuntu-latest
     steps:
       - name: Notify Homebrew tap

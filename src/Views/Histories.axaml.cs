@@ -234,7 +234,7 @@ namespace SourceGit.Views
                 var builder = new StringBuilder();
                 foreach (var item in selected)
                 {
-                    if (item is Models.Commit commit)
+                    if (item is Models.Commit commit && !commit.IsUncommitted)
                         builder.Append(commit.SHA.AsSpan(0, 10)).Append(" - ").AppendLine(commit.Subject);
                 }
 
@@ -460,69 +460,6 @@ namespace SourceGit.Views
             }
         }
 
-        protected override void OnDataContextChanged(EventArgs e)
-        {
-            base.OnDataContextChanged(e);
-
-            if (DataContext is ViewModels.Histories vm)
-                CommitListContainer.Columns[1].Width = new(vm.AuthorColumnWidth, DataGridLengthUnitType.Pixel);
-        }
-
-        private void OnCommitListHeaderPointerMoved(object sender, PointerEventArgs e)
-        {
-            if (sender is not Border border)
-                return;
-
-            if (DataContext is not ViewModels.Histories { IsAuthorColumnVisible: true } vm)
-                return;
-
-            var pos = e.GetPosition(border);
-            if (_resizingAuthorColumn)
-            {
-                var posX = CommitListContainer.Columns[0].ActualWidth;
-                var maxW = posX + CommitListContainer.Columns[1].ActualWidth - 100;
-                var delta = posX - pos.X;
-                var w = Math.Max(Math.Min(vm.AuthorColumnWidth + delta, maxW), 80);
-                CommitListContainer.Columns[1].Width = new(w, DataGridLengthUnitType.Pixel);
-                vm.AuthorColumnWidth = w;
-            }
-            else
-            {
-                var dis = CommitListContainer.Columns[0].ActualWidth - 4 - pos.X;
-                if (dis < 4 && dis > -4)
-                {
-                    if (border.Cursor != _resizingCursor)
-                        border.Cursor = _resizingCursor;
-                }
-                else if (border.Cursor != Cursor.Default)
-                {
-                    border.Cursor = Cursor.Default;
-                }
-            }
-        }
-
-        private void OnCommitListHeaderPointerPressed(object sender, PointerPressedEventArgs e)
-        {
-            if (sender is not Border border)
-                return;
-
-            var pos = e.GetPosition(border);
-            var dis = CommitListContainer.Columns[0].ActualWidth - 4 - pos.X;
-            if (dis > 4 || dis < -4)
-                return;
-
-            if (e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
-            {
-                _resizingAuthorColumn = true;
-                e.Handled = true;
-            }
-        }
-
-        private void OnCommitListHeaderPointerReleased(object sender, PointerReleasedEventArgs e)
-        {
-            _resizingAuthorColumn = false;
-        }
-
         private void OnOpenAdvancedOptions(object sender, RoutedEventArgs e)
         {
             if (sender is not Button button)
@@ -733,6 +670,8 @@ namespace SourceGit.Views
             menu.Items.Add(order);
             menu.Items.Add(dateOrder);
             menu.Items.Add(topoOrder);
+            AppendForkHistoryOptions(menu, histories.Repo, histories, pref);
+
             menu.Items.Add(new MenuItem() { Header = "-" });
             menu.Items.Add(highlights);
             menu.Items.Add(all);
@@ -778,13 +717,14 @@ namespace SourceGit.Views
 
             IsScrollToTopVisible = startY >= rowHeight;
 
-            var clipWidth = dataGrid.Columns[0].ActualWidth - 4;
+            var (startX, clipWidth) = MeasureGraphViewport(dataGrid);
             var lastLayout = CommitGraph.Layout;
             if (lastLayout == null ||
+                Math.Abs(lastLayout.StartX - startX) > 0.01 ||
                 Math.Abs(lastLayout.StartY - startY) > 0.01 ||
                 Math.Abs(lastLayout.ClipWidth - clipWidth) > 0.01 ||
                 Math.Abs(lastLayout.RowHeight - rowHeight) > 0.01)
-                CommitGraph.Layout = new(startY, clipWidth, rowHeight);
+                CommitGraph.Layout = new(startX, startY, clipWidth, rowHeight);
         }
 
         private void OnScrollToTopPointerPressed(object sender, PointerPressedEventArgs e)
@@ -810,6 +750,9 @@ namespace SourceGit.Views
                     commits.Add(c);
             }
 
+            if (SuppressMenuForUncommitted(commits, e))
+                return;
+
             if (selected.Count > 1)
             {
                 var menu = CreateContextMenuForMultipleCommits(repo, commits);
@@ -817,6 +760,26 @@ namespace SourceGit.Views
             }
             else if (selected.Count == 1)
             {
+                // Right-clicking a reference acts on that reference alone. Anywhere else keeps
+                // the commit menu, which gathers the actions of every reference on the row.
+                if (e.Source is CommitRefsPresenter presenter)
+                {
+                    // Folded cells hide references behind a counter, so the menu has to offer
+                    // all of them; otherwise it acts on the one under the cursor.
+                    var menuForRefs = presenter.IsCollapsed
+                        ? CreateContextMenuForDecorators(repo, commits[0], presenter.Decorators())
+                        : e.TryGetPosition(presenter, out var position) && presenter.DecoratorAt(position) is { } decorator
+                            ? CreateContextMenuForDecorator(repo, commits[0], decorator)
+                            : null;
+
+                    if (menuForRefs != null)
+                    {
+                        menuForRefs.Open(presenter);
+                        e.Handled = true;
+                        return;
+                    }
+                }
+
                 var menu = CreateContextMenuForSingleCommit(repo, commits[0]);
                 menu.Open(CommitListContainer);
             }
@@ -832,6 +795,9 @@ namespace SourceGit.Views
                 CommitListContainer.SelectedItems is { Count: 1 } &&
                 e.Source is Control { DataContext: Models.Commit c })
             {
+                if (OpenUncommitted(histories, c))
+                    return;
+
                 if (histories.Bisect != null)
                 {
                     histories.CheckoutCommitDetached(c);
@@ -1916,7 +1882,6 @@ namespace SourceGit.Views
         private AvaloniaList<Models.IssueTracker> _issueTrackers = null;
         private bool _isScrollToTopVisible = false;
         private bool _isDetailsPanelExpanded = true;
-        private bool _resizingAuthorColumn = false;
         private Cursor _resizingCursor = new(StandardCursorType.SizeWestEast);
     }
 }

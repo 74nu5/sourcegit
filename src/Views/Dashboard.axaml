@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -18,7 +18,7 @@
     </Grid.ColumnDefinitions>
 
     <!-- Repository Branches/Remotes/Tags/Submodules/Worktrees -->
-    <Grid Grid.Column="0" RowDefinitions="Auto,*" IsVisible="{Binding !#ThisControl.IsCommitSearchVisible, Mode=OneWay}">
+    <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto" IsVisible="{Binding !#ThisControl.IsCommitSearchVisible, Mode=OneWay}">
       <!-- Filter Branches/Tags/Submodules -->
       <TextBox Grid.Row="0"
                x:Name="FilterBox"
@@ -52,10 +52,12 @@
         </TextBox.InnerRightContent>
       </TextBox>
 
-      <Grid Grid.Row="1" x:Name="LeftSidebarGroups" Margin="0,4,0,0" RowDefinitions="28,Auto,28,Auto,28,Auto,28,Auto,28,Auto" SizeChanged="OnLeftSidebarSizeChanged">
+      <Grid Grid.Row="1" x:Name="LeftSidebarGroups" Margin="0,4,0,0" RowDefinitions="28,Auto,28,Auto,28,Auto,28,Auto,28,Auto,Auto" SizeChanged="OnLeftSidebarSizeChanged">
         <!-- Local Branches -->
-        <ToggleButton Grid.Row="0" Classes="group_expander" IsChecked="{Binding IsLocalBranchGroupExpanded, Mode=TwoWay}">
-          <Grid ColumnDefinitions="16,*,Auto">
+        <ToggleButton Grid.Row="0" Classes="group_expander" IsChecked="{Binding IsLocalBranchGroupExpanded, Mode=TwoWay}"
+                      IsVisible="{Binding IsLocalBranchSectionVisible}"
+                      Tag="local" ContextRequested="OnSidebarSectionContextRequested">
+          <Grid ColumnDefinitions="16,*,Auto,Auto">
             <Path Grid.Column="0" Width="11" Height="11" HorizontalAlignment="Left" Data="{StaticResource Icons.Local}" Fill="{DynamicResource Brush.FG2}"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
               <TextBlock Classes="group_header_label" Text="{DynamicResource Text.Repository.LocalBranches}"/>
@@ -72,6 +74,14 @@
                 <Path Width="12" Height="12" Data="{StaticResource Icons.OrderByTime}" IsVisible="{Binding !IsSortingLocalBranchByName, Mode=OneWay}"/>
               </Grid>
             </Button>
+
+            <Button Grid.Column="3"
+                    Classes="icon_button"
+                    Width="14"
+                    Click="OnPruneLocalBranches"
+                    ToolTip.Tip="{DynamicResource Text.Prune}">
+              <Path Width="12" Height="12" Data="{StaticResource Icons.Clear}"/>
+            </Button>
           </Grid>
         </ToggleButton>
         <v:BranchTree Grid.Row="1"
@@ -79,13 +89,15 @@
                       Height="0"
                       Margin="6,0,4,0"
                       Nodes="{Binding LocalBranchTrees}"
-                      IsVisible="{Binding IsLocalBranchGroupExpanded}"
+                      IsVisible="{Binding IsLocalBranchListVisible}"
                       SelectionChanged="OnLocalBranchTreeSelectionChanged"
                       RowsChanged="OnLeftSidebarRowsChanged"
                       SearchRequested="OnToggleFilter"/>
 
         <!-- Remotes -->
-        <ToggleButton Grid.Row="2" Classes="group_expander" IsChecked="{Binding IsRemoteGroupExpanded, Mode=TwoWay}">
+        <ToggleButton Grid.Row="2" Classes="group_expander" IsChecked="{Binding IsRemoteGroupExpanded, Mode=TwoWay}"
+                      IsVisible="{Binding IsRemoteSectionVisible}"
+                      Tag="remote" ContextRequested="OnSidebarSectionContextRequested">
           <Grid ColumnDefinitions="16,*,Auto,Auto">
             <Path Grid.Column="0" Width="11" Height="11" HorizontalAlignment="Left" Data="{StaticResource Icons.Remotes}" Fill="{DynamicResource Brush.FG2}"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
@@ -113,13 +125,15 @@
                       Height="0"
                       Margin="6,0,4,0"
                       Nodes="{Binding RemoteBranchTrees}"
-                      IsVisible="{Binding IsRemoteGroupExpanded}"
+                      IsVisible="{Binding IsRemoteListVisible}"
                       SelectionChanged="OnRemoteBranchTreeSelectionChanged"
                       RowsChanged="OnLeftSidebarRowsChanged"
                       SearchRequested="OnToggleFilter"/>
 
         <!-- Tags -->
-        <ToggleButton Grid.Row="4" Classes="group_expander" IsChecked="{Binding IsTagGroupExpanded, Mode=TwoWay}">
+        <ToggleButton Grid.Row="4" Classes="group_expander" IsChecked="{Binding IsTagGroupExpanded, Mode=TwoWay}"
+                      IsVisible="{Binding IsTagSectionVisible}"
+                      Tag="tag" ContextRequested="OnSidebarSectionContextRequested">
           <Grid ColumnDefinitions="16,*,Auto,Auto,Auto">
             <Path Grid.Column="0" Width="11" Height="11" Margin="0,1,0,0" HorizontalAlignment="Left" Data="{StaticResource Icons.Tags}" Fill="{DynamicResource Brush.FG2}"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
@@ -161,13 +175,15 @@
                     Background="Transparent"
                     Content="{Binding VisibleTags}"
                     Focusable="False"
-                    IsVisible="{Binding IsTagGroupExpanded, Mode=OneWay}"
+                    IsVisible="{Binding IsTagListVisible, Mode=OneWay}"
                     SelectionChanged="OnTagsSelectionChanged"
                     RowsChanged="OnLeftSidebarRowsChanged"
                     SearchRequested="OnToggleFilter"/>
 
         <!-- Submodules -->
-        <ToggleButton Grid.Row="6" Classes="group_expander" IsChecked="{Binding IsSubmoduleGroupExpanded, Mode=TwoWay}">
+        <ToggleButton Grid.Row="6" Classes="group_expander" IsChecked="{Binding IsSubmoduleGroupExpanded, Mode=TwoWay}"
+                      IsVisible="{Binding IsSubmoduleSectionVisible}"
+                      Tag="submodule" ContextRequested="OnSidebarSectionContextRequested">
           <Grid ColumnDefinitions="16,*,Auto,Auto,Auto">
             <Path Grid.Column="0" Width="11" Height="11" HorizontalAlignment="Left" Data="{StaticResource Icons.Submodules}" Fill="{DynamicResource Brush.FG2}"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
@@ -208,11 +224,13 @@
                           Content="{Binding VisibleSubmodules}"
                           RowsChanged="OnLeftSidebarRowsChanged"
                           Focusable="False"
-                          IsVisible="{Binding IsSubmoduleGroupExpanded, Mode=OneWay}"
+                          IsVisible="{Binding IsSubmoduleListVisible, Mode=OneWay}"
                           SearchRequested="OnToggleFilter"/>
 
         <!-- Worktrees -->
-        <ToggleButton Grid.Row="8" Classes="group_expander" IsChecked="{Binding IsWorktreeGroupExpanded, Mode=TwoWay}">
+        <ToggleButton Grid.Row="8" Classes="group_expander" IsChecked="{Binding IsWorktreeGroupExpanded, Mode=TwoWay}"
+                      IsVisible="{Binding IsWorktreeSectionVisible}"
+                      Tag="worktree" ContextRequested="OnSidebarSectionContextRequested">
           <Grid ColumnDefinitions="16,*,Auto,Auto">
             <Path Grid.Column="0" Width="11" Height="11" HorizontalAlignment="Left" Data="{StaticResource Icons.Worktrees}" Fill="{DynamicResource Brush.FG2}"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
@@ -246,7 +264,7 @@
                  ItemsSource="{Binding Worktrees, Mode=OneWay}"
                  SelectionMode="Single"
                  PropertyChanged="OnWorktreeListPropertyChanged"
-                 IsVisible="{Binding IsWorktreeGroupExpanded, Mode=OneWay}">
+                 IsVisible="{Binding IsWorktreeListVisible, Mode=OneWay}">
           <ListBox.Styles>
             <Style Selector="ListBoxItem">
               <Setter Property="CornerRadius" Value="4"/>
@@ -329,7 +347,17 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+
+        <!-- Pull requests, added by this fork -->
+        <v:PullRequestsView Grid.Row="10"
+                            x:Name="PullRequestsSection"
+                            Margin="0,4,0,0"/>
       </Grid>
+
+      <!-- Bringing a hidden section back, added by this fork. Outside the groups grid
+           and pinned to the foot of the panel: inside it, a full list pushed it out of
+           sight and there was no way left to reach a hidden section at all. -->
+      <v:SidebarHiddenSections Grid.Row="2" DataContext="{Binding HiddenSections}"/>
     </Grid>
 
     <!-- Commit Search Panel -->

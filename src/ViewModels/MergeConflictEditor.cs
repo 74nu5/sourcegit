@@ -9,7 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SourceGit.ViewModels
 {
-    public class MergeConflictEditor : ObservableObject
+    public partial class MergeConflictEditor : ObservableObject
     {
         public string FilePath
         {
@@ -197,7 +197,7 @@ namespace SourceGit.ViewModels
             {
                 // Write merged content to file
                 var fullPath = Path.Combine(_repo.FullPath, _filePath);
-                await File.WriteAllTextAsync(fullPath, builder.ToString());
+                await File.WriteAllTextAsync(fullPath, PickContentToWrite(builder.ToString()));
 
                 // Stage the file
                 var pathSpecFile = Path.GetTempFileName();

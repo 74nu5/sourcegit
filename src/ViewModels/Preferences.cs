@@ -9,7 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SourceGit.ViewModels
 {
-    public class Preferences : ObservableObject
+    public partial class Preferences : ObservableObject
     {
         [JsonIgnore]
         public static Preferences Instance

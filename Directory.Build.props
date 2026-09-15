@@ -1,0 +1,30 @@
+<Project>
+  <!--
+    Settings for this fork. MSBuild picks this file up on its own, so nothing in the
+    upstream project files has to know about it — which is the point: it is a file of
+    ours, and a rebase never has to merge it.
+  -->
+  <PropertyGroup>
+    <!--
+      The update check, on.
+
+      It was off for as long as it pointed at upstream. The check reads a version and
+      offers a download, and both came from sourcegit-scm: since this fork carries the
+      version number of the release it branched from, the day upstream published a
+      newer one the check would have announced it and sent the user to fetch the stock
+      application over this one.
+
+      Three things had to move before it could be turned on, and all three are named in
+      Models.ForkVersion:
+
+        - what it reads, now this fork's releases API rather than upstream's site;
+        - where the download button leads, now this fork's releases page;
+        - how versions compare. Upstream parses the tag as a System.Version, which
+          throws on vYYYY.MM-3b.N and would have left the check silently dead.
+
+      Setting this back to true still works and disables everything above, including
+      the menu entry and the preference, through DISABLE_UPDATE_DETECTION.
+    -->
+    <DisableUpdateDetection>false</DisableUpdateDetection>
+  </PropertyGroup>
+</Project>
