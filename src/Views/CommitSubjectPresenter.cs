@@ -127,6 +127,16 @@ namespace SourceGit.Views
                 GenerateFormattedTextElements();
             }
 
+            // The lane colours are rebuilt whenever the theme changes, so resolve the brush
+            // here instead of through a binding that would keep the previous theme's colour.
+            var stripeColor = GraphColor;
+            if (ShowBranchStripe && stripeColor >= 0 && stripeColor < Models.CommitGraph.Pens.Count)
+            {
+                var brush = Models.CommitGraph.Pens[stripeColor].Brush;
+                if (brush != null)
+                    context.FillRectangle(brush, new Rect(0, 3, 2, Math.Max(0, Bounds.Height - 6)));
+            }
+
             if (_inlines.Count == 0)
                 return;
 
@@ -189,6 +199,7 @@ namespace SourceGit.Views
                 change.Property == CodeFontFamilyProperty ||
                 change.Property == FontSizeProperty ||
                 change.Property == FontWeightProperty ||
+                change.Property == FontStyleProperty ||
                 change.Property == ForegroundProperty ||
                 change.Property == LinkForegroundProperty)
             {
@@ -322,8 +333,8 @@ namespace SourceGit.Views
             var foreground = Foreground;
             var inlineCodeForeground = InlineCodeForeground;
             var linkForeground = LinkForeground;
-            var typeface = new Typeface(fontFamily, FontStyle.Normal, FontWeight);
-            var codeTypeface = new Typeface(codeFontFamily, FontStyle.Normal, FontWeight);
+            var typeface = new Typeface(fontFamily, FontStyle, FontWeight);
+            var codeTypeface = new Typeface(codeFontFamily, FontStyle, FontWeight);
             var pos = 0;
             var x = 0.0;
             for (var i = 0; i < _elements.Count; i++)
@@ -349,7 +360,7 @@ namespace SourceGit.Views
                         subject.Substring(elem.Start, elem.Length),
                         CultureInfo.CurrentCulture,
                         FlowDirection.LeftToRight,
-                        new Typeface(fontFamily, FontStyle.Normal, FontWeight.Bold),
+                        new Typeface(fontFamily, FontStyle, FontWeight.Bold),
                         fontSize,
                         foreground);
                     _inlines.Add(new Inline(x, keyword, elem));

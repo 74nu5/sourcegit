@@ -394,6 +394,7 @@ namespace SourceGit.Views
                 }
 
                 menu.Items.Add(copy);
+                GraphBranchMenu.Append(menu, this, repo, tag);
                 menu.Open(listBox);
             }
             else if (selected.Count > 0)

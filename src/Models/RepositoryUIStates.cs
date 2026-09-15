@@ -7,7 +7,7 @@ using Avalonia.Collections;
 
 namespace SourceGit.Models
 {
-    public class RepositoryUIStates
+    public partial class RepositoryUIStates
     {
         public HistoryShowFlags HistoryShowFlags
         {
@@ -44,6 +44,24 @@ namespace SourceGit.Models
             get;
             set;
         } = 120;
+
+        /// <summary>
+        ///     Manual width of the branch column, or 0 to size it to its contents.
+        /// </summary>
+        public double BranchColumnWidth
+        {
+            get;
+            set;
+        } = 0;
+
+        /// <summary>
+        ///     Manual width of the graph column, or 0 to size it to the graph.
+        /// </summary>
+        public double GraphColumnWidth
+        {
+            get;
+            set;
+        } = 0;
 
         public bool EnableTopoOrderInHistory
         {
