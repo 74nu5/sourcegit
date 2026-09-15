@@ -10,7 +10,7 @@ using OpenAI;
 
 namespace SourceGit.AI
 {
-    public class Service : ObservableObject
+    public partial class Service : ObservableObject
     {
         public string Name
         {

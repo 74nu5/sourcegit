@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+# Refuses a commit on a branch that is only ever a label.
+#
+# main never has commits of its own, and develop only ever moves by --ff-only from a
+# feature branch. Both were committed on directly before this existed; nothing on the
+# server can catch that, because the push that follows is indistinguishable from a
+# legitimate one.
+#
+# Install: git config core.hooksPath tools/hooks
+
+branch=$(git symbolic-ref --short -q HEAD) || exit 0
+
+case "$branch" in
+    main|develop) ;;
+    *) exit 0 ;;
+esac
+
+# An operation already under way is left alone: a rebase resolving a conflict, a
+# revert, a bisect. Stopping one of those halfway is worse than the mistake guarded
+# against here, and the weekly upstream rebase runs on develop.
+git_dir=$(git rev-parse --git-dir)
+for marker in rebase-merge rebase-apply MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD BISECT_LOG; do
+    [ -e "$git_dir/$marker" ] && exit 0
+done
+
+if [ "$branch" = "main" ]; then
+    reason="main never has commits of its own. It is a label that follows develop,"
+    reason="$reason moved forward when something is worth publishing."
+else
+    reason="develop is integration only. It moves by --ff-only from a feature branch,"
+    reason="$reason or by rebasing onto upstream."
+fi
+
+cat >&2 <<EOF
+
+  Refusing to commit on '$branch'.
+
+  $reason
+
+  What is staged is untouched. Carry it onto a branch of its own:
+
+      git checkout -b features/<name>
+      git commit
+
+  See DEVELOPMENT.md. To go ahead anyway: git commit --no-verify
+
+EOF
+
+exit 1

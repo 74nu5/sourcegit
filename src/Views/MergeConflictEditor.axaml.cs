@@ -22,7 +22,7 @@ using AvaloniaEdit.Utils;
 
 namespace SourceGit.Views
 {
-    public class MergeConflictTextPresenter : TextEditor
+    public partial class MergeConflictTextPresenter : TextEditor
     {
         public class LineNumberMargin : AbstractMargin
         {
@@ -371,6 +371,9 @@ namespace SourceGit.Views
 
         private void UpdateContent()
         {
+            if (IsEditingResult)
+                return;
+
             var lines = Lines;
             if (lines == null || lines.Count == 0)
             {

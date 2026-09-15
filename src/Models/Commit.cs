@@ -13,7 +13,7 @@ namespace SourceGit.Models
         ByContent,
     }
 
-    public class Commit : ObservableObject
+    public partial class Commit : ObservableObject
     {
         public string SHA { get; set; } = string.Empty;
         public User Author { get; set; } = User.Invalid;
@@ -32,6 +32,16 @@ namespace SourceGit.Models
         {
             get => _isHighlightedInGraph;
             set => SetProperty(ref _isHighlightedInGraph, value);
+        }
+
+        /// <summary>
+        ///     Branch this commit is reached from, resolved by <see cref="BranchOwnership"/>.
+        ///     Observable because branches and commits are refreshed by two independent tasks.
+        /// </summary>
+        public string OwnerBranch
+        {
+            get => _ownerBranch;
+            set => SetProperty(ref _ownerBranch, value);
         }
 
         public bool IsCommitterVisible => !Author.Equals(Committer) || AuthorTime != CommitterTime;
@@ -126,6 +136,7 @@ namespace SourceGit.Models
         }
 
         private bool _isHighlightedInGraph = false;
+        private string _ownerBranch = string.Empty;
     }
 
     public class CommitFullMessage

@@ -1114,6 +1114,7 @@ namespace SourceGit.Views
             };
             menu.Items.Add(copy);
 
+            GraphBranchMenu.Append(menu, this, repo, branch);
             return menu;
         }
 
@@ -1414,6 +1415,7 @@ namespace SourceGit.Views
             menu.Items.Add(new MenuItem() { Header = "-" });
             TryToAddCustomActionsToBranchContextMenu(repo, menu, branch);
             menu.Items.Add(copy);
+            GraphBranchMenu.Append(menu, this, repo, branch);
             return menu;
         }
 

@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Avalonia.Interactivity;
 
 namespace SourceGit.Views
@@ -40,17 +39,6 @@ namespace SourceGit.Views
                 TxtCopyright.Text = copyright.Copyright;
         }
 
-        private void OnVisitReleaseNotes(object _, RoutedEventArgs e)
-        {
-            var ver = TxtVersion.Text ?? string.Empty;
-            var endOfTagIdx = ver.IndexOf('-');
-            if (endOfTagIdx > 0)
-                ver = ver.Substring(0, endOfTagIdx);
-
-            Native.OS.OpenBrowser($"https://github.com/sourcegit-scm/sourcegit/releases/tag/{ver}");
-            e.Handled = true;
-        }
-
         private void OnVisitWebsite(object _, RoutedEventArgs e)
         {
             Native.OS.OpenBrowser("https://sourcegit-scm.github.io/");
@@ -63,7 +51,5 @@ namespace SourceGit.Views
             e.Handled = true;
         }
 
-        [GeneratedRegex(@"^v\d{4}\.\d{1,2}(?:\-\d+\-[0-9a-f]{8})?(?:\-dirty)?$")]
-        private static partial Regex REG_FRIENDLY_VERSION();
     }
 }
