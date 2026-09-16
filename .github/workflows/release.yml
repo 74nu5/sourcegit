@@ -39,6 +39,17 @@ jobs:
           pattern: package.*
           path: packages
           merge-multiple: true
+      # Computed here rather than after the fact: the glob below attaches SHA256SUMS
+      # together with the packages, and a published release accepts nothing more.
+      # Written from inside packages/ so every line names the asset exactly as it is
+      # published -- `sha256sum -c SHA256SUMS` then works next to the downloads.
+      - name: Compute checksums
+        env:
+          SUMS: ${{ runner.temp }}/SHA256SUMS
+        run: |
+          cd packages
+          sha256sum -- * > "$SUMS"
+          mv "$SUMS" SHA256SUMS
       # Assets go in at creation time. A published release is immutable, so creating it
       # first and uploading afterwards fails with "Cannot upload assets to an immutable
       # release" — leaving a release behind with nothing attached to it.
