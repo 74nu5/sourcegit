@@ -463,6 +463,34 @@
               </TabControl>
           </DataTemplate>
 
+          <!-- Added by this fork: the graph's uncommitted row has no commit to read,
+               so the panel shows the working copy instead of nothing. -->
+          <DataTemplate DataType="vm:UncommittedDetail">
+            <TabControl SelectedIndex="1" Padding="0">
+              <TabItem IsEnabled="False">
+                <TabItem.Header>
+                  <TextBlock Classes="tab_header" Text="{DynamicResource Text.CommitDetail.Info}"/>
+                </TabItem.Header>
+              </TabItem>
+
+              <TabItem>
+                <TabItem.Header>
+                  <Border Background="Transparent" PointerPressed="OnTabHeaderPointerPressed">
+                    <TextBlock Classes="tab_header" Text="{DynamicResource Text.CommitDetail.Changes}"/>
+                  </Border>
+                </TabItem.Header>
+                <v:UncommittedDetail Margin="4,0"
+                                     IsVisible="{Binding #ThisControl.IsDetailsPanelExpanded, Mode=OneWay}"/>
+              </TabItem>
+
+              <TabItem IsEnabled="False">
+                <TabItem.Header>
+                  <TextBlock Classes="tab_header" Text="{DynamicResource Text.CommitDetail.Files}"/>
+                </TabItem.Header>
+              </TabItem>
+            </TabControl>
+          </DataTemplate>
+
           <DataTemplate DataType="vm:CommitDetail">
             <v:CommitDetail IsDetailsPanelExpanded="{Binding #ThisControl.IsDetailsPanelExpanded, Mode=OneWay}"/>
           </DataTemplate>

@@ -603,6 +603,10 @@ namespace SourceGit.ViewModels
         /// </summary>
         public void SyncUncommittedRow(int count)
         {
+            // Le panneau montre la copie de travail : il doit dire ce qu'elle dit.
+            if (_histories?.DetailContext is UncommittedDetail shown)
+                shown.Reload();
+
             var wanted = ShowUncommittedInGraph && count > 0;
             if (wanted == _hadUncommittedRow)
                 return;
