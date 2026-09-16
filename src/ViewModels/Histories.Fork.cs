@@ -79,7 +79,7 @@ namespace SourceGit.ViewModels
                 return false;
 
             SearchCommitContext.Selected = null;
-            DetailContext = new Models.Null();
+            DetailContext = _detailContext is UncommittedDetail kept ? kept : new UncommittedDetail(_repo);
 
             if (_repo.UIStates.GraphHighlighting >= Models.CommitGraphHighlighting.SelectedCommitsOnly)
                 GenerateGraph(_commits);
