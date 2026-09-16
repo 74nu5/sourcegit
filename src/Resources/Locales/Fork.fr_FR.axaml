@@ -106,4 +106,19 @@
   <x:String x:Key="Text.MergeConflictEditor.EditResult" xml:space="preserve">ÉDITER LE RÉSULTAT</x:String>
   <x:String x:Key="Text.MergeConflictEditor.BackToBlocks" xml:space="preserve">REVENIR AUX BLOCS</x:String>
   <x:String x:Key="Text.MergeConflictEditor.DiscardEdits" xml:space="preserve">Revenir aux blocs abandonnera ce que vous avez tapé. Continuer ?</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Start" xml:space="preserve">Mettre à jour</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Preparing" xml:space="preserve">Préparation…</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Downloading" xml:space="preserve">Téléchargement du paquet…</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Verifying" xml:space="preserve">Vérification du paquet avec l'empreinte publiée…</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Extracting" xml:space="preserve">Décompression…</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Installing" xml:space="preserve">Remplacement des fichiers installés…</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Done" xml:space="preserve">Mise à jour installée</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.RestartHint" xml:space="preserve">La nouvelle version démarrera au prochain lancement de SourceGit.</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.RestartNow" xml:space="preserve">Redémarrer maintenant</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.RestartLater" xml:space="preserve">Plus tard</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.DownloadedOnly" xml:space="preserve">Paquet téléchargé et vérifié</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Failed" xml:space="preserve">Rien n'a été installé</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.RevealPackage" xml:space="preserve">Afficher le fichier</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.OpenReleasePage" xml:space="preserve">Ouvrir la page de la version</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.ManagedExternally" xml:space="preserve">Mise à jour par votre gestionnaire de paquets</x:String>
 </ResourceDictionary>
