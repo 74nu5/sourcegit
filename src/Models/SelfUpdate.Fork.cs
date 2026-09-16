@@ -1,4 +1,7 @@
-﻿namespace SourceGit.Models
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
+
+namespace SourceGit.Models
 {
     /// <summary>
     ///     How this fork decides that a release is worth telling the user about.
@@ -10,6 +13,12 @@
     /// </summary>
     public partial class Version
     {
+        /// <summary>
+        ///     The packages published with this release, SHA256SUMS among them.
+        /// </summary>
+        [JsonPropertyName("assets")]
+        public List<ReleaseAsset> Assets { get; set; } = [];
+
         /// <summary>
         ///     True when the release this describes comes after the build asking.
         ///
@@ -43,5 +52,24 @@
         {
             return ForkVersion.Current?.Tag ?? $"v{CurrentVersion.Major}.{CurrentVersion.Minor:D2}";
         }
+    }
+
+    /// <summary>
+    ///     One file attached to a release.
+    ///
+    ///     The releases API already carries these; upstream simply never had a use for them,
+    ///     because its download button only ever opened a page. Reading them is what lets the
+    ///     right package be picked without guessing its name from the tag.
+    /// </summary>
+    public sealed class ReleaseAsset
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("browser_download_url")]
+        public string DownloadUrl { get; set; } = string.Empty;
+
+        [JsonPropertyName("size")]
+        public long Size { get; set; } = 0;
     }
 }
