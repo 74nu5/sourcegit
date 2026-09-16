@@ -1,0 +1,129 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SourceGit.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="200"
+             x:Class="SourceGit.Views.SelfUpdateInstall"
+             x:DataType="vm:SelfUpdateInstall">
+  <StackPanel Orientation="Vertical" Width="500" Margin="16,8">
+
+    <!-- Downloading, verifying, unpacking, swapping -->
+    <StackPanel Orientation="Vertical" IsVisible="{Binding IsWorking}" Margin="0,16">
+      <TextBlock Text="{Binding StatusText}" HorizontalAlignment="Center"/>
+      <ProgressBar Margin="0,12,0,0"
+                   Height="6"
+                   Minimum="0" Maximum="100"
+                   Value="{Binding Progress}"
+                   IsIndeterminate="{Binding IsIndeterminate}"/>
+    </StackPanel>
+
+    <!-- The files have been replaced -->
+    <StackPanel Orientation="Vertical" IsVisible="{Binding IsInstalled}" Margin="0,8">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8">
+        <Path Width="14" Height="14" Data="{StaticResource Icons.CheckCircled}" Fill="Green"/>
+        <TextBlock Margin="8,0,0,0" FontWeight="Bold" FontSize="14" Text="{Binding StatusText}"/>
+      </StackPanel>
+
+      <TextBlock Margin="0,4,0,0"
+                 Text="{DynamicResource Text.SelfUpdate.Install.RestartHint}"
+                 Foreground="{DynamicResource Brush.FG2}"
+                 TextWrapping="Wrap"
+                 HorizontalAlignment="Center" TextAlignment="Center"/>
+
+      <StackPanel Margin="0,16,0,0" Orientation="Horizontal" HorizontalAlignment="Center">
+        <Button Classes="flat primary"
+                Height="30"
+                Click="RestartNow"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
+          <StackPanel Orientation="Horizontal">
+            <Path Width="12" Height="12" Data="{StaticResource Icons.SoftwareUpdate}" Fill="{DynamicResource AccentButtonForeground}"/>
+            <TextBlock Text="{DynamicResource Text.SelfUpdate.Install.RestartNow}" Margin="8,0,0,0" Foreground="{DynamicResource AccentButtonForeground}"/>
+          </StackPanel>
+        </Button>
+
+        <Button Classes="flat"
+                Height="30"
+                Margin="8,0,0,0"
+                Click="CloseWindow"
+                Content="{DynamicResource Text.SelfUpdate.Install.RestartLater}"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"/>
+      </StackPanel>
+    </StackPanel>
+
+    <!-- Verified, but these files are not ours to replace -->
+    <StackPanel Orientation="Vertical" IsVisible="{Binding IsDownloadedOnly}" Margin="0,8">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8">
+        <Path Width="14" Height="14" Data="{StaticResource Icons.Info}" Fill="Green"/>
+        <TextBlock Margin="8,0,0,0" FontWeight="Bold" FontSize="14" Text="{Binding StatusText}"/>
+      </StackPanel>
+
+      <TextBlock Text="{Binding Details}"
+                 Foreground="{DynamicResource Brush.FG2}"
+                 TextWrapping="Wrap"
+                 HorizontalAlignment="Center" TextAlignment="Center"/>
+    </StackPanel>
+
+    <!-- These files belong to a package manager -->
+    <StackPanel Orientation="Vertical" IsVisible="{Binding IsManagedExternally}" Margin="0,8">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8">
+        <Path Width="14" Height="14" Data="{StaticResource Icons.Info}" Fill="{DynamicResource Brush.FG2}"/>
+        <TextBlock Margin="8,0,0,0" FontWeight="Bold" FontSize="14" Text="{Binding StatusText}"/>
+      </StackPanel>
+
+      <TextBlock Text="{Binding Details}"
+                 Foreground="{DynamicResource Brush.FG2}"
+                 TextWrapping="Wrap"
+                 HorizontalAlignment="Center" TextAlignment="Center"/>
+    </StackPanel>
+
+    <!-- Nothing was installed -->
+    <StackPanel Orientation="Vertical" IsVisible="{Binding HasFailed}" Margin="0,8">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8">
+        <Path Width="14" Height="14" Data="{StaticResource Icons.Error}" Fill="Red"/>
+        <TextBlock Margin="8,0,0,0" FontWeight="Bold" FontSize="14" Text="{Binding StatusText}"/>
+      </StackPanel>
+
+      <TextBlock Text="{Binding Details}"
+                 Foreground="{DynamicResource Brush.FG2}"
+                 TextWrapping="Wrap"
+                 HorizontalAlignment="Center" TextAlignment="Center"/>
+    </StackPanel>
+
+    <!-- Shared by the three outcomes that leave the user something to do by hand -->
+    <StackPanel Margin="0,16,0,0"
+                Orientation="Horizontal"
+                HorizontalAlignment="Center"
+                IsVisible="{Binding ShowManualActions}">
+      <Button Classes="flat primary"
+              Height="30"
+              Click="RevealPackage"
+              IsVisible="{Binding CanRevealPackage}"
+              HorizontalContentAlignment="Center"
+              VerticalContentAlignment="Center">
+        <StackPanel Orientation="Horizontal">
+          <Path Width="12" Height="12" Data="{StaticResource Icons.Folder.Open}" Fill="{DynamicResource AccentButtonForeground}"/>
+          <TextBlock Text="{DynamicResource Text.SelfUpdate.Install.RevealPackage}" Margin="8,0,0,0" Foreground="{DynamicResource AccentButtonForeground}"/>
+        </StackPanel>
+      </Button>
+
+      <Button Classes="flat"
+              Height="30"
+              Margin="8,0,0,0"
+              Click="OpenReleasePage"
+              Content="{DynamicResource Text.SelfUpdate.Install.OpenReleasePage}"
+              HorizontalContentAlignment="Center"
+              VerticalContentAlignment="Center"/>
+
+      <Button Classes="flat"
+              Height="30"
+              Margin="8,0,0,0"
+              Click="CloseWindow"
+              Content="{DynamicResource Text.Close}"
+              HorizontalContentAlignment="Center"
+              VerticalContentAlignment="Center"/>
+    </StackPanel>
+  </StackPanel>
+</UserControl>
