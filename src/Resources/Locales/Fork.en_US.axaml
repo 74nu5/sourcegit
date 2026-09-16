@@ -106,4 +106,19 @@
   <x:String x:Key="Text.MergeConflictEditor.EditResult" xml:space="preserve">EDIT RESULT</x:String>
   <x:String x:Key="Text.MergeConflictEditor.BackToBlocks" xml:space="preserve">BACK TO BLOCKS</x:String>
   <x:String x:Key="Text.MergeConflictEditor.DiscardEdits" xml:space="preserve">Going back to blocks discards what you typed. Continue?</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Start" xml:space="preserve">Update now</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Preparing" xml:space="preserve">Preparing…</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Downloading" xml:space="preserve">Downloading the package…</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Verifying" xml:space="preserve">Checking the package against its published checksum…</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Extracting" xml:space="preserve">Unpacking…</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Installing" xml:space="preserve">Replacing the installed files…</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Done" xml:space="preserve">Update installed</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.RestartHint" xml:space="preserve">The new version starts the next time SourceGit runs.</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.RestartNow" xml:space="preserve">Restart now</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.RestartLater" xml:space="preserve">Later</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.DownloadedOnly" xml:space="preserve">Package downloaded and verified</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.Failed" xml:space="preserve">Nothing was installed</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.RevealPackage" xml:space="preserve">Show the file</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.OpenReleasePage" xml:space="preserve">Open the release page</x:String>
+  <x:String x:Key="Text.SelfUpdate.Install.ManagedExternally" xml:space="preserve">Update through your package manager</x:String>
 </ResourceDictionary>
