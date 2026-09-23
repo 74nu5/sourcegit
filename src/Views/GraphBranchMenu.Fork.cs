@@ -46,15 +46,14 @@ namespace SourceGit.Views
         /// <summary>
         ///     Hold the leftmost lane for this branch, whatever is checked out.
         ///
-        ///     Offered only where lanes are handed out at all: the compact placement puts a
-        ///     path at whatever rank it happens to hold among the live ones, so there is no
-        ///     column there to pin anything to.
+        ///     Offered in both layouts. It was once offered only in the stable one, on the
+        ///     grounds that the compact placement gives a path no lane to be pinned to -- it
+        ///     sits at whatever rank it holds among the live paths. True, and beside the
+        ///     point: leftmost is a rank like any other, and drifting out of it is exactly
+        ///     what the compact placement does, so that is where the pin is worth the most.
         /// </summary>
         private static void AppendPin(ContextMenu menu, Control owner, ViewModels.Repository repo, Models.Branch branch)
         {
-            if (ViewModels.Preferences.Instance.GraphLaneMode != Models.GraphLaneMode.Stable)
-                return;
-
             var pinned = repo.IsLanePinnedTo(branch);
 
             var pin = new MenuItem();

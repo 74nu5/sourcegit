@@ -35,6 +35,53 @@ namespace SourceGit.Models
         }
 
         /// <summary>
+        ///     Which commit the leftmost column is held for in the compact layout, or null
+        ///     when nobody claims it.
+        ///
+        ///     Deliberately not <see cref="ResolveLaneAnchor"/>. That one falls back to the
+        ///     checked-out branch, which is right for the stable layout -- it reserves a lane
+        ///     either way -- and wrong here: the compact placement with nothing pinned has to
+        ///     stay byte for byte what upstream produces, and a fallback would move it for
+        ///     every repository at once.
+        ///
+        ///     A pin pointing outside the loaded window claims nothing, or the leftmost
+        ///     column would be held empty for a branch that is not on screen.
+        /// </summary>
+        private static string ResolveCompactPin(List<Commit> commits, string pinnedHead)
+        {
+            if (string.IsNullOrEmpty(pinnedHead))
+                return null;
+
+            foreach (var c in commits)
+            {
+                if (c.SHA.Equals(pinnedHead, StringComparison.Ordinal))
+                    return c.SHA;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     The rightmost column a live path currently occupies.
+        ///
+        ///     Compact hands out columns in list order, so the widest is normally just the
+        ///     last one -- which is what Generate reads when nothing is held. Holding a
+        ///     column breaks that order, and then the answer has to be looked for.
+        /// </summary>
+        private static double WidestLastX(List<PathHelper> unsolved)
+        {
+            var widest = 0.0;
+
+            foreach (var path in unsolved)
+            {
+                if (path.LastX > widest)
+                    widest = path.LastX;
+            }
+
+            return widest;
+        }
+
+        /// <summary>
         ///     Hands out lanes that a path keeps for its whole life. A released lane is only
         ///     handed out again after a quarantine, so two unrelated branches never appear
         ///     back to back in the same column.

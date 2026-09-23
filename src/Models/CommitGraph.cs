@@ -123,6 +123,13 @@ namespace SourceGit.Models
                 laneAllocator = new LaneAllocator(laneAnchor != null);
             }
 
+            // Compact holds no lane identity, so a pin here can mean one thing only: the
+            // leftmost column. It is resolved from the pin alone and never from what is
+            // checked out -- the fallback that serves Stable would move the default layout,
+            // which has to stay exactly what it was.
+            var compactPin = laneMode == GraphLaneMode.Compact ? ResolveCompactPin(commits, pinnedHead) : null;
+            PathHelper leftmostHolder = null;
+
             var rowIndex = -1;
 
             // Horizontal position of a lane, matching the compact layout for the same rank.
@@ -136,12 +143,64 @@ namespace SourceGit.Models
                 // Update current y offset
                 offsetY += unitHeight;
 
+                // Which path holds the leftmost column on this row, settled before the walk
+                // rather than after it: the row where a pin first applies is then laid out in
+                // one pass, instead of starting on the right and swinging left on the next.
+                var holder = leftmostHolder;
+                var holds = holder != null;
+                if (compactPin != null && holder == null && commit.SHA.Equals(compactPin, StringComparison.Ordinal))
+                {
+                    // Find returns the same path the walk below will pick as major, so a
+                    // commit several paths converge on cannot pin one and continue another.
+                    holder = unsolved.Find(x => x.Next.Equals(commit.SHA, StringComparison.Ordinal));
+                    holds = true;
+                }
+
+                leftmostHolder = holder;
+
                 // Find first curves that links to this commit and marks others that links to this commit ended.
-                var offsetX = 4 - halfWidth;
-                var maxOffsetOld = unsolved.Count > 0 ? unsolved[^1].LastX : offsetX + unitWidth;
+                var offsetX = 4 - halfWidth + (holds ? unitWidth : 0);
+
+                // Slots stop being handed out in list order once one is held, so the widest
+                // is no longer simply the last.
+                var maxOffsetOld = unsolved.Count > 0
+                    ? (holds ? WidestLastX(unsolved) : unsolved[^1].LastX)
+                    : offsetX + unitWidth;
                 var isHighlighted = defHighlighting;
+
+                // The held path takes the commit it reaches, whatever its rank in the list.
+                // Left to the walk below, a branch merging in could be found first, become
+                // the row's major, and the held path would end into it -- handing the
+                // leftmost column away in the middle of the very trunk it was pinned to.
+                if (holder != null && holder.Next.Equals(commit.SHA, StringComparison.Ordinal))
+                {
+                    major = holder;
+                    isHighlighted = major.IsHighlighted;
+
+                    if (commit.Parents.Count > 0)
+                    {
+                        major.Next = commit.Parents[0];
+                        major.Goto(LaneX(0), offsetY, halfHeight);
+                    }
+                    else
+                    {
+                        major.End(LaneX(0), offsetY, halfHeight);
+                        ended.Add(major);
+                    }
+                }
+
                 foreach (var l in unsolved)
                 {
+                    if (ReferenceEquals(l, holder))
+                    {
+                        // Placed just above when it reaches this commit; otherwise it simply
+                        // keeps its column. Either way it takes no slot from the walk.
+                        if (!ReferenceEquals(major, holder))
+                            l.Pass(LaneX(0), offsetY, halfHeight);
+
+                        continue;
+                    }
+
                     if (l.Next.Equals(commit.SHA, StringComparison.Ordinal))
                     {
                         if (major == null)
@@ -183,6 +242,10 @@ namespace SourceGit.Models
                 {
                     colorPicker.Recycle(l.Path.Color);
                     laneAllocator?.Release(l.Lane, rowIndex);
+
+                    if (ReferenceEquals(l, leftmostHolder))
+                        leftmostHolder = null;
+
                     unsolved.Remove(l);
                 }
                 ended.Clear();
@@ -226,15 +289,22 @@ namespace SourceGit.Models
                 // Otherwise, create new curve for new merged commit
                 if (major == null)
                 {
-                    offsetX += unitWidth;
+                    // holds without a holder means the pin lands on a commit no live path
+                    // reaches: the path is born here, and it is born in the held column.
+                    var isHolder = holds && holder == null;
+                    if (!isHolder)
+                        offsetX += unitWidth;
 
                     if (commit.Parents.Count > 0)
                     {
                         var lane = laneAllocator?.Acquire(rowIndex, commit.SHA.Equals(laneAnchor, StringComparison.Ordinal)) ?? 0;
-                        var startX = laneAllocator != null ? LaneX(lane) : offsetX;
+                        var startX = laneAllocator != null ? LaneX(lane) : (isHolder ? LaneX(0) : offsetX);
                         major = new PathHelper(commit.Parents[0], isHighlighted, colorPicker.Next(), new Point(startX, offsetY)) { Lane = lane };
                         unsolved.Add(major);
                         temp.Paths.Add(major.Path);
+
+                        if (isHolder)
+                            leftmostHolder = major;
                     }
                 }
                 else if (isHighlighted && !major.IsHighlighted && commit.Parents.Count > 0)
