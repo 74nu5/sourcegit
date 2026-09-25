@@ -121,4 +121,9 @@
   <x:String x:Key="Text.SelfUpdate.Install.RevealPackage" xml:space="preserve">Afficher le fichier</x:String>
   <x:String x:Key="Text.SelfUpdate.Install.OpenReleasePage" xml:space="preserve">Ouvrir la page de la version</x:String>
   <x:String x:Key="Text.SelfUpdate.Install.ManagedExternally" xml:space="preserve">Mise à jour par votre gestionnaire de paquets</x:String>
+  <x:String x:Key="Text.StashCM.GotoOrigin" xml:space="preserve">Aller à l'endroit où elle a été prise</x:String>
+  <x:String x:Key="Text.StashCM.GotoOrigin.Missing" xml:space="preserve">Le commit d'où cette remise a été prise n'est pas dans l'historique chargé.</x:String>
+  <x:String x:Key="Text.StashCM.GotoRow" xml:space="preserve">Sélectionner dans le graphe</x:String>
+  <x:String x:Key="Text.StashCM.GotoRow.Disabled" xml:space="preserve">Activez d'abord « Afficher les remises dans le graphe », dans les options de l'historique.</x:String>
+  <x:String x:Key="Text.StashCM.RevealInPage" xml:space="preserve">Afficher dans les remises</x:String>
 </ResourceDictionary>

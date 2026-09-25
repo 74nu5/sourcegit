@@ -124,6 +124,7 @@ namespace SourceGit.Views
                 menu.Items.Add(patch);
                 menu.Items.Add(new MenuItem { Header = "-" });
                 menu.Items.Add(copy);
+                AppendForkStashOptions(menu, stash);
                 menu.Open(border);
             }
 
