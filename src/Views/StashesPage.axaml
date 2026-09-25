@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -99,7 +99,10 @@
                     ToolTip.Tip="{Binding Message}">
               <Grid RowDefinitions="Auto,*" >
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-                  <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="DarkOrange"/>
+                  <v:StashPrimaryLabel Grid.Column="0"
+                                       Stash="{Binding}"
+                                       UseMessage="{Binding Source={x:Static vm:Preferences.Instance}, Path=ShowStashMessageAsLabel, Mode=OneWay}"
+                                       MessageForeground="{DynamicResource Brush.FG1}"/>
                   <v:DateTimePresenter Grid.Column="1"
                                        Margin="8,0,0,0"
                                        Timestamp="{Binding Time}"
@@ -107,12 +110,13 @@
                                        FontFeatures="+tnum"/>
                 </Grid>
 
-                <v:StashSubjectPresenter Grid.Row="1"
-                                         Subject="{Binding Subject}"
-                                         Foreground="{DynamicResource Brush.FG1}"
-                                         FontSize="{Binding Source={x:Static vm:Preferences.Instance}, Path=DefaultFontSize}"
-                                         PrefixBackground="{DynamicResource Brush.InlineCode}"
-                                         VerticalAlignment="Bottom"/>
+                <v:StashSecondaryPresenter Grid.Row="1"
+                                           Stash="{Binding}"
+                                           UseMessage="{Binding Source={x:Static vm:Preferences.Instance}, Path=ShowStashMessageAsLabel, Mode=OneWay}"
+                                           Foreground="{DynamicResource Brush.FG1}"
+                                           FontSize="{Binding Source={x:Static vm:Preferences.Instance}, Path=DefaultFontSize}"
+                                           PrefixBackground="{DynamicResource Brush.InlineCode}"
+                                           VerticalAlignment="Bottom"/>
               </Grid>
             </Border>
           </DataTemplate>

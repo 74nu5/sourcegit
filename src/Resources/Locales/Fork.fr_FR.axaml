@@ -126,4 +126,5 @@
   <x:String x:Key="Text.StashCM.GotoRow" xml:space="preserve">Sélectionner dans le graphe</x:String>
   <x:String x:Key="Text.StashCM.GotoRow.Disabled" xml:space="preserve">Activez d'abord « Afficher les remises dans le graphe », dans les options de l'historique.</x:String>
   <x:String x:Key="Text.StashCM.RevealInPage" xml:space="preserve">Afficher dans les remises</x:String>
+  <x:String x:Key="Text.StashCM.MessageAsLabel" xml:space="preserve">Afficher le message comme libellé</x:String>
 </ResourceDictionary>
