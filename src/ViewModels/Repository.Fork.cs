@@ -540,6 +540,87 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
+        ///     Whether the commit a stash was taken from can be reached in the graph.
+        ///
+        ///     Asked before offering the jump, because the honest answer is often no and the
+        ///     failure is silent otherwise: NavigateTo falls back to querying the single commit
+        ///     and opens the detail panel without scrolling anywhere, so the user clicks and
+        ///     nothing appears to happen. A parent can be missing for ordinary reasons -- the
+        ///     history window is capped, a branch filter is on, or the stash was taken on a
+        ///     branch that has since been deleted, leaving the parent referenced by nothing.
+        /// </summary>
+        public bool CanNavigateToStashOrigin(Models.Stash stash)
+        {
+            if (stash == null || stash.Parents.Count == 0)
+                return false;
+
+            var commits = _histories?.Commits;
+            if (commits == null)
+                return false;
+
+            foreach (var c in commits)
+            {
+                if (c.SHA.Equals(stash.Parents[0], StringComparison.Ordinal))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Goes to the commit the stash was taken from.
+        ///
+        ///     That commit, not the stash itself, is what answers "where on the branch was this
+        ///     made". It is also the only target that exists whatever the settings: a stash gets
+        ///     a row of its own only when ShowStashesInGraph is on, and flipping that option
+        ///     here would reshape the graph and force a full reload for the sake of one click.
+        ///     AttachGraphStashes keeps the first parent for exactly this reason.
+        /// </summary>
+        public void NavigateToStashOrigin(Models.Stash stash)
+        {
+            if (stash == null || stash.Parents.Count == 0)
+                return;
+
+            if (!CanNavigateToStashOrigin(stash))
+            {
+                SendNotification(App.Text("StashCM.GotoOrigin.Missing"), true);
+                return;
+            }
+
+            NavigateToCommit(stash.Parents[0]);
+        }
+
+        /// <summary>
+        ///     The stash has a row of its own only when it is drawn in the graph.
+        /// </summary>
+        public bool CanNavigateToStashRow(Models.Stash stash)
+        {
+            return stash != null && ShowStashesInGraph;
+        }
+
+        public void NavigateToStashRow(Models.Stash stash)
+        {
+            if (CanNavigateToStashRow(stash))
+                NavigateToCommit(stash.SHA);
+        }
+
+        /// <summary>
+        ///     Shows the stash on the page that owns it.
+        ///
+        ///     A search filter can hide the row it selects, and clearing somebody's filter to
+        ///     make room would be presumptuous; the selection is set either way, so the detail
+        ///     pane still fills.
+        /// </summary>
+        public void RevealStashInPage(Models.Stash stash)
+        {
+            if (stash == null || _stashesPage == null)
+                return;
+
+            SelectedViewIndex = 2;
+            _stashesPage.SelectedStash = stash;
+        }
+
+        /// <summary>
         ///     Whether the work in progress gets a row at the head of the graph.
         /// </summary>
         public bool ShowUncommittedInGraph

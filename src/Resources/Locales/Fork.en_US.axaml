@@ -121,4 +121,9 @@
   <x:String x:Key="Text.SelfUpdate.Install.RevealPackage" xml:space="preserve">Show the file</x:String>
   <x:String x:Key="Text.SelfUpdate.Install.OpenReleasePage" xml:space="preserve">Open the release page</x:String>
   <x:String x:Key="Text.SelfUpdate.Install.ManagedExternally" xml:space="preserve">Update through your package manager</x:String>
+  <x:String x:Key="Text.StashCM.GotoOrigin" xml:space="preserve">Go To Where It Was Taken</x:String>
+  <x:String x:Key="Text.StashCM.GotoOrigin.Missing" xml:space="preserve">The commit this stash was taken from is not in the loaded history.</x:String>
+  <x:String x:Key="Text.StashCM.GotoRow" xml:space="preserve">Select In Graph</x:String>
+  <x:String x:Key="Text.StashCM.GotoRow.Disabled" xml:space="preserve">Turn on 'Show stashes in the graph' first, from the history options.</x:String>
+  <x:String x:Key="Text.StashCM.RevealInPage" xml:space="preserve">Show In Stashes</x:String>
 </ResourceDictionary>

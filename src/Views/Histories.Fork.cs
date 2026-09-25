@@ -288,6 +288,81 @@ namespace SourceGit.Views
         }
 
         /// <summary>
+        ///     The rows this fork puts in the graph that are not commits, and the menus they
+        ///     get instead of the one upstream would build.
+        ///
+        ///     Returns true when it has dealt with the click, so the caller stops. Kept as one
+        ///     entry point rather than two so that the upstream file holds a single fork line.
+        /// </summary>
+        private bool TryOpenForkCommitMenu(ViewModels.Repository repo, List<Models.Commit> commits, ContextRequestedEventArgs e)
+        {
+            if (SuppressMenuForUncommitted(commits, e))
+                return true;
+
+            var stashed = false;
+            foreach (var c in commits)
+            {
+                if (c.IsStash)
+                {
+                    stashed = true;
+                    break;
+                }
+            }
+
+            if (!stashed)
+                return false;
+
+            // A selection mixing stashes with commits, or holding several stashes, has no
+            // sensible menu: upstream's would offer to cherry-pick and revert them, and the
+            // stash actions take one stash at a time. Nothing is the honest answer.
+            if (commits.Count > 1)
+            {
+                e.Handled = true;
+                return true;
+            }
+
+            // Resolved here, against the live list, rather than carried on the row. Stashes are
+            // addressed by position -- stash@{1} -- so dropping one renumbers the rest, and a
+            // row holding an object from before that would apply or drop the wrong one.
+            var stash = FindStash(repo.StashesPage?.Stashes, commits[0].SHA);
+            if (stash == null)
+            {
+                // The row outlived the stash it stood for. Better no menu than the commit menu
+                // of an object nothing references any more.
+                e.Handled = true;
+                return true;
+            }
+
+            StashContextMenu.BuildForGraph(this, repo, stash).Open(CommitListContainer);
+            e.Handled = true;
+            return true;
+        }
+
+        /// <summary>
+        ///     The stash a graph row stands for, or null when it no longer exists.
+        ///
+        ///     Takes the first match on purpose. Two stashes can share a hash -- same tree, same
+        ///     parent, same message, same second -- and the lowest index is the most recent,
+        ///     which is what somebody clicking the newest row means.
+        ///
+        ///     Public, and taking the list rather than reaching for it, so the choice it makes
+        ///     can be checked without a repository or a window.
+        /// </summary>
+        public static Models.Stash FindStash(List<Models.Stash> stashes, string sha)
+        {
+            if (stashes == null || string.IsNullOrEmpty(sha))
+                return null;
+
+            foreach (var stash in stashes)
+            {
+                if (stash.SHA.Equals(sha, StringComparison.Ordinal))
+                    return stash;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         ///     Double-clicking the work in progress opens it, rather than trying to check out
         ///     a branch at a revision that does not exist.
         /// </summary>
