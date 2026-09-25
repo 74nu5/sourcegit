@@ -35,6 +35,20 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
+        ///     Whether the stashes list leads with the message rather than with stash@{N}.
+        ///
+        ///     Off, so the page looks exactly as upstream draws it until somebody asks. The
+        ///     index does not disappear when this is on -- it moves to the second line, because
+        ///     it is what the confirmation dialogs name and what `git stash list` prints, so a
+        ///     list that dropped it could not be matched against either.
+        /// </summary>
+        public bool ShowStashMessageAsLabel
+        {
+            get => _showStashMessageAsLabel;
+            set => SetProperty(ref _showStashMessageAsLabel, value);
+        }
+
+        /// <summary>
         ///     Credentials for the forges this fork talks to. Empty by default, and while it
         ///     is empty nothing here ever reaches the network.
         /// </summary>
@@ -124,6 +138,7 @@ namespace SourceGit.ViewModels
         private bool _showBranchColumnInHistories = false;
         private Models.GraphLaneMode _graphLaneMode = Models.GraphLaneMode.Compact;
         private bool _colorizeRowsByBranch = false;
+        private bool _showStashMessageAsLabel = false;
         private bool _showPullRequestIndicator = false;
         private bool _showRemoteIconInsteadOfName = false;
         private Models.BranchColumnMode _branchColumnMode = Models.BranchColumnMode.RefsOnly;
