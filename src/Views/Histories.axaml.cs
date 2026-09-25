@@ -750,7 +750,7 @@ namespace SourceGit.Views
                     commits.Add(c);
             }
 
-            if (SuppressMenuForUncommitted(commits, e))
+            if (TryOpenForkCommitMenu(repo, commits, e))
                 return;
 
             if (selected.Count > 1)
