@@ -126,4 +126,5 @@
   <x:String x:Key="Text.StashCM.GotoRow" xml:space="preserve">Select In Graph</x:String>
   <x:String x:Key="Text.StashCM.GotoRow.Disabled" xml:space="preserve">Turn on 'Show stashes in the graph' first, from the history options.</x:String>
   <x:String x:Key="Text.StashCM.RevealInPage" xml:space="preserve">Show In Stashes</x:String>
+  <x:String x:Key="Text.StashCM.MessageAsLabel" xml:space="preserve">Show The Message As The Label</x:String>
 </ResourceDictionary>
