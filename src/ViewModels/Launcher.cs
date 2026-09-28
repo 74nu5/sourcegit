@@ -8,7 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SourceGit.ViewModels
 {
-    public class Launcher : ObservableObject
+    public partial class Launcher : ObservableObject
     {
         public AvaloniaList<LauncherPage> Pages
         {
@@ -62,8 +62,9 @@ namespace SourceGit.ViewModels
             if (!TryOpenRepositoryFromPath(startupRepo))
             {
                 var activeIdx = ActiveWorkspace.ActiveIdx;
-                if (activeIdx > 0 && activeIdx < Pages.Count)
-                    ActivePage = Pages[activeIdx];
+                var restored = FindRestoredPage(Pages, repos, activeIdx);
+                if (restored != null)
+                    ActivePage = restored;
                 else
                     ActivePage = Pages[0];
             }
@@ -145,8 +146,9 @@ namespace SourceGit.ViewModels
                 OpenRepositoryInTab(repo, null);
 
             var activeIdx = to.ActiveIdx;
-            if (activeIdx >= 0 && activeIdx < Pages.Count)
-                ActivePage = Pages[activeIdx];
+            var restored = FindRestoredPage(Pages, repos, activeIdx);
+            if (restored != null)
+                ActivePage = restored;
             else
                 ActivePage = Pages[0];
 
