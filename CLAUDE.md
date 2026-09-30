@@ -80,8 +80,11 @@ Pull requests to upstream target `develop`, never `master`.
 ## Upstream relations
 
 Issue [#2649](https://github.com/sourcegit-scm/sourcegit/issues/2649) proposes the lane
-drift fix upstream. The maintainer's only reply so far rejected the comparison
-screenshot rather than the substance. Assume this fork stays a fork; treat upstream
-adoption as a bonus, not a design goal.
+drift fix upstream. The maintainer first rejected the comparison screenshot, then on
+4 September 2026 answered the substance: a separate column for references is "a waste
+of space in most cases", and the existing highlighting modes already let a branch be
+followed. The lane drift itself got no technical answer, and the thread has been quiet
+since. Assume this fork stays a fork; treat upstream adoption as a bonus, not a design
+goal.
 
 Do not push, tag, comment on an issue or open a pull request without being asked.
