@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json.Serialization;
 
 using Avalonia.Collections;
 
@@ -10,24 +13,28 @@ namespace SourceGit.ViewModels
     /// </summary>
     public partial class Preferences
     {
+        [JsonIgnore]
         public bool SplitGraphColumnInHistories
         {
             get => _splitGraphColumnInHistories;
             set => SetProperty(ref _splitGraphColumnInHistories, value);
         }
 
+        [JsonIgnore]
         public bool ShowBranchColumnInHistories
         {
             get => _showBranchColumnInHistories;
             set => SetProperty(ref _showBranchColumnInHistories, value);
         }
 
+        [JsonIgnore]
         public Models.GraphLaneMode GraphLaneMode
         {
             get => _graphLaneMode;
             set => SetProperty(ref _graphLaneMode, value);
         }
 
+        [JsonIgnore]
         public bool ColorizeRowsByBranch
         {
             get => _colorizeRowsByBranch;
@@ -42,6 +49,7 @@ namespace SourceGit.ViewModels
         ///     it is what the confirmation dialogs name and what `git stash list` prints, so a
         ///     list that dropped it could not be matched against either.
         /// </summary>
+        [JsonIgnore]
         public bool ShowStashMessageAsLabel
         {
             get => _showStashMessageAsLabel;
@@ -52,6 +60,7 @@ namespace SourceGit.ViewModels
         ///     Whether a repository's worktrees live as a row under its tab rather than as tabs
         ///     of their own. Off, so the tab bar is exactly upstream's until somebody asks.
         /// </summary>
+        [JsonIgnore]
         public bool GroupWorktreesInTabs
         {
             get => _groupWorktreesInTabs;
@@ -62,6 +71,7 @@ namespace SourceGit.ViewModels
         ///     Credentials for the forges this fork talks to. Empty by default, and while it
         ///     is empty nothing here ever reaches the network.
         /// </summary>
+        [JsonIgnore]
         public AvaloniaList<Models.ForgeAccount> ForgeAccounts
         {
             get;
@@ -97,6 +107,7 @@ namespace SourceGit.ViewModels
         ///     everything else this fork adds — and while it is off, nothing here ever
         ///     reaches the network.
         /// </summary>
+        [JsonIgnore]
         public bool ShowPullRequestIndicator
         {
             get => _showPullRequestIndicator;
@@ -108,12 +119,14 @@ namespace SourceGit.ViewModels
         ///     the colours of the forge it lives on. Off by default, like everything else
         ///     this fork adds.
         /// </summary>
+        [JsonIgnore]
         public bool ShowRemoteIconInsteadOfName
         {
             get => _showRemoteIconInsteadOfName;
             set => SetProperty(ref _showRemoteIconInsteadOfName, value);
         }
 
+        [JsonIgnore]
         public Models.BranchColumnMode BranchColumnMode
         {
             get => _branchColumnMode;
@@ -142,6 +155,71 @@ namespace SourceGit.ViewModels
 
             LastCheckUpdateTime = DateTime.Now.Subtract(DateTime.UnixEpoch.ToLocalTime()).TotalSeconds;
             return true;
+        }
+
+        /// <summary>
+        ///     Loads this fork's settings from preference.fork.json. Called right after
+        ///     upstream's own load, before anything reads them.
+        ///
+        ///     Every one of them is marked [JsonIgnore], so upstream's file neither provides nor
+        ///     receives them any more. When the side file does not exist yet, they are read from
+        ///     preference.json, where earlier versions of this fork kept them -- and that has to
+        ///     happen before the first save, which would otherwise write preference.json without
+        ///     them and lose them for good.
+        ///
+        ///     Fields are assigned directly: nothing is bound yet, and raising changes here would
+        ///     only wake handlers that expect a running application.
+        /// </summary>
+        public void LoadForkSettings(string configDir)
+        {
+            var settings = Models.ForkSettingsFile.Read(
+                Path.Combine(configDir ?? string.Empty, Models.ForkSettingsFile.PREFERENCES),
+                Path.Combine(configDir ?? string.Empty, "preference.json"),
+                ForkJsonCodeGen.Default.ForkPreferences);
+
+            _splitGraphColumnInHistories = settings.SplitGraphColumnInHistories;
+            _showBranchColumnInHistories = settings.ShowBranchColumnInHistories;
+            _graphLaneMode = settings.GraphLaneMode;
+            _colorizeRowsByBranch = settings.ColorizeRowsByBranch;
+            _showStashMessageAsLabel = settings.ShowStashMessageAsLabel;
+            _groupWorktreesInTabs = settings.GroupWorktreesInTabs;
+            _showPullRequestIndicator = settings.ShowPullRequestIndicator;
+            _showRemoteIconInsteadOfName = settings.ShowRemoteIconInsteadOfName;
+            _branchColumnMode = settings.BranchColumnMode;
+
+            ForgeAccounts.Clear();
+            ForgeAccounts.AddRange(settings.ForgeAccounts ?? []);
+        }
+
+        /// <summary>
+        ///     Writes this fork's settings to preference.fork.json. Called from upstream's
+        ///     Save, before it writes preference.json, so a save that gets no further than the
+        ///     side file has still kept everything.
+        ///
+        ///     A setting added to this fork later has to be added here and to ForkPreferences
+        ///     as well as marked [JsonIgnore]. Left out, it would still be kept -- in
+        ///     preference.json, where upstream can erase it again.
+        /// </summary>
+        public void SaveForkSettings(string configDir)
+        {
+            var settings = new Models.ForkPreferences
+            {
+                SplitGraphColumnInHistories = _splitGraphColumnInHistories,
+                ShowBranchColumnInHistories = _showBranchColumnInHistories,
+                GraphLaneMode = _graphLaneMode,
+                ColorizeRowsByBranch = _colorizeRowsByBranch,
+                ShowStashMessageAsLabel = _showStashMessageAsLabel,
+                GroupWorktreesInTabs = _groupWorktreesInTabs,
+                ForgeAccounts = new List<Models.ForgeAccount>(ForgeAccounts),
+                ShowPullRequestIndicator = _showPullRequestIndicator,
+                ShowRemoteIconInsteadOfName = _showRemoteIconInsteadOfName,
+                BranchColumnMode = _branchColumnMode,
+            };
+
+            Models.ForkSettingsFile.Write(
+                Path.Combine(configDir ?? string.Empty, Models.ForkSettingsFile.PREFERENCES),
+                settings,
+                ForkJsonCodeGen.Default.ForkPreferences);
         }
 
         private bool _splitGraphColumnInHistories = false;

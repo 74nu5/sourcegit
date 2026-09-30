@@ -20,6 +20,7 @@ namespace SourceGit.ViewModels
                     return _instance;
 
                 _instance = Load();
+                _instance.LoadForkSettings(Native.OS.BasicDirectories.ConfigDir);
                 _instance._isLoading = false;
 
                 _instance.PrepareGit();
@@ -634,6 +635,8 @@ namespace SourceGit.ViewModels
         {
             if (_isLoading || _isReadonly)
                 return;
+
+            SaveForkSettings(Native.OS.BasicDirectories.ConfigDir);
 
             var tmpfile = Path.Combine(Native.OS.BasicDirectories.ConfigDir, "preference_tmp.json");
             var content = JsonSerializer.Serialize(this, JsonCodeGen.Default.Preferences);
