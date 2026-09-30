@@ -45,24 +45,6 @@ namespace SourceGit.Models
             set;
         } = 120;
 
-        /// <summary>
-        ///     Manual width of the branch column, or 0 to size it to its contents.
-        /// </summary>
-        public double BranchColumnWidth
-        {
-            get;
-            set;
-        } = 0;
-
-        /// <summary>
-        ///     Manual width of the graph column, or 0 to size it to the graph.
-        /// </summary>
-        public double GraphColumnWidth
-        {
-            get;
-            set;
-        } = 0;
-
         public bool EnableTopoOrderInHistory
         {
             get;
@@ -285,11 +267,14 @@ namespace SourceGit.Models
             }
 
             states._file = fullpath;
+            states.LoadForkStates();
             return states;
         }
 
         public void Save()
         {
+            SaveForkStates();
+
             try
             {
                 var content = JsonSerializer.Serialize(this, JsonCodeGen.Default.RepositoryUIStates);
