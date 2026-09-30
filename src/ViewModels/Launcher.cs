@@ -308,6 +308,9 @@ namespace SourceGit.ViewModels
 
         public void OpenRepositoryInTab(RepositoryNode node, LauncherPage page)
         {
+            if (TryOpenInWorktreeGroup(node, page))
+                return;
+
             foreach (var one in Pages)
             {
                 if (one.Node.Id == node.Id)
@@ -463,7 +466,7 @@ namespace SourceGit.ViewModels
             foreach (var page in Pages)
             {
                 var id = page.Node.Id.Replace('\\', '/').TrimEnd('/');
-                if (id.Equals(notification.Group, StringComparison.OrdinalIgnoreCase))
+                if (id.Equals(notification.Group, StringComparison.OrdinalIgnoreCase) || page.ReceivesNotificationsFor(notification.Group))
                 {
                     page.Notifications.Add(notification);
                     return;
@@ -506,6 +509,8 @@ namespace SourceGit.ViewModels
 
         private void CloseRepositoryInTab(LauncherPage page, bool removeFromWorkspace = true)
         {
+            CloseWorktreeMembers(page);
+
             if (page.Data is Repository repo)
             {
                 if (removeFromWorkspace)

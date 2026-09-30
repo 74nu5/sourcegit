@@ -9,9 +9,12 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SourceGit.Views.LauncherPage"
              x:DataType="vm:LauncherPage">
-  <Grid RowDefinitions="36,*" Background="{DynamicResource Brush.ToolBar}">
+  <Grid RowDefinitions="Auto,36,*" Background="{DynamicResource Brush.ToolBar}">
+    <!-- Worktrees of this repository, added by this fork -->
+    <v:WorktreeTabStrip Grid.Row="0"/>
+
     <!-- ToolBar -->
-    <Border Grid.Row="0"
+    <Border Grid.Row="1"
             Background="Transparent"
             PointerPressed="OnToolBarPointerPressed">
       <ContentControl Content="{Binding Data}">
@@ -28,7 +31,7 @@
     </Border>
 
     <!-- Body -->
-    <Border Grid.Row="1">
+    <Border Grid.Row="2">
       <ContentControl Content="{Binding Data}">
         <ContentControl.DataTemplates>
           <DataTemplate DataType="vm:Welcome">
@@ -67,7 +70,7 @@
     </Border>
 
     <!-- Floating -->
-    <Grid Grid.Row="1" ClipToBounds="True">
+    <Grid Grid.Row="2" ClipToBounds="True">
       <Grid.IsVisible>
         <MultiBinding Converter="{x:Static BoolConverters.Or}">
           <Binding Path="Popup" Converter="{x:Static ObjectConverters.IsNotNull}"/>
