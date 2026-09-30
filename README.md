@@ -11,7 +11,7 @@
 >
 > * **Download it from [this fork's releases](https://github.com/74nu5/sourcegit/releases/latest).** The channels further down — scoop, Homebrew, the Linux repositories, AppImage Hub — install upstream SourceGit, without any of this.
 > * Once installed, it updates itself from this fork's releases.
-> * **Do not run it alongside upstream SourceGit.** Both keep their settings in the same `preference.json`, and upstream erases this fork's settings when it saves. See [FORK.md](FORK.md#settings-are-shared-with-upstream--and-upstream-erases-this-forks).
+> * It shares upstream's settings folder, but keeps its own settings in separate files that upstream never rewrites. See [FORK.md](FORK.md#settings-and-running-upstream-alongside).
 
 ## Screenshots
 
