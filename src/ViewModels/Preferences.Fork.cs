@@ -49,6 +49,16 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
+        ///     Whether a repository's worktrees live as a row under its tab rather than as tabs
+        ///     of their own. Off, so the tab bar is exactly upstream's until somebody asks.
+        /// </summary>
+        public bool GroupWorktreesInTabs
+        {
+            get => _groupWorktreesInTabs;
+            set => SetProperty(ref _groupWorktreesInTabs, value);
+        }
+
+        /// <summary>
         ///     Credentials for the forges this fork talks to. Empty by default, and while it
         ///     is empty nothing here ever reaches the network.
         /// </summary>
@@ -139,6 +149,7 @@ namespace SourceGit.ViewModels
         private Models.GraphLaneMode _graphLaneMode = Models.GraphLaneMode.Compact;
         private bool _colorizeRowsByBranch = false;
         private bool _showStashMessageAsLabel = false;
+        private bool _groupWorktreesInTabs = false;
         private bool _showPullRequestIndicator = false;
         private bool _showRemoteIconInsteadOfName = false;
         private Models.BranchColumnMode _branchColumnMode = Models.BranchColumnMode.RefsOnly;

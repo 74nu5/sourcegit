@@ -127,4 +127,6 @@
   <x:String x:Key="Text.StashCM.GotoRow.Disabled" xml:space="preserve">Turn on 'Show stashes in the graph' first, from the history options.</x:String>
   <x:String x:Key="Text.StashCM.RevealInPage" xml:space="preserve">Show In Stashes</x:String>
   <x:String x:Key="Text.StashCM.MessageAsLabel" xml:space="preserve">Show The Message As The Label</x:String>
+  <x:String x:Key="Text.PageTabBar.Tab.GroupWorktrees" xml:space="preserve">Group Worktrees Under Their Repository</x:String>
+  <x:String x:Key="Text.WorktreeTabs.Busy" xml:space="preserve">Finish or cancel the current operation before switching worktree.</x:String>
 </ResourceDictionary>
