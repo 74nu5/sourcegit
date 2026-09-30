@@ -130,21 +130,26 @@ are published next to the files they cover, and this fork signs nothing.
 
 ---
 
-## Settings are shared with upstream — and upstream erases this fork's
+## Settings, and running upstream alongside
 
-This fork keeps its settings in the **same folder as upstream SourceGit**
-(`%APPDATA%\SourceGit` on Windows, see the README for the others), in the same
-`preference.json`.
+This fork uses the **same settings folder as upstream SourceGit** (`%APPDATA%\SourceGit`
+on Windows, see the README for the others), so the settings you share — theme, fonts,
+workspaces, AI services — are the same in both.
 
-Upstream reads that file without complaint, but it does not know this fork's settings,
-and when it saves it rewrites the whole file with only its own. **Running upstream
-SourceGit once removes this fork's settings**: the graph options, the forge accounts and
-their tokens, and the rest. The same goes for what each repository remembers — the
-pinned branch, the hidden sidebar sections, the stashes shown in the graph — which both
-versions keep in `sourcegit.uistates` inside the repository's `.git` folder.
+What only this fork has lives in files of its own, next to upstream's:
+`preference.fork.json` for the application — the graph options, the forge accounts and
+their tokens — and `sourcegit.fork.uistates` in each repository's `.git` folder for what
+the repository remembers — the pinned branch, the hidden sidebar sections, the stashes
+shown in the graph, the column widths. Upstream never opens these files, so running it
+does not erase them. Earlier versions of this fork kept them in upstream's files, which
+upstream rewrote without them; they move across on their own the first time this version
+starts.
 
-Install one or the other, not both. If you must switch back and forth, back up
-`preference.json` first.
+A token typed rather than read from an environment variable is still stored in plain
+text, now in `preference.fork.json`.
+
+Going back to a version of this fork that predates these files loses this fork's settings
+in that version: it looks for them where they no longer are.
 
 ---
 
