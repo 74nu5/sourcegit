@@ -3,8 +3,15 @@
 [![stars](https://img.shields.io/github/stars/sourcegit-scm/sourcegit.svg)](https://github.com/sourcegit-scm/sourcegit/stargazers)
 [![forks](https://img.shields.io/github/forks/sourcegit-scm/sourcegit.svg)](https://github.com/sourcegit-scm/sourcegit/forks)
 [![license](https://img.shields.io/github/license/sourcegit-scm/sourcegit.svg)](LICENSE)
-[![latest](https://img.shields.io/github/v/release/sourcegit-scm/sourcegit.svg)](https://github.com/sourcegit-scm/sourcegit/releases/latest)
-[![downloads](https://img.shields.io/github/downloads/sourcegit-scm/sourcegit/total)](https://github.com/sourcegit-scm/sourcegit/releases)
+[![latest](https://img.shields.io/github/v/release/74nu5/sourcegit.svg)](https://github.com/74nu5/sourcegit/releases/latest)
+[![downloads](https://img.shields.io/github/downloads/74nu5/sourcegit/total)](https://github.com/74nu5/sourcegit/releases)
+
+> [!NOTE]
+> **This is a fork of [sourcegit-scm/sourcegit](https://github.com/sourcegit-scm/sourcegit)**, rebased onto every upstream release. It adds history-graph, sidebar, stash, worktree and update features, described in **[FORK.md](FORK.md)**. The ones that change what you see are off until you turn them on.
+>
+> * **Download it from [this fork's releases](https://github.com/74nu5/sourcegit/releases/latest).** The channels further down — scoop, Homebrew, the Linux repositories, AppImage Hub — install upstream SourceGit, without any of this.
+> * Once installed, it updates itself from this fork's releases.
+> * **Do not run it alongside upstream SourceGit.** Both keep their settings in the same `preference.json`, and upstream erases this fork's settings when it saves. See [FORK.md](FORK.md#settings-are-shared-with-upstream--and-upstream-erases-this-forks).
 
 ## Screenshots
 
