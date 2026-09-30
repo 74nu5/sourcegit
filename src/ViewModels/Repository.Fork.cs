@@ -540,6 +540,15 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
+        ///     The working copy of this repository's main worktree: its own path unless it is a
+        ///     linked worktree. What a worktree tab is grouped under.
+        ///
+        ///     Read off the git directory the way the constructor reads it, through the one
+        ///     helper both share; a repository that cannot be placed stands for itself.
+        /// </summary>
+        public string MainWorktreePath => Models.WorktreeLayout.MainPathOf(GitDir) ?? FullPath;
+
+        /// <summary>
         ///     Whether the commit a stash was taken from can be reached in the graph.
         ///
         ///     Asked before offering the jump, because the honest answer is often no and the

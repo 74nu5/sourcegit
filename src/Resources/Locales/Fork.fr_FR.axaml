@@ -127,4 +127,6 @@
   <x:String x:Key="Text.StashCM.GotoRow.Disabled" xml:space="preserve">Activez d'abord « Afficher les remises dans le graphe », dans les options de l'historique.</x:String>
   <x:String x:Key="Text.StashCM.RevealInPage" xml:space="preserve">Afficher dans les remises</x:String>
   <x:String x:Key="Text.StashCM.MessageAsLabel" xml:space="preserve">Afficher le message comme libellé</x:String>
+  <x:String x:Key="Text.PageTabBar.Tab.GroupWorktrees" xml:space="preserve">Regrouper les worktrees sous leur dépôt</x:String>
+  <x:String x:Key="Text.WorktreeTabs.Busy" xml:space="preserve">Terminez ou annulez l'opération en cours avant de changer de worktree.</x:String>
 </ResourceDictionary>

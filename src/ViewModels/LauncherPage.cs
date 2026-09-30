@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SourceGit.ViewModels
 {
-    public class LauncherPage : ObservableObject
+    public partial class LauncherPage : ObservableObject
     {
         public RepositoryNode Node
         {

@@ -409,6 +409,7 @@ namespace SourceGit.Views
                     ev.Handled = true;
                 };
                 menu.Items.Add(closeRight);
+                AppendForkTabOptions(menu, vm);
                 menu.Open(border);
             }
 
