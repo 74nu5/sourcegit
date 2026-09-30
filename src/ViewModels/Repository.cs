@@ -1668,7 +1668,7 @@ namespace SourceGit.ViewModels
 
             foreach (var page in launcher.Pages)
             {
-                if (page.Node.Id.Equals(FullPath))
+                if (page.IsOwnerOf(this))
                     return page;
             }
 

@@ -1,0 +1,81 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SourceGit.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="30"
+             x:Class="SourceGit.Views.WorktreeTabStrip"
+             x:DataType="vm:LauncherPage">
+  <UserControl.Styles>
+    <Style Selector="Border.worktree_tab">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border0}"/>
+    </Style>
+    <Style Selector="Border.worktree_tab:pointerover">
+      <Setter Property="Background" Value="{DynamicResource Brush.Border0}"/>
+    </Style>
+    <Style Selector="Border.worktree_tab.active">
+      <Setter Property="Background" Value="{DynamicResource Brush.Accent}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}"/>
+    </Style>
+    <Style Selector="Border.worktree_tab TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Brush.FG1}"/>
+    </Style>
+    <Style Selector="Border.worktree_tab.active TextBlock">
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Border.worktree_tab Path">
+      <Setter Property="Fill" Value="{DynamicResource Brush.FG2}"/>
+    </Style>
+    <Style Selector="Border.worktree_tab.active Path">
+      <Setter Property="Fill" Value="White"/>
+    </Style>
+  </UserControl.Styles>
+
+  <!-- The worktrees of the repository this tab holds, added by this fork. Collapses to
+       nothing when the option is off or the repository has no linked worktree. -->
+  <Grid ColumnDefinitions="Auto,*" Margin="8,5,8,1" IsVisible="{Binding ShowsWorktreeRow}">
+    <Path Grid.Column="0"
+          Width="12" Height="12"
+          Margin="4,0,8,0"
+          VerticalAlignment="Center"
+          Data="{StaticResource Icons.Worktrees}"
+          Fill="{DynamicResource Brush.FG2}"/>
+
+    <ScrollViewer Grid.Column="1"
+                  HorizontalScrollBarVisibility="Hidden"
+                  VerticalScrollBarVisibility="Disabled">
+      <ItemsControl ItemsSource="{Binding WorktreeGroup.Tabs}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="4"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:WorktreeTab">
+            <Border Classes="worktree_tab"
+                    Classes.active="{Binding IsActive}"
+                    Height="22"
+                    Padding="10,0"
+                    CornerRadius="11"
+                    BorderThickness="1"
+                    Cursor="Hand"
+                    ToolTip.Tip="{Binding Path}"
+                    PointerPressed="OnTabPressed">
+              <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <Path Width="10" Height="10"
+                      Data="{StaticResource Icons.Repositories}"
+                      IsVisible="{Binding IsMain}"/>
+                <Path Width="10" Height="10"
+                      Data="{StaticResource Icons.Worktree}"
+                      IsVisible="{Binding !IsMain}"/>
+                <TextBlock Text="{Binding Label}" VerticalAlignment="Center" FontSize="12"/>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </Grid>
+</UserControl>
