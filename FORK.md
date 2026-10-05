@@ -98,6 +98,16 @@ on both sides.
 
 ---
 
+## Local changes
+
+**Expand or collapse every folder at once.** *Right-click the unstaged or staged list →
+Expand All Folders / Collapse All Folders*, in tree mode. Collapsing includes the folders
+nested inside others, and they stay collapsed when the list refreshes — upstream forgot
+a collapsed folder as soon as its parent was collapsed too, and showed it expanded again
+after the next file saved.
+
+---
+
 ## Merge conflicts
 
 **Edit the result.** Once every block of a conflict is resolved, the *Result* panel

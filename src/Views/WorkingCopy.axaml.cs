@@ -45,9 +45,12 @@ namespace SourceGit.Views
             if (DataContext is ViewModels.WorkingCopy { Repository: { } repo, SelectedUnstaged: { Count: > 0 } selection } vm)
             {
                 var menu = CreateContextMenuForUnstagedChanges(repo, vm, selection);
+                UnstagedChangesView.AppendFolderOptions(menu);
                 menu?.Open(sender as Control);
                 e.Handled = true;
             }
+            else
+                UnstagedChangesView.OpenFolderMenu(sender, e);
         }
 
         private void OnStagedContextRequested(object sender, ContextRequestedEventArgs e)
@@ -55,9 +58,12 @@ namespace SourceGit.Views
             if (DataContext is ViewModels.WorkingCopy { Repository: { } repo, SelectedStaged: { Count: > 0 } selection } vm)
             {
                 var menu = CreateContextMenuForStagedChanges(repo, vm, selection);
+                StagedChangesView.AppendFolderOptions(menu);
                 menu?.Open(sender as Control);
                 e.Handled = true;
             }
+            else
+                StagedChangesView.OpenFolderMenu(sender, e);
         }
 
         private async void OnUnstagedChangeDoubleTapped(object _, RoutedEventArgs e)

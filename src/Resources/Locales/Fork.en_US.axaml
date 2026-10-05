@@ -129,4 +129,6 @@
   <x:String x:Key="Text.StashCM.MessageAsLabel" xml:space="preserve">Show The Message As The Label</x:String>
   <x:String x:Key="Text.PageTabBar.Tab.GroupWorktrees" xml:space="preserve">Group Worktrees Under Their Repository</x:String>
   <x:String x:Key="Text.WorktreeTabs.Busy" xml:space="preserve">Finish or cancel the current operation before switching worktree.</x:String>
+  <x:String x:Key="Text.ChangeTree.ExpandAll" xml:space="preserve">Expand All Folders</x:String>
+  <x:String x:Key="Text.ChangeTree.CollapseAll" xml:space="preserve">Collapse All Folders</x:String>
 </ResourceDictionary>
