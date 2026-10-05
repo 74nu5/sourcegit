@@ -384,6 +384,8 @@ namespace SourceGit.Views
                         if (row.IsFolder && !row.IsExpanded)
                             oldFolded.Add(row.FullPath);
                     }
+
+                    CollectFolded(oldTree.Tree, oldFolded);
                 }
 
                 var tree = new ViewModels.ChangeCollectionAsTree();
