@@ -99,8 +99,9 @@ git push origin v2026.18-3b.1
 ```
 
 The tag triggers `Release`, which builds and attaches ten packages: zips for Windows
-and macOS, AppImage, deb and rpm for Linux, each in x64 and arm64. No secrets, no
-signing. Twenty to forty minutes.
+and macOS, AppImage, deb and rpm for Linux, each in x64 and arm64. Beside them go
+`SHA256SUMS` and, since upstream 2026.22, one `.AppImage.zsync` per architecture, which
+AppImage updaters read. No secrets, no signing. Twenty to forty minutes.
 
 Version numbers keep upstream's `YYYY.MM` and add a suffix: `v2026.18-3b.1`. The
 `VERSION` file must stay purely numeric — it feeds `AssemblyVersion`, which rejects
