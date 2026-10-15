@@ -740,6 +740,68 @@ namespace SourceGit.ViewModels
             RefreshCommits();
         }
 
+        /// <summary>
+        ///     The git directory shared by every worktree of this clone -- the repository's own
+        ///     GitDir, except in a linked worktree, where GitDir is the worktree's private one.
+        /// </summary>
+        public string GitCommonDir => _gitCommonDir;
+
+        /// <summary>
+        ///     Hides a planned set of changes from the local changes, for this clone alone:
+        ///     patterns into info/exclude, the skip-worktree bit on tracked files.
+        ///
+        ///     The tracked part is refused in a sparse checkout. Git marks every file outside
+        ///     the sparse cone with that same bit, and a list of "files excluded by hand" would
+        ///     then be mixed with those -- clearing the wrong one would check out a file the
+        ///     sparse checkout was keeping away.
+        /// </summary>
+        public async Task ExcludeLocallyAsync(Models.LocalExcludePlan plan)
+        {
+            if (plan == null || plan.IsEmpty || plan.Refusal != null)
+                return;
+
+            using var lockWatcher = LockWatcher();
+            var log = CreateLog("Exclude Locally");
+
+            if (plan.SkipWorktree.Count > 0)
+            {
+                var sparse = await new Commands.Config(FullPath).GetAsync("core.sparseCheckout");
+                if ("true".Equals(sparse, StringComparison.OrdinalIgnoreCase))
+                {
+                    log.Complete();
+                    SendNotification(App.Text("LocalExclude.SparseCheckout"), true);
+                    return;
+                }
+
+                if (!await Commands.SkipWorktree.RunAsync(FullPath, plan.SkipWorktree, true, log))
+                {
+                    log.Complete();
+                    MarkWorkingCopyDirtyManually();
+                    return;
+                }
+            }
+
+            if (plan.Patterns.Count > 0)
+            {
+                var file = Models.LocalExclude.FileOf(_gitCommonDir);
+                try
+                {
+                    var added = await Models.LocalExclude.AppendAsync(file, plan.Patterns);
+                    log.AppendLine($"$ append to {file}");
+                    foreach (var p in added)
+                        log.AppendLine(p);
+                }
+                catch (Exception e)
+                {
+                    log.AppendLine(e.Message);
+                    SendNotification($"Failed to write {file}: {e.Message}", true);
+                }
+            }
+
+            log.Complete();
+            MarkWorkingCopyDirtyManually();
+        }
+
         private bool _hadUncommittedRow = false;
 
         private static readonly Dictionary<string, Models.PullRequest> EMPTY = [];

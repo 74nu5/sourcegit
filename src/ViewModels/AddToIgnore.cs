@@ -35,7 +35,7 @@ namespace SourceGit.ViewModels
             _repo = repo;
             _pattern = pattern;
 
-            StorageFiles = Models.GitIgnoreFile.GetSupported(repo.FullPath, repo.GitDir, pattern);
+            StorageFiles = Models.GitIgnoreFile.GetSupported(repo.FullPath, repo.GitCommonDir, pattern);
             SelectedStorageFile = StorageFiles[0];
         }
 

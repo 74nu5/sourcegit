@@ -100,6 +100,19 @@ on both sides.
 
 ## Local changes
 
+**Exclude files locally.** *Right-click unstaged changes → Exclude Locally.* The files leave
+the local changes, for this clone only, without touching any `.gitignore`. An untracked
+file gets an exact pattern in `.git/info/exclude`; selected untracked files that share a
+folder can exclude the whole folder instead, including what lands there later. A tracked
+file you modified keeps your modification on disk but is marked `skip-worktree`, so git
+stops reporting it. Two things to know about that: a `pull` that changes such a file stops
+and asks you to deal with it first, and a file that also has staged changes is refused —
+hiding it would not stop what is staged from being committed. Not offered for tracked
+files in a sparse checkout, which uses the same mark.
+
+Also: in a linked worktree, *Add to .gitignore → .git/info/exclude* wrote to a file git
+does not read there. It now writes to the one it does.
+
 **Expand or collapse every folder at once.** *Right-click the unstaged or staged list →
 Expand All Folders / Collapse All Folders*, in tree mode. Collapsing includes the folders
 nested inside others, and they stay collapsed when the list refreshes — upstream forgot

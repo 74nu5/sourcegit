@@ -45,6 +45,7 @@ namespace SourceGit.Views
             if (DataContext is ViewModels.WorkingCopy { Repository: { } repo, SelectedUnstaged: { Count: > 0 } selection } vm)
             {
                 var menu = CreateContextMenuForUnstagedChanges(repo, vm, selection);
+                AppendLocalExcludeOptions(menu, repo, selection);
                 UnstagedChangesView.AppendFolderOptions(menu);
                 menu?.Open(sender as Control);
                 e.Handled = true;
