@@ -68,6 +68,18 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
+        ///     Whether the "Excluded Locally" page keeps its place in a repository's page bar
+        ///     when nothing is excluded. Off: the page then only appears once there is
+        ///     something on it, so the bar stays upstream's for whoever never excludes a file.
+        /// </summary>
+        [JsonIgnore]
+        public bool ShowLocalExclusionsPage
+        {
+            get => _showLocalExclusionsPage;
+            set => SetProperty(ref _showLocalExclusionsPage, value);
+        }
+
+        /// <summary>
         ///     Credentials for the forges this fork talks to. Empty by default, and while it
         ///     is empty nothing here ever reaches the network.
         /// </summary>
@@ -183,6 +195,7 @@ namespace SourceGit.ViewModels
             _colorizeRowsByBranch = settings.ColorizeRowsByBranch;
             _showStashMessageAsLabel = settings.ShowStashMessageAsLabel;
             _groupWorktreesInTabs = settings.GroupWorktreesInTabs;
+            _showLocalExclusionsPage = settings.ShowLocalExclusionsPage;
             _showPullRequestIndicator = settings.ShowPullRequestIndicator;
             _showRemoteIconInsteadOfName = settings.ShowRemoteIconInsteadOfName;
             _branchColumnMode = settings.BranchColumnMode;
@@ -210,6 +223,7 @@ namespace SourceGit.ViewModels
                 ColorizeRowsByBranch = _colorizeRowsByBranch,
                 ShowStashMessageAsLabel = _showStashMessageAsLabel,
                 GroupWorktreesInTabs = _groupWorktreesInTabs,
+                ShowLocalExclusionsPage = _showLocalExclusionsPage,
                 ForgeAccounts = new List<Models.ForgeAccount>(ForgeAccounts),
                 ShowPullRequestIndicator = _showPullRequestIndicator,
                 ShowRemoteIconInsteadOfName = _showRemoteIconInsteadOfName,
@@ -228,6 +242,7 @@ namespace SourceGit.ViewModels
         private bool _colorizeRowsByBranch = false;
         private bool _showStashMessageAsLabel = false;
         private bool _groupWorktreesInTabs = false;
+        private bool _showLocalExclusionsPage = false;
         private bool _showPullRequestIndicator = false;
         private bool _showRemoteIconInsteadOfName = false;
         private Models.BranchColumnMode _branchColumnMode = Models.BranchColumnMode.RefsOnly;
