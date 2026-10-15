@@ -131,4 +131,10 @@
   <x:String x:Key="Text.WorktreeTabs.Busy" xml:space="preserve">Finish or cancel the current operation before switching worktree.</x:String>
   <x:String x:Key="Text.ChangeTree.ExpandAll" xml:space="preserve">Expand All Folders</x:String>
   <x:String x:Key="Text.ChangeTree.CollapseAll" xml:space="preserve">Collapse All Folders</x:String>
+  <x:String x:Key="Text.LocalExclude" xml:space="preserve">Exclude Locally</x:String>
+  <x:String x:Key="Text.LocalExclude.Files" xml:space="preserve">Selected Files ({0})</x:String>
+  <x:String x:Key="Text.LocalExclude.Folder" xml:space="preserve">Whole Folder {0}</x:String>
+  <x:String x:Key="Text.LocalExclude.Staged" xml:space="preserve">Some of these files also have staged changes. Unstage them first: hiding a file does not stop what is staged from being committed.</x:String>
+  <x:String x:Key="Text.LocalExclude.Conflicted" xml:space="preserve">A conflicted file cannot be excluded. Resolve the conflict first.</x:String>
+  <x:String x:Key="Text.LocalExclude.SparseCheckout" xml:space="preserve">This repository uses a sparse checkout, which marks files with the same flag. Tracked files cannot be excluded locally here.</x:String>
 </ResourceDictionary>

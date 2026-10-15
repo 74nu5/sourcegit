@@ -131,4 +131,10 @@
   <x:String x:Key="Text.WorktreeTabs.Busy" xml:space="preserve">Terminez ou annulez l'opération en cours avant de changer de worktree.</x:String>
   <x:String x:Key="Text.ChangeTree.ExpandAll" xml:space="preserve">Déplier tous les dossiers</x:String>
   <x:String x:Key="Text.ChangeTree.CollapseAll" xml:space="preserve">Replier tous les dossiers</x:String>
+  <x:String x:Key="Text.LocalExclude" xml:space="preserve">Exclure localement</x:String>
+  <x:String x:Key="Text.LocalExclude.Files" xml:space="preserve">Fichiers sélectionnés ({0})</x:String>
+  <x:String x:Key="Text.LocalExclude.Folder" xml:space="preserve">Tout le dossier {0}</x:String>
+  <x:String x:Key="Text.LocalExclude.Staged" xml:space="preserve">Certains de ces fichiers ont aussi des modifications indexées. Retirez-les d&apos;abord de l&apos;index : masquer un fichier n&apos;empêche pas ce qui est indexé d&apos;être commité.</x:String>
+  <x:String x:Key="Text.LocalExclude.Conflicted" xml:space="preserve">Un fichier en conflit ne peut pas être exclu. Résolvez d&apos;abord le conflit.</x:String>
+  <x:String x:Key="Text.LocalExclude.SparseCheckout" xml:space="preserve">Ce dépôt utilise un sparse checkout, qui marque les fichiers avec le même drapeau. Les fichiers suivis ne peuvent pas y être exclus localement.</x:String>
 </ResourceDictionary>
