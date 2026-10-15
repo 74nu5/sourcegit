@@ -137,4 +137,16 @@
   <x:String x:Key="Text.LocalExclude.Staged" xml:space="preserve">Certains de ces fichiers ont aussi des modifications indexées. Retirez-les d&apos;abord de l&apos;index : masquer un fichier n&apos;empêche pas ce qui est indexé d&apos;être commité.</x:String>
   <x:String x:Key="Text.LocalExclude.Conflicted" xml:space="preserve">Un fichier en conflit ne peut pas être exclu. Résolvez d&apos;abord le conflit.</x:String>
   <x:String x:Key="Text.LocalExclude.SparseCheckout" xml:space="preserve">Ce dépôt utilise un sparse checkout, qui marque les fichiers avec le même drapeau. Les fichiers suivis ne peuvent pas y être exclus localement.</x:String>
+  <x:String x:Key="Text.LocalExclusions" xml:space="preserve">Exclus localement</x:String>
+  <x:String x:Key="Text.LocalExclusions.Patterns" xml:space="preserve">FICHIERS NON SUIVIS EXCLUS</x:String>
+  <x:String x:Key="Text.LocalExclusions.Frozen" xml:space="preserve">FICHIERS SUIVIS DONT GIT IGNORE LES MODIFICATIONS</x:String>
+  <x:String x:Key="Text.LocalExclusions.Negation" xml:space="preserve">Réintègre des fichiers exclus par les lignes au-dessus.</x:String>
+  <x:String x:Key="Text.LocalExclusions.MoreFiles" xml:space="preserve">… et {0} autres</x:String>
+  <x:String x:Key="Text.LocalExclusions.StopExcluding" xml:space="preserve">Ne plus exclure</x:String>
+  <x:String x:Key="Text.LocalExclusions.CopyPattern" xml:space="preserve">Copier le motif</x:String>
+  <x:String x:Key="Text.LocalExclusions.AlwaysShow" xml:space="preserve">Toujours afficher « Exclus localement »</x:String>
+  <x:String x:Key="Text.LocalExclusions.Empty" xml:space="preserve">Rien n&apos;est exclu localement. Faites un clic droit sur des modifications non indexées et choisissez « Exclure localement » pour masquer des fichiers des modifications de ce clone, sans toucher à un .gitignore.</x:String>
+  <x:String x:Key="Text.LocalExclusions.PullNote" xml:space="preserve">Un pull qui modifie l&apos;un de ces fichiers suivis s&apos;arrête tant que vous ne cessez pas de l&apos;exclure et ne traitez pas votre modification.</x:String>
+  <x:String x:Key="Text.LocalExclusions.DiscardNote" xml:space="preserve">Annuler les modifications avec « inclure les fichiers ignorés » supprime les fichiers non suivis exclus ici.</x:String>
+  <x:String x:Key="Text.LocalExclusions.SparseNote" xml:space="preserve">Ce dépôt utilise un sparse checkout : les fichiers qu&apos;il écarte portent eux aussi le drapeau skip-worktree, et ne sont pas listés.</x:String>
 </ResourceDictionary>

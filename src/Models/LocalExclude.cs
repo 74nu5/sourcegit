@@ -71,8 +71,98 @@ namespace SourceGit.Models
         }
     }
 
+    /// <summary>
+    ///     A tracked file whose local modification git ignores.
+    /// </summary>
+    public record FrozenFile(string Path, bool IsSkipWorktree, bool IsAssumeUnchanged)
+    {
+        /// <summary>
+        ///     The bit as git names it: the two differ in what git may do with the file, and
+        ///     someone reading a failed pull will look for that word.
+        /// </summary>
+        public string Kind => IsSkipWorktree
+            ? (IsAssumeUnchanged ? "skip-worktree, assume-unchanged" : "skip-worktree")
+            : "assume-unchanged";
+    }
+
     public static class LocalExclude
     {
+        /// <summary>
+        ///     Whether a git boolean read with plain `git config <key>` is set: git takes yes,
+        ///     on and 1 for true as well, in any case.
+        /// </summary>
+        public static bool IsGitTrue(string value)
+        {
+            return value?.Trim().ToLowerInvariant() is "true" or "yes" or "on" or "1";
+        }
+
+        /// <summary>
+        ///     The patterns of an exclude file, in order: every line that is neither blank nor
+        ///     a comment, as git reads it. Git's own template ships with comment lines only,
+        ///     which is why a fresh clone counts no exclusion.
+        /// </summary>
+        public static List<string> ReadPatterns(string file)
+        {
+            var patterns = new List<string>();
+            if (!File.Exists(file))
+                return patterns;
+
+            try
+            {
+                foreach (var raw in File.ReadAllLines(file))
+                {
+                    var line = raw.TrimEnd('\r');
+                    if (line.Length == 0 || line[0] == '#' || line.Trim().Length == 0)
+                        continue;
+
+                    patterns.Add(line);
+                }
+            }
+            catch
+            {
+                // Unreadable: nothing is listed, and nothing is lost by that.
+            }
+
+            return patterns;
+        }
+
+        /// <summary>
+        ///     Removes every line that is exactly <paramref name="pattern"/>, keeping the others,
+        ///     their comments and their line endings as they were.
+        /// </summary>
+        public static async Task<bool> RemovePatternAsync(string file, string pattern)
+        {
+            if (!File.Exists(file))
+                return false;
+
+            var text = await File.ReadAllTextAsync(file).ConfigureAwait(false);
+            var builder = new StringBuilder(text.Length);
+            var removed = false;
+            var start = 0;
+
+            while (start < text.Length)
+            {
+                var end = text.IndexOf('\n', start);
+                var next = end < 0 ? text.Length : end + 1;
+                var line = text.Substring(start, (end < 0 ? text.Length : end) - start).TrimEnd('\r');
+
+                if (line.Equals(pattern, StringComparison.Ordinal))
+                    removed = true;
+                else
+                    builder.Append(text, start, next - start);
+
+                start = next;
+            }
+
+            if (!removed)
+                return false;
+
+            var tmp = $"{file}.tmp";
+            await File.WriteAllTextAsync(tmp, builder.ToString(), new UTF8Encoding(false)).ConfigureAwait(false);
+            File.Move(tmp, file, true);
+            return true;
+        }
+
         /// <summary>
         ///     The folder that every one of <paramref name="changes"/> sits in, when they are all
         ///     untracked and not at the root -- the only case where excluding the folder is the

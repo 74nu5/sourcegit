@@ -110,6 +110,14 @@ and asks you to deal with it first, and a file that also has staged changes is r
 hiding it would not stop what is staged from being committed. Not offered for tracked
 files in a sparse checkout, which uses the same mark.
 
+**See and undo what is excluded.** An *Excluded Locally* page joins the page bar under the
+stashes as soon as something is excluded, and leaves it when nothing is. It lists the
+patterns of `.git/info/exclude` with the files each one hides right now, and the tracked
+files whose modification git ignores — `skip-worktree`, and upstream's *Assume unchanged*.
+*Right-click → Stop Excluding* gives any of them back. To keep the page in the bar even
+when it is empty, *right-click the page bar → Always Show "Excluded Locally"* (off by
+default).
+
 Also: in a linked worktree, *Add to .gitignore → .git/info/exclude* wrote to a file git
 does not read there. It now writes to the one it does.
 

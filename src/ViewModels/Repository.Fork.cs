@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -766,7 +767,7 @@ namespace SourceGit.ViewModels
             if (plan.SkipWorktree.Count > 0)
             {
                 var sparse = await new Commands.Config(FullPath).GetAsync("core.sparseCheckout");
-                if ("true".Equals(sparse, StringComparison.OrdinalIgnoreCase))
+                if (Models.LocalExclude.IsGitTrue(sparse))
                 {
                     log.Complete();
                     SendNotification(App.Text("LocalExclude.SparseCheckout"), true);
@@ -801,6 +802,73 @@ namespace SourceGit.ViewModels
             log.Complete();
             MarkWorkingCopyDirtyManually();
         }
+
+        /// <summary>
+        ///     The index of the "Excluded Locally" page among the repository's pages: after
+        ///     upstream's three, dashboard, local changes and stashes.
+        /// </summary>
+        public const int LOCAL_EXCLUSIONS_VIEW_INDEX = 3;
+
+        public LocalExclusionsPage LocalExclusionsPage => _localExclusionsPage ??= new LocalExclusionsPage(this);
+
+        /// <summary>
+        ///     How many patterns and frozen files the page lists. Its entry in the page bar is
+        ///     shown only when this is not zero, unless the preference keeps it there.
+        /// </summary>
+        public int LocalExclusionsCount
+        {
+            get => _localExclusionsCount;
+            private set => SetProperty(ref _localExclusionsCount, value);
+        }
+
+        public bool IsLocalExclusionsVisible => SelectedViewIndex == LOCAL_EXCLUSIONS_VIEW_INDEX;
+
+        /// <summary>
+        ///     Called after every refresh of the local changes. Reads the exclusions again only
+        ///     when the index or info/exclude has changed since the last time -- the two places
+        ///     they live -- so the common case, a file saved, costs two file stats.
+        /// </summary>
+        public void RefreshLocalExclusionsIfChanged()
+        {
+            if (IsBare)
+                return;
+
+            var stamp = $"{StampOf(Path.Combine(GitDir, "index"))}|{StampOf(Models.LocalExclude.FileOf(_gitCommonDir))}";
+            if (stamp.Equals(_localExclusionsStamp, StringComparison.Ordinal))
+                return;
+
+            _localExclusionsStamp = stamp;
+            _ = LocalExclusionsPage.ReloadAsync(IsLocalExclusionsVisible);
+        }
+
+        /// <summary>
+        ///     Takes the new count, and leaves the page if it is on screen with nothing left to
+        ///     show and its entry is about to disappear from under it.
+        /// </summary>
+        internal void OnLocalExclusionsReloaded(int count)
+        {
+            LocalExclusionsCount = count;
+
+            if (count == 0 && IsLocalExclusionsVisible && !Preferences.Instance.ShowLocalExclusionsPage)
+                SelectedViewIndex = 1;
+        }
+
+        private static string StampOf(string file)
+        {
+            try
+            {
+                var info = new FileInfo(file);
+                return info.Exists ? $"{info.LastWriteTimeUtc.Ticks}:{info.Length}" : "-";
+            }
+            catch
+            {
+                return "?";
+            }
+        }
+
+        private LocalExclusionsPage _localExclusionsPage = null;
+        private int _localExclusionsCount = 0;
+        private string _localExclusionsStamp = null;
 
         private bool _hadUncommittedRow = false;
 
