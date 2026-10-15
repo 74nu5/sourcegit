@@ -112,6 +112,8 @@
             </Border>
           </Grid>
         </ListBoxItem>
+
+        <v:LocalExclusionsSwitcherItem/>
       </ListBox>
       
       <Button Grid.Row="2"
@@ -839,6 +841,11 @@
               <!-- Stashes Page -->
               <Border IsVisible="{Binding IsStashesVisible, Mode=OneWay}" PropertyChanged="OnRightPagePropertyChanged">
                 <v:StashesPage DataContext="{Binding StashesPage, Mode=OneWay}"/>
+              </Border>
+
+              <!-- Excluded Locally Page -->
+              <Border IsVisible="{Binding SelectedViewIndex, Mode=OneWay, Converter={x:Static v:LocalExclusionsPage.IsPageIndex}}">
+                <v:LocalExclusionsPage DataContext="{Binding LocalExclusionsPage, Mode=OneWay}"/>
               </Border>
 
               <!-- Auto-Fetch Notification -->

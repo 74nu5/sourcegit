@@ -137,4 +137,16 @@
   <x:String x:Key="Text.LocalExclude.Staged" xml:space="preserve">Some of these files also have staged changes. Unstage them first: hiding a file does not stop what is staged from being committed.</x:String>
   <x:String x:Key="Text.LocalExclude.Conflicted" xml:space="preserve">A conflicted file cannot be excluded. Resolve the conflict first.</x:String>
   <x:String x:Key="Text.LocalExclude.SparseCheckout" xml:space="preserve">This repository uses a sparse checkout, which marks files with the same flag. Tracked files cannot be excluded locally here.</x:String>
+  <x:String x:Key="Text.LocalExclusions" xml:space="preserve">Excluded Locally</x:String>
+  <x:String x:Key="Text.LocalExclusions.Patterns" xml:space="preserve">UNTRACKED FILES EXCLUDED</x:String>
+  <x:String x:Key="Text.LocalExclusions.Frozen" xml:space="preserve">TRACKED FILES WHOSE CHANGES GIT IGNORES</x:String>
+  <x:String x:Key="Text.LocalExclusions.Negation" xml:space="preserve">Brings back files excluded by the lines above it.</x:String>
+  <x:String x:Key="Text.LocalExclusions.MoreFiles" xml:space="preserve">… and {0} more</x:String>
+  <x:String x:Key="Text.LocalExclusions.StopExcluding" xml:space="preserve">Stop Excluding</x:String>
+  <x:String x:Key="Text.LocalExclusions.CopyPattern" xml:space="preserve">Copy Pattern</x:String>
+  <x:String x:Key="Text.LocalExclusions.AlwaysShow" xml:space="preserve">Always Show “Excluded Locally”</x:String>
+  <x:String x:Key="Text.LocalExclusions.Empty" xml:space="preserve">Nothing is excluded locally. Right-click unstaged changes and choose Exclude Locally to hide files from this clone&apos;s changes without touching a .gitignore.</x:String>
+  <x:String x:Key="Text.LocalExclusions.PullNote" xml:space="preserve">A pull that changes one of these tracked files stops until you stop excluding it and deal with your modification.</x:String>
+  <x:String x:Key="Text.LocalExclusions.DiscardNote" xml:space="preserve">Discarding changes with “include ignored files” deletes the untracked files excluded here.</x:String>
+  <x:String x:Key="Text.LocalExclusions.SparseNote" xml:space="preserve">This repository uses a sparse checkout: files kept out by it carry the skip-worktree bit too, and are not listed.</x:String>
 </ResourceDictionary>

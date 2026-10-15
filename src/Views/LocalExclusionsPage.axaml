@@ -1,0 +1,143 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:m="using:SourceGit.Models"
+             xmlns:vm="using:SourceGit.ViewModels"
+             xmlns:c="using:SourceGit.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="SourceGit.Views.LocalExclusionsPage"
+             x:DataType="vm:LocalExclusionsPage">
+  <Grid Background="{DynamicResource Brush.Window}">
+    <Grid RowDefinitions="28,*,28,*,Auto" IsVisible="{Binding !IsEmpty}">
+      <!-- Untracked files hidden by info/exclude -->
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*">
+        <Path Grid.Column="0" Margin="8,0,0,0" Width="14" Height="14" Fill="{DynamicResource Brush.FG2}" Data="{StaticResource Icons.EyeClose}"/>
+        <TextBlock Grid.Column="1" Foreground="{DynamicResource Brush.FG2}" FontWeight="Bold" Margin="4,0,0,0" VerticalAlignment="Center">
+          <Run Text="{DynamicResource Text.LocalExclusions.Patterns}"/>
+          <Run Text="{Binding Patterns, Converter={x:Static c:ListConverters.ToCount}, Mode=OneWay}"/>
+        </TextBlock>
+        <TextBlock Grid.Column="2"
+                   Margin="12,0,8,0"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Right"
+                   Foreground="{DynamicResource Brush.FG2}"
+                   FontFamily="{DynamicResource Fonts.Monospace}"
+                   FontSize="11"
+                   TextTrimming="CharacterEllipsis"
+                   Text="{Binding ExcludeFile, Mode=OneWay}"/>
+      </Grid>
+
+      <ListBox Grid.Row="1"
+               x:Name="PatternList"
+               Background="{DynamicResource Brush.Contents}"
+               BorderThickness="0,1"
+               BorderBrush="{DynamicResource Brush.Border0}"
+               ItemsSource="{Binding Patterns, Mode=OneWay}"
+               SelectionMode="Single"
+               ContextRequested="OnPatternContextRequested"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+               ScrollViewer.VerticalScrollBarVisibility="Auto">
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="vm:ExcludedPattern">
+            <StackPanel Orientation="Vertical" Margin="8,4" Background="Transparent">
+              <TextBlock Text="{Binding Pattern, Mode=OneWay}"
+                         FontFamily="{DynamicResource Fonts.Monospace}"
+                         TextTrimming="CharacterEllipsis"/>
+
+              <TextBlock Margin="16,2,0,0"
+                         FontSize="11"
+                         FontStyle="Italic"
+                         Foreground="{DynamicResource Brush.FG2}"
+                         Text="{DynamicResource Text.LocalExclusions.Negation}"
+                         IsVisible="{Binding IsNegation, Mode=OneWay}"/>
+
+              <ItemsControl Margin="16,2,0,0" ItemsSource="{Binding Files, Mode=OneWay}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="x:String">
+                    <TextBlock Text="{Binding}"
+                               FontSize="11"
+                               Foreground="{DynamicResource Brush.FG2}"
+                               TextTrimming="CharacterEllipsis"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <TextBlock Margin="16,0,0,0"
+                         FontSize="11"
+                         Foreground="{DynamicResource Brush.FG2}"
+                         Text="{Binding MoreFilesText, Mode=OneWay}"
+                         IsVisible="{Binding HasMoreFiles, Mode=OneWay}"/>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <!-- Tracked files whose modification git ignores -->
+      <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,*">
+        <Path Grid.Column="0" Margin="8,0,0,0" Width="14" Height="14" Fill="{DynamicResource Brush.FG2}" Data="{StaticResource Icons.File.Ignore}"/>
+        <TextBlock Grid.Column="1" Foreground="{DynamicResource Brush.FG2}" FontWeight="Bold" Margin="4,0,0,0" VerticalAlignment="Center">
+          <Run Text="{DynamicResource Text.LocalExclusions.Frozen}"/>
+          <Run Text="{Binding FrozenFiles, Converter={x:Static c:ListConverters.ToCount}, Mode=OneWay}"/>
+        </TextBlock>
+      </Grid>
+
+      <ListBox Grid.Row="3"
+               Background="{DynamicResource Brush.Contents}"
+               BorderThickness="0,1"
+               BorderBrush="{DynamicResource Brush.Border0}"
+               ItemsSource="{Binding FrozenFiles, Mode=OneWay}"
+               SelectionMode="Single"
+               ContextRequested="OnFrozenContextRequested"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+               ScrollViewer.VerticalScrollBarVisibility="Auto">
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="m:FrozenFile">
+            <Grid ColumnDefinitions="*,Auto" Height="26" Margin="8,0" Background="Transparent">
+              <TextBlock Grid.Column="0"
+                         VerticalAlignment="Center"
+                         Text="{Binding Path, Mode=OneWay}"
+                         TextTrimming="CharacterEllipsis"/>
+              <Border Grid.Column="1"
+                      Margin="8,0,0,0" Padding="6,1"
+                      CornerRadius="8"
+                      VerticalAlignment="Center"
+                      Background="{DynamicResource Brush.Badge}">
+                <TextBlock Text="{Binding Kind, Mode=OneWay}"
+                           FontFamily="{DynamicResource Fonts.Monospace}"
+                           FontSize="10"
+                           Foreground="{DynamicResource Brush.BadgeFG}"/>
+              </Border>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <!-- What to keep in mind -->
+      <StackPanel Grid.Row="4" Orientation="Vertical" Margin="8,6">
+        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource Brush.FG2}"
+                   Text="{DynamicResource Text.LocalExclusions.PullNote}"
+                   IsVisible="{Binding FrozenFiles, Converter={x:Static c:ListConverters.IsNotNullOrEmpty}, Mode=OneWay}"/>
+        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource Brush.FG2}"
+                   Text="{DynamicResource Text.LocalExclusions.DiscardNote}"
+                   IsVisible="{Binding Patterns, Converter={x:Static c:ListConverters.IsNotNullOrEmpty}, Mode=OneWay}"/>
+        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="DarkOrange"
+                   Text="{DynamicResource Text.LocalExclusions.SparseNote}"
+                   IsVisible="{Binding IsSparseCheckout, Mode=OneWay}"/>
+      </StackPanel>
+    </Grid>
+
+    <!-- Nothing excluded -->
+    <StackPanel Orientation="Vertical"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                MaxWidth="420"
+                IsVisible="{Binding IsEmpty}">
+      <Path Width="48" Height="48" Fill="{DynamicResource Brush.FG2}" Data="{StaticResource Icons.EyeClose}" HorizontalAlignment="Center"/>
+      <TextBlock Margin="0,12,0,0"
+                 TextAlignment="Center"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource Brush.FG2}"
+                 Text="{DynamicResource Text.LocalExclusions.Empty}"/>
+    </StackPanel>
+  </Grid>
+</UserControl>

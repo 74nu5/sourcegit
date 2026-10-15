@@ -26,6 +26,7 @@ namespace SourceGit.Models
         public bool ColorizeRowsByBranch { get; set; } = false;
         public bool ShowStashMessageAsLabel { get; set; } = false;
         public bool GroupWorktreesInTabs { get; set; } = false;
+        public bool ShowLocalExclusionsPage { get; set; } = false;
         public List<ForgeAccount> ForgeAccounts { get; set; } = [];
         public bool ShowPullRequestIndicator { get; set; } = false;
         public bool ShowRemoteIconInsteadOfName { get; set; } = false;
