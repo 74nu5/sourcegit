@@ -24,13 +24,11 @@ namespace SourceGit.AI
             return new Service
             {
                 Name = Name,
-                Server = Server,
 
-                // Copied on purpose. It is the whole point: the two entries are the same
-                // account. Whether it holds a key or the name of a variable, it is the same
-                // secret either way, and it never travels further than the file it came from.
-                ApiKey = ApiKey,
-                ReadApiKeyFromEnv = ReadApiKeyFromEnv,
+                // The key is not copied: since upstream's develop after 2026.23 it is no longer a field of
+                // the service but kept by ApiKeyManager under the server's address. Same
+                // server, same key -- the copy has it without carrying it.
+                Server = Server,
 
                 Model = Model,
                 AutoFetchAvailableModels = AutoFetchAvailableModels,
