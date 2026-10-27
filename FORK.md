@@ -141,9 +141,9 @@ nothing is left to resolve, and changes nothing until you type.
 
 ## Preferences and configuration
 
-**Duplicate an entry** instead of retyping it: an AI service (with its key), a forge
-account (with its token), a workspace, a custom action, a commit template, an issue
-tracker.
+**Duplicate an entry** instead of retyping it: an AI service (the copy keeps the server,
+so it uses the same API key), a forge account (with its token), a workspace, a custom
+action, a commit template, an issue tracker.
 
 ---
 
