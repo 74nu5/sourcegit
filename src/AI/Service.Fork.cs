@@ -7,7 +7,7 @@ namespace SourceGit.AI
     ///
     ///     The point of it is the credential: two entries against one endpoint -- a cheap
     ///     model for commit messages and a strong one for review, say -- differ by one field
-    ///     out of eight. Retyping a key to change a model is the reason nobody bothers.
+    ///     out of nine. Retyping a key to change a model is the reason nobody bothers.
     /// </summary>
     public partial class Service
     {
@@ -34,10 +34,12 @@ namespace SourceGit.AI
                 AutoFetchAvailableModels = AutoFetchAvailableModels,
                 ReasoningEffortLevel = ReasoningEffortLevel,
                 AdditionalPrompt = AdditionalPrompt,
+                ExtraHeaders = ExtraHeaders,
 
-                // A fresh list, not the same one: the copy is going to be pointed at another
-                // model, and the two would otherwise refetch into each other.
-                AvailableModels = new List<string>(AvailableModels),
+                // Only a cache since 2026.24, filled the first time a service is used, but the
+                // same server answers with the same models: copying it spares the copy a fetch.
+                // A fresh list, not the same one, so the two never refetch into each other.
+                CachedAvailableModels = new List<string>(CachedAvailableModels),
             };
         }
     }
