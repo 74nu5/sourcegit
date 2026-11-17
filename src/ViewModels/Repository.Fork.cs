@@ -409,12 +409,26 @@ namespace SourceGit.ViewModels
         /// </summary>
         public void ShowOnlyInHistory(Models.Branch branch)
         {
-            SetBranchFilterMode(branch, Models.FilterMode.Included, true, true);
+            var node = FindBranchNode(branch.IsLocal ? _localBranchTrees : _remoteBranchTrees, branch.FullName);
+            if (node != null)
+                ShowOnlyInHistory(node);
         }
 
+        /// <summary>
+        ///     This fork's rules go as well -- a pattern left behind would hide or add branches
+        ///     to what was asked to be shown alone -- and whatever went is offered back.
+        /// </summary>
         public void ShowOnlyInHistory(BranchTreeNode node)
         {
+            var before = SnapshotHistoryFilters();
+            var upstream = node.Backend is Models.Branch { Upstream: { Length: > 0 } u } ? u : string.Empty;
+
+            _historyReportSuppressed++;
+            _uiStates.HistoryRules.Clear();
             SetBranchFilterMode(node, Models.FilterMode.Included, true, true);
+            _historyReportSuppressed--;
+
+            ReportDroppedHistoryFilters(before, node.Path, upstream);
         }
 
         /// <summary>
@@ -424,8 +438,15 @@ namespace SourceGit.ViewModels
         /// </summary>
         public void ShowOnlyInHistory(Models.Tag tag)
         {
+            var before = SnapshotHistoryFilters();
+
+            _historyReportSuppressed++;
             _uiStates.HistoryFilters.Clear();
+            _uiStates.HistoryRules.Clear();
             SetTagFilterMode(tag, Models.FilterMode.Included);
+            _historyReportSuppressed--;
+
+            ReportDroppedHistoryFilters(before, tag.Name);
         }
 
         /// <summary>
@@ -438,7 +459,7 @@ namespace SourceGit.ViewModels
         /// </summary>
         public bool HasHistoryFilters
         {
-            get => _uiStates is { HistoryFilters.Count: > 0 };
+            get => _uiStates is not null && (_uiStates.HistoryFilters.Count > 0 || _uiStates.HistoryRules.Count > 0);
         }
 
         /// <summary>

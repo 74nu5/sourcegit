@@ -158,6 +158,47 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
+        ///     Whether a filter that shows and a filter that hides can stand side by side.
+        ///     Off, so the filters behave as upstream's do: a filter of the other mode
+        ///     replaces them all, and a branch replaces the filter of its folder.
+        ///
+        ///     The repository state reads it through a static of its own, because the models
+        ///     do not reach into the view models.
+        /// </summary>
+        [JsonIgnore]
+        public bool CombineHistoryFilters
+        {
+            get => _combineHistoryFilters;
+            set
+            {
+                if (SetProperty(ref _combineHistoryFilters, value))
+                    Models.RepositoryUIStates.CombinesFilterModes = value;
+            }
+        }
+
+        /// <summary>
+        ///     Whether the branch checked out stays in the graph whatever is selected, instead
+        ///     of being added to the filters each time it changes. Off: upstream adds it.
+        /// </summary>
+        [JsonIgnore]
+        public bool AlwaysShowCurrentBranch
+        {
+            get => _alwaysShowCurrentBranch;
+            set => SetProperty(ref _alwaysShowCurrentBranch, value);
+        }
+
+        /// <summary>
+        ///     Whether "Focus on Current Branch" sets the filters aside and gives them back,
+        ///     rather than erasing them as upstream does.
+        /// </summary>
+        [JsonIgnore]
+        public bool KeepFiltersDuringFocus
+        {
+            get => _keepFiltersDuringFocus;
+            set => SetProperty(ref _keepFiltersDuringFocus, value);
+        }
+
+        /// <summary>
         ///     Whether to look for a new release as the application starts.
         ///
         ///     Upstream asks once a day and remembers when it last asked, which suits an
@@ -212,6 +253,10 @@ namespace SourceGit.ViewModels
             _showRemoteIconInsteadOfName = settings.ShowRemoteIconInsteadOfName;
             _branchColumnMode = settings.BranchColumnMode;
             _defaultLaneOrder = settings.DefaultLaneOrder ?? [];
+            _combineHistoryFilters = settings.CombineHistoryFilters;
+            _alwaysShowCurrentBranch = settings.AlwaysShowCurrentBranch;
+            _keepFiltersDuringFocus = settings.KeepFiltersDuringFocus;
+            Models.RepositoryUIStates.CombinesFilterModes = _combineHistoryFilters;
 
             ForgeAccounts.Clear();
             ForgeAccounts.AddRange(settings.ForgeAccounts ?? []);
@@ -242,6 +287,9 @@ namespace SourceGit.ViewModels
                 ShowRemoteIconInsteadOfName = _showRemoteIconInsteadOfName,
                 BranchColumnMode = _branchColumnMode,
                 DefaultLaneOrder = _defaultLaneOrder,
+                CombineHistoryFilters = _combineHistoryFilters,
+                AlwaysShowCurrentBranch = _alwaysShowCurrentBranch,
+                KeepFiltersDuringFocus = _keepFiltersDuringFocus,
             };
 
             Models.ForkSettingsFile.Write(
@@ -261,5 +309,8 @@ namespace SourceGit.ViewModels
         private bool _showRemoteIconInsteadOfName = false;
         private Models.BranchColumnMode _branchColumnMode = Models.BranchColumnMode.RefsOnly;
         private List<string> _defaultLaneOrder = [];
+        private bool _combineHistoryFilters = false;
+        private bool _alwaysShowCurrentBranch = false;
+        private bool _keepFiltersDuringFocus = false;
     }
 }

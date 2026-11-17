@@ -157,6 +157,7 @@
               <!-- Name -->
               <TextBlock Grid.Column="1"
                          FontWeight="{Binding IsCurrent, Converter={x:Static c:BoolConverters.IsBoldToFontWeight}}"
+                         Opacity="{Binding NameOpacity}"
                          TextTrimming="CharacterEllipsis">
                 <Run Text="{Binding Name}"/>
                 <Run Text="{Binding BranchesCount}" Foreground="{DynamicResource Brush.FG2}"/>

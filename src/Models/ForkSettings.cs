@@ -32,6 +32,9 @@ namespace SourceGit.Models
         public bool ShowRemoteIconInsteadOfName { get; set; } = false;
         public BranchColumnMode BranchColumnMode { get; set; } = BranchColumnMode.RefsOnly;
         public List<string> DefaultLaneOrder { get; set; } = [];
+        public bool CombineHistoryFilters { get; set; } = false;
+        public bool AlwaysShowCurrentBranch { get; set; } = false;
+        public bool KeepFiltersDuringFocus { get; set; } = false;
     }
 
     /// <summary>
@@ -53,6 +56,10 @@ namespace SourceGit.Models
         public double BranchColumnWidth { get; set; } = 0;
         public double GraphColumnWidth { get; set; } = 0;
         public List<string> LaneOrder { get; set; } = [];
+        public List<HistoryRule> HistoryRules { get; set; } = [];
+        public List<HistoryFilterView> HistoryFilterViews { get; set; } = [];
+        public List<HistoryFilter> SuspendedHistoryFilters { get; set; } = [];
+        public List<HistoryRule> SuspendedHistoryRules { get; set; } = [];
     }
 
     public static class ForkSettingsFile

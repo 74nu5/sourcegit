@@ -55,9 +55,9 @@ namespace SourceGit.ViewModels
                     _uiStates.FocusOnCurrentBranch = value;
                     OnPropertyChanged();
 
-                    if (value && _historyFilterMode != Models.FilterMode.None)
-                        ClearHistoryFilters();
-                    else
+                    if (value && HasHistoryFilters)
+                        SetAsideFiltersForFocus();
+                    else if (value || !BringBackFiltersAfterFocus())
                         RefreshCommits();
                 }
             }
@@ -474,6 +474,7 @@ namespace SourceGit.ViewModels
             _selectedViewIndex = Preferences.Instance.ShowLocalChangesByDefault ? 1 : 0;
             _lastFetchTime = DateTime.Now;
             _autoFetchTimer = new Timer(AutoFetchByTimer, null, 5000, 5000);
+            AttachHistoryRules();
             RefreshAll();
         }
 
@@ -795,8 +796,7 @@ namespace SourceGit.ViewModels
                 if (folderEndIdx > 10)
                     _uiStates.ExpandedBranchNodesInSideBar.Add(created.FullName.Substring(0, folderEndIdx));
 
-                if (_historyFilterMode == Models.FilterMode.Included &&
-                    !_uiStates.IsCoveredByFolderFilter(created.FullName, Models.FilterType.LocalBranchFolder))
+                if (ShouldFilterInOnCheckout(created))
                     SetBranchFilterMode(created, Models.FilterMode.Included, false, false);
 
                 CurrentBranch = created;
@@ -839,8 +839,7 @@ namespace SourceGit.ViewModels
 
             checkouted.IsCurrent = true;
             checkouted.WorktreePath = FullPath;
-            if (_historyFilterMode == Models.FilterMode.Included &&
-                !_uiStates.IsCoveredByFolderFilter(checkouted.FullName, Models.FilterType.LocalBranchFolder))
+            if (ShouldFilterInOnCheckout(checkouted))
                 SetBranchFilterMode(checkouted, Models.FilterMode.Included, false, false);
 
             List<Models.Branch> locals = [];
@@ -976,6 +975,7 @@ namespace SourceGit.ViewModels
         public void ClearHistoryFilters()
         {
             _uiStates.HistoryFilters.Clear();
+            _uiStates.HistoryRules.Clear();
             HistoryFilterMode = Models.FilterMode.None;
 
             ResetBranchTreeFilterMode(LocalBranchTrees);
@@ -1016,9 +1016,12 @@ namespace SourceGit.ViewModels
             {
                 _uiStates.FocusOnCurrentBranch = false;
                 OnPropertyChanged(nameof(FocusOnCurrentBranch));
+                BringBackFiltersAfterFocus();
             }
 
+            var before = SnapshotHistoryFilters();
             var changed = _uiStates.UpdateHistoryFilters(tag.Name, Models.FilterType.Tag, mode);
+            ReportDroppedHistoryFilters(before, tag.Name);
             if (changed)
                 RefreshHistoryFilters(true);
         }
@@ -1037,10 +1040,12 @@ namespace SourceGit.ViewModels
             {
                 _uiStates.FocusOnCurrentBranch = false;
                 OnPropertyChanged(nameof(FocusOnCurrentBranch));
+                BringBackFiltersAfterFocus();
             }
 
             var isLocal = node.Path.StartsWith("refs/heads/", StringComparison.Ordinal);
             var tree = isLocal ? _localBranchTrees : _remoteBranchTrees;
+            var before = SnapshotHistoryFilters();
 
             if (clearExists)
             {
@@ -1065,7 +1070,14 @@ namespace SourceGit.ViewModels
                 if (!changed)
                     return;
 
-                _uiStates.RemoveBranchFiltersByPrefix(node.Path);
+                if (!Models.RepositoryUIStates.CombinesFilterModes)
+                    _uiStates.RemoveBranchFiltersByPrefix(node.Path);
+            }
+
+            if (Models.RepositoryUIStates.CombinesFilterModes)
+            {
+                FinishBranchFilterGesture(before, node, refresh);
+                return;
             }
 
             var parentType = isLocal ? Models.FilterType.LocalBranchFolder : Models.FilterType.RemoteBranchFolder;
@@ -1085,7 +1097,7 @@ namespace SourceGit.ViewModels
                 cur = parent;
             } while (true);
 
-            RefreshHistoryFilters(refresh);
+            FinishBranchFilterGesture(before, node, refresh);
         }
 
         public async Task StashAllAsync(bool autoStart)
@@ -1259,6 +1271,7 @@ namespace SourceGit.ViewModels
                 await Dispatcher.UIThread.InvokeAsync(() => _histories.IsLoading = true);
 
                 var stashes = await LoadGraphStashesAsync().ConfigureAwait(false);
+                Models.HistoryRuleSet rules = null;
 
                 var builder = new StringBuilder();
                 builder
@@ -1275,7 +1288,8 @@ namespace SourceGit.ViewModels
                 }
                 else
                 {
-                    builder.Append(_uiStates.BuildHistoryParams_NormalMode(GitDir));
+                    rules = await PrepareHistoryRulesAsync().ConfigureAwait(false);
+                    builder.Append(rules != null ? _uiStates.BuildHistoryParams_Rules(GitDir, rules) : _uiStates.BuildHistoryParams_NormalMode(GitDir));
                 }
 
                 builder.Append(GraphStashRevisions(stashes));
@@ -1285,6 +1299,7 @@ namespace SourceGit.ViewModels
                     .ConfigureAwait(false);
 
                 AttachGraphStashes(commits, stashes);
+                rules?.FilterDecorators(commits);
 
                 var merged = new HashSet<string>();
                 foreach (var c in commits)
@@ -1842,6 +1857,7 @@ namespace SourceGit.ViewModels
             foreach (var node in nodes)
             {
                 node.FilterMode = map.GetValueOrDefault(node.Path, Models.FilterMode.None);
+                node.IsHiddenInGraph = IsHiddenByHistoryRules(node);
 
                 if (!node.IsBranch)
                     UpdateBranchTreeFilterMode(node.Children, map);
@@ -1867,6 +1883,7 @@ namespace SourceGit.ViewModels
             foreach (var node in nodes)
             {
                 node.FilterMode = Models.FilterMode.None;
+                node.IsHiddenInGraph = false;
                 if (!node.IsBranch)
                     ResetBranchTreeFilterMode(node.Children);
             }

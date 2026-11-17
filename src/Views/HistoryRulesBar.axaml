@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:m="using:SourceGit.Models"
+             xmlns:vm="using:SourceGit.ViewModels"
+             xmlns:c="using:SourceGit.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="30"
+             x:Class="SourceGit.Views.HistoryRulesBar"
+             x:DataType="vm:Repository">
+  <!-- This fork's rules, under upstream's filters, and what they amount to. -->
+  <Grid ColumnDefinitions="*,Auto" Margin="28,0,12,4">
+    <ItemsControl Grid.Column="0"
+                  ItemsSource="{Binding UIStates.HistoryRules}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel Orientation="Horizontal" ItemHeight="22"/>
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="m:HistoryRule">
+          <Border Height="20"
+                  Margin="0,0,6,0"
+                  CornerRadius="12"
+                  BorderThickness="1"
+                  BorderBrush="{Binding Mode, Converter={x:Static c:FilterModeConverters.ToBorderBrush}}"
+                  VerticalAlignment="Center">
+            <Grid Margin="8,0" ColumnDefinitions="Auto,Auto,Auto">
+              <Path Grid.Column="0"
+                    Width="11" Height="11"
+                    VerticalAlignment="Center"
+                    Data="{StaticResource Icons.Filter}"
+                    Fill="{DynamicResource Brush.FG2}"
+                    IsVisible="{Binding IsValid}"/>
+              <Path Grid.Column="0"
+                    Width="11" Height="11"
+                    VerticalAlignment="Center"
+                    Data="{StaticResource Icons.Error}"
+                    Fill="DarkOrange"
+                    IsVisible="{Binding !IsValid}"/>
+
+              <TextBlock Grid.Column="1"
+                         Text="{Binding Label}"
+                         Margin="4,0,8,0"
+                         MaxWidth="480"
+                         TextTrimming="CharacterEllipsis"/>
+
+              <Button Grid.Column="2" Classes="icon_button" VerticalAlignment="Center" Margin="0" Padding="0" Click="OnRemoveHistoryRule">
+                <Path Width="8" Height="8" Data="{StaticResource Icons.Close}"/>
+              </Button>
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <TextBlock Grid.Column="1"
+               VerticalAlignment="Center"
+               Foreground="{DynamicResource Brush.FG2}"
+               Text="{Binding HistoryFilterSummary}"/>
+  </Grid>
+</UserControl>

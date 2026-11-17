@@ -158,4 +158,27 @@
   <x:String x:Key="Text.LaneOrder.Repository" xml:space="preserve">This repository</x:String>
   <x:String x:Key="Text.LaneOrder.Default" xml:space="preserve">All repositories</x:String>
   <x:String x:Key="Text.LaneOrder.Hint" xml:space="preserve">The branches that hold the leftmost lanes, in order, separated by commas: main|master, integration, dev. “a|b” takes whichever exists, * matches anything, and main also stands for origin/main. Empty for this repository: the order for all repositories applies; - holds no lane here.</x:String>
+  <x:String x:Key="Text.HistoryRules.Menu" xml:space="preserve">Branch Filters</x:String>
+  <x:String x:Key="Text.HistoryRules.Combine" xml:space="preserve">Combine Shown and Hidden Branches</x:String>
+  <x:String x:Key="Text.HistoryRules.AlwaysShowCurrent" xml:space="preserve">Always Show the Current Branch</x:String>
+  <x:String x:Key="Text.HistoryRules.KeepDuringFocus" xml:space="preserve">Keep Filters During Focus on Current Branch</x:String>
+  <x:String x:Key="Text.HistoryRules.ShowMatching" xml:space="preserve">Show Branches Matching…</x:String>
+  <x:String x:Key="Text.HistoryRules.HideMatching" xml:space="preserve">Hide Branches Matching…</x:String>
+  <x:String x:Key="Text.HistoryRules.SaveView" xml:space="preserve">Save These Filters as a View…</x:String>
+  <x:String x:Key="Text.HistoryRules.DeleteView" xml:space="preserve">Delete a View</x:String>
+  <x:String x:Key="Text.HistoryRules.SaveViewTitle" xml:space="preserve">Save Filter View</x:String>
+  <x:String x:Key="Text.HistoryRules.AddTitle" xml:space="preserve">Filter Branches by Pattern</x:String>
+  <x:String x:Key="Text.HistoryRules.Pattern" xml:space="preserve">Pattern</x:String>
+  <x:String x:Key="Text.HistoryRules.PatternHint" xml:space="preserve">* and ? also match a slash. Names as in the sidebar: team/x for a local branch, origin/team/x for a remote one. Without a wildcard, a folder.</x:String>
+  <x:String x:Key="Text.HistoryRules.Matching" xml:space="preserve">{0} branch(es) match right now.</x:String>
+  <x:String x:Key="Text.HistoryRules.Action" xml:space="preserve">In the graph</x:String>
+  <x:String x:Key="Text.HistoryRules.Show" xml:space="preserve">Show</x:String>
+  <x:String x:Key="Text.HistoryRules.Hide" xml:space="preserve">Hide</x:String>
+  <x:String x:Key="Text.HistoryRules.HideHistoryOf" xml:space="preserve">Hide Commits Already in This Branch</x:String>
+  <x:String x:Key="Text.HistoryRules.ShowHistoryOf" xml:space="preserve">Show Commits Already in This Branch Again</x:String>
+  <x:String x:Key="Text.HistoryRules.Summary" xml:space="preserve">{0} branch(es) shown · {1} left out</x:String>
+  <x:String x:Key="Text.HistoryRules.Dropped" xml:space="preserve">{0} filter(s) removed along the way: {1}</x:String>
+  <x:String x:Key="Text.HistoryRules.Undo" xml:space="preserve">Undo</x:String>
+  <x:String x:Key="Text.HistoryRules.SetAside" xml:space="preserve">Focus on Current Branch: {0} filter(s) set aside. They come back when it is turned off.</x:String>
+  <x:String x:Key="Text.HistoryRules.ViewApplied" xml:space="preserve">Filter view “{0}” applied.</x:String>
 </ResourceDictionary>

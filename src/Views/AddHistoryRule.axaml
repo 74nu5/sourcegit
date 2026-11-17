@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SourceGit.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="200"
+             x:Class="SourceGit.Views.AddHistoryRule"
+             x:DataType="vm:AddHistoryRule">
+  <StackPanel Orientation="Vertical" Margin="8,0,0,0">
+    <StackPanel Orientation="Horizontal">
+      <Path Width="16" Height="16" Data="{StaticResource Icons.Filter}"/>
+      <TextBlock FontSize="18"
+                 Margin="8,0,0,0"
+                 Classes="bold"
+                 Text="{DynamicResource Text.HistoryRules.AddTitle}"/>
+    </StackPanel>
+
+    <Grid Margin="0,16,8,0" RowDefinitions="32,Auto,32" ColumnDefinitions="120,*">
+      <TextBlock Grid.Row="0" Grid.Column="0"
+                 HorizontalAlignment="Right" VerticalAlignment="Center"
+                 Margin="0,0,8,0"
+                 Text="{DynamicResource Text.HistoryRules.Pattern}"/>
+      <TextBox Grid.Row="0" Grid.Column="1"
+               Height="26"
+               VerticalAlignment="Center"
+               CornerRadius="2"
+               Watermark="backup/*"
+               Text="{Binding Pattern, Mode=TwoWay}"/>
+
+      <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical" Margin="0,4,0,4">
+        <TextBlock Text="{DynamicResource Text.HistoryRules.PatternHint}"
+                   Foreground="{DynamicResource Brush.FG2}"
+                   TextWrapping="Wrap"/>
+        <TextBlock Text="{Binding Preview}"
+                   Margin="0,4,0,0"
+                   Foreground="{DynamicResource Brush.FG2}"/>
+      </StackPanel>
+
+      <TextBlock Grid.Row="2" Grid.Column="0"
+                 HorizontalAlignment="Right" VerticalAlignment="Center"
+                 Margin="0,0,8,0"
+                 Text="{DynamicResource Text.HistoryRules.Action}"/>
+      <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+        <RadioButton Content="{DynamicResource Text.HistoryRules.Show}"
+                     IsChecked="{Binding IsShow, Mode=TwoWay}"/>
+        <RadioButton Content="{DynamicResource Text.HistoryRules.Hide}"
+                     IsChecked="{Binding !IsShow, Mode=TwoWay}"
+                     Margin="8,0,0,0"/>
+      </StackPanel>
+    </Grid>
+  </StackPanel>
+</UserControl>

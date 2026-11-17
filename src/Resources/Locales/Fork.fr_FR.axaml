@@ -158,4 +158,27 @@
   <x:String x:Key="Text.LaneOrder.Repository" xml:space="preserve">Ce dépôt</x:String>
   <x:String x:Key="Text.LaneOrder.Default" xml:space="preserve">Tous les dépôts</x:String>
   <x:String x:Key="Text.LaneOrder.Hint" xml:space="preserve">Les branches qui occupent les premières colonnes, dans l&apos;ordre, séparées par des virgules : main|master, integration, dev. « a|b » prend celle qui existe, * remplace n&apos;importe quoi, et main vaut aussi pour origin/main. Vide pour ce dépôt : l&apos;ordre de tous les dépôts s&apos;applique ; - n&apos;y réserve aucune colonne.</x:String>
+  <x:String x:Key="Text.HistoryRules.Menu" xml:space="preserve">Filtres de branches</x:String>
+  <x:String x:Key="Text.HistoryRules.Combine" xml:space="preserve">Combiner branches affichées et masquées</x:String>
+  <x:String x:Key="Text.HistoryRules.AlwaysShowCurrent" xml:space="preserve">Toujours afficher la branche courante</x:String>
+  <x:String x:Key="Text.HistoryRules.KeepDuringFocus" xml:space="preserve">Garder les filtres pendant le focus sur la branche courante</x:String>
+  <x:String x:Key="Text.HistoryRules.ShowMatching" xml:space="preserve">Afficher les branches correspondant à…</x:String>
+  <x:String x:Key="Text.HistoryRules.HideMatching" xml:space="preserve">Masquer les branches correspondant à…</x:String>
+  <x:String x:Key="Text.HistoryRules.SaveView" xml:space="preserve">Enregistrer ces filtres comme vue…</x:String>
+  <x:String x:Key="Text.HistoryRules.DeleteView" xml:space="preserve">Supprimer une vue</x:String>
+  <x:String x:Key="Text.HistoryRules.SaveViewTitle" xml:space="preserve">Enregistrer une vue de filtres</x:String>
+  <x:String x:Key="Text.HistoryRules.AddTitle" xml:space="preserve">Filtrer les branches par motif</x:String>
+  <x:String x:Key="Text.HistoryRules.Pattern" xml:space="preserve">Motif</x:String>
+  <x:String x:Key="Text.HistoryRules.PatternHint" xml:space="preserve">* et ? englobent aussi les barres obliques. Les noms sont ceux de la barre latérale : team/x pour une branche locale, origin/team/x pour une distante. Sans joker, un dossier.</x:String>
+  <x:String x:Key="Text.HistoryRules.Matching" xml:space="preserve">{0} branche(s) correspondent en ce moment.</x:String>
+  <x:String x:Key="Text.HistoryRules.Action" xml:space="preserve">Dans le graphe</x:String>
+  <x:String x:Key="Text.HistoryRules.Show" xml:space="preserve">Afficher</x:String>
+  <x:String x:Key="Text.HistoryRules.Hide" xml:space="preserve">Masquer</x:String>
+  <x:String x:Key="Text.HistoryRules.HideHistoryOf" xml:space="preserve">Masquer les commits déjà dans cette branche</x:String>
+  <x:String x:Key="Text.HistoryRules.ShowHistoryOf" xml:space="preserve">Réafficher les commits déjà dans cette branche</x:String>
+  <x:String x:Key="Text.HistoryRules.Summary" xml:space="preserve">{0} branche(s) affichée(s) · {1} écartée(s)</x:String>
+  <x:String x:Key="Text.HistoryRules.Dropped" xml:space="preserve">{0} filtre(s) retiré(s) au passage : {1}</x:String>
+  <x:String x:Key="Text.HistoryRules.Undo" xml:space="preserve">Annuler</x:String>
+  <x:String x:Key="Text.HistoryRules.SetAside" xml:space="preserve">Focus sur la branche courante : {0} filtre(s) mis de côté. Ils reviennent quand il est désactivé.</x:String>
+  <x:String x:Key="Text.HistoryRules.ViewApplied" xml:space="preserve">Vue de filtres « {0} » appliquée.</x:String>
 </ResourceDictionary>

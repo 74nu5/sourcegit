@@ -103,6 +103,12 @@ namespace SourceGit.Models
                 else if (pinned.StartsWith("refs/remotes/", System.StringComparison.Ordinal))
                     LaneOrder = [pinned.Substring(13)];
             }
+            HistoryRules = new Avalonia.Collections.AvaloniaList<HistoryRule>(states.HistoryRules ?? []);
+            HistoryFilterViews = states.HistoryFilterViews ?? [];
+            SuspendedHistoryFilters = states.SuspendedHistoryFilters ?? [];
+            SuspendedHistoryRules = states.SuspendedHistoryRules ?? [];
+
+            WatchHistoryRules();
         }
 
         /// <summary>
@@ -128,6 +134,10 @@ namespace SourceGit.Models
                 ShowUncommittedInGraph = ShowUncommittedInGraph,
                 BranchColumnWidth = BranchColumnWidth,
                 GraphColumnWidth = GraphColumnWidth,
+                HistoryRules = new List<HistoryRule>(HistoryRules),
+                HistoryFilterViews = HistoryFilterViews,
+                SuspendedHistoryFilters = SuspendedHistoryFilters,
+                SuspendedHistoryRules = SuspendedHistoryRules,
             };
 
             ForkSettingsFile.Write(Path.Combine(Path.GetDirectoryName(_file) ?? string.Empty, ForkSettingsFile.UI_STATES), states, ForkJsonCodeGen.Default.ForkRepositoryStates);

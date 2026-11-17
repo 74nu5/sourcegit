@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SourceGit.ViewModels
 {
-    public class BranchTreeNode : ObservableObject
+    public partial class BranchTreeNode : ObservableObject
     {
         public string Name { get; private set; } = string.Empty;
         public string Path { get; private set; } = string.Empty;

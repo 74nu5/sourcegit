@@ -2,7 +2,7 @@
 
 namespace SourceGit.Models
 {
-    public class Notification
+    public partial class Notification
     {
         public static event Action<Notification> Raised;
 

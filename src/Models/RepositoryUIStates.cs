@@ -312,12 +312,15 @@ namespace SourceGit.Models
         {
             var map = new Dictionary<string, FilterMode>();
             foreach (var filter in HistoryFilters)
-                map.Add(filter.Pattern, filter.Mode);
+                map.TryAdd(filter.Pattern, filter.Mode);
             return map;
         }
 
         public bool UpdateHistoryFilters(string pattern, FilterType type, FilterMode mode)
         {
+            if (CombinesFilterModes)
+                return UpdateHistoryRule(pattern, type, mode);
+
             // Clear all filters when there's a filter that has different mode.
             if (mode != FilterMode.None)
             {

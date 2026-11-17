@@ -529,6 +529,8 @@ namespace SourceGit.Views
             menu.Items.Add(splitGraph);
             menu.Items.Add(colorizeRows);
             menu.Items.Add(remoteIcon);
+            menu.Items.Add(new MenuItem() { Header = "-" });
+            menu.Items.Add(BuildBranchFiltersMenu(repo, pref));
         }
 
         private ColumnResizer _columnResizer = null;

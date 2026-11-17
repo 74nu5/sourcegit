@@ -44,6 +44,35 @@ becomes the first entry of its repository's order.
 This in Graph*, and *Show Everything in Graph Again* to come back. The same filter upstream
 offers behind an icon that only appears on hover, one branch at a time.
 
+**Branch filters that combine.** *Advanced Options → Branch Filters.* Upstream gives all
+its filters the mode of the first one: hiding a branch while others are shown replaces them
+all, and a filter on a branch takes away the one on its folder. Three options, all off:
+
+- *Combine Shown and Hidden Branches* — both kinds stand side by side, and for each branch
+  the most precise filter decides: the branch itself, then the deepest folder, a pattern by
+  the characters it fixes; hiding wins a tie. "Show team/, hide team/old" shows team/ but
+  old. A "show" inside a hidden folder is an exception, not a selection: "hide backup/,
+  show backup/keep" still shows everything else. The bar above the graph counts the
+  branches shown and left out, and the sidebar dims the ones left out.
+- *Always Show the Current Branch* — instead of adding the branch you check out, and its
+  upstream, to the filters each time, as upstream does.
+- *Keep Filters During Focus on Current Branch* — the focus sets them aside and gives them
+  back, where upstream erases them.
+
+The same menu filters by pattern — *Show* or *Hide Branches Matching…*, with `*` and `?`,
+for the series of branches an agent leaves behind (`backup/*`, `*-avant-rebase-*`) — and
+keeps named views of the filters to come back to in one click. On a branch in the sidebar,
+*Hide Commits Already in This Branch* leaves in the graph only what has not reached it yet.
+
+Whatever the options: a filter whose branch was deleted or renamed outside the
+application no longer empties the history (it stays in the bar, marked); a gesture that
+removes filters you did not point at says so, with an *Undo*; and the filters are saved as
+soon as they change, not only when the repository closes.
+
+Upstream, if you run it on the same repository, sees the filters it knows. With both
+modes mixed, it reads them all in the mode of the first; patterns, views and "already in"
+live in this fork's file and are invisible to it.
+
 **A branch column.** *Advanced Options → Columns → Branch / Tag Column.* Moves branch and
 tag labels out of the commit message into a column of their own. Either on the rows that
 carry a reference (*Refs Only*, the default) or on every row, naming the branch each

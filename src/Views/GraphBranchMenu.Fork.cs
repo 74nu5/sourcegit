@@ -20,6 +20,7 @@ namespace SourceGit.Views
             menu.Items.Add(new MenuItem() { Header = "-" });
             AppendPin(menu, owner, repo, branch);
             menu.Items.Add(BuildOnly(owner, () => repo.ShowOnlyInHistory(branch)));
+            AppendHistoryOf(menu, owner, repo, branch);
             AppendShowAll(menu, owner, repo);
         }
 
@@ -30,7 +31,32 @@ namespace SourceGit.Views
 
             menu.Items.Add(new MenuItem() { Header = "-" });
             menu.Items.Add(BuildOnly(owner, () => repo.ShowOnlyInHistory(node)));
+            if (node.Backend is Models.Branch branch)
+                AppendHistoryOf(menu, owner, repo, branch);
             AppendShowAll(menu, owner, repo);
+        }
+
+        /// <summary>
+        ///     Takes out of the graph every commit this branch already holds, so what is left
+        ///     is what has not reached it yet -- the work still to merge into main, say. Not
+        ///     the same as hiding the branch, which only stops the graph starting from it.
+        /// </summary>
+        private static void AppendHistoryOf(ContextMenu menu, Control owner, ViewModels.Repository repo, Models.Branch branch)
+        {
+            if (branch.IsDetachedHead)
+                return;
+
+            var hidden = repo.IsHistoryOfHidden(branch);
+            var item = new MenuItem();
+            item.Header = App.Text(hidden ? "HistoryRules.ShowHistoryOf" : "HistoryRules.HideHistoryOf");
+            item.Icon = owner.CreateMenuIcon(hidden ? "Icons.Eye" : "Icons.EyeClose");
+            item.Click += (_, e) =>
+            {
+                repo.ToggleHistoryOf(branch);
+                e.Handled = true;
+            };
+
+            menu.Items.Add(item);
         }
 
         public static void Append(ContextMenu menu, Control owner, ViewModels.Repository repo, Models.Tag tag)
