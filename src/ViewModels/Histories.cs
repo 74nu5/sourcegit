@@ -616,7 +616,7 @@ namespace SourceGit.ViewModels
                     extraHeads.Add(c.SHA);
             }
 
-            Graph = Models.CommitGraph.Generate(commits, firstParentOnly, highlighting, extraHeads, Preferences.Instance.GraphLaneMode, ResolvePinnedLaneHead());
+            Graph = Models.CommitGraph.Generate(commits, firstParentOnly, highlighting, extraHeads, Preferences.Instance.GraphLaneMode, ResolveLaneOrderTips(commits));
         }
 
         private Repository _repo = null;

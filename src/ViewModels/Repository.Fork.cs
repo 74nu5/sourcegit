@@ -707,38 +707,83 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
-        ///     The branch holding the leftmost lane of the graph, or an empty string.
+        ///     The order in which branches hold the leftmost columns of the graph: this
+        ///     repository's own, or else the default of the preferences.
         /// </summary>
-        public string PinnedLaneBranch
+        public List<string> LaneOrder
         {
-            get => _uiStates?.PinnedLaneBranch ?? string.Empty;
-        }
-
-        public bool IsLanePinnedTo(Models.Branch branch)
-        {
-            return branch != null &&
-                   _uiStates != null &&
-                   branch.FullName.Equals(_uiStates.PinnedLaneBranch, StringComparison.Ordinal);
+            get => _uiStates is { LaneOrder.Count: > 0 } ? _uiStates.LaneOrder : Preferences.Instance.DefaultLaneOrder;
         }
 
         /// <summary>
-        ///     Pin a branch to the leftmost lane, or unpin whatever is there.
+        ///     Whether this repository has an order of its own rather than the default one.
+        /// </summary>
+        public bool HasOwnLaneOrder
+        {
+            get => _uiStates is { LaneOrder.Count: > 0 };
+        }
+
+        public int LaneOrderIndexOf(Models.Branch branch)
+        {
+            return Models.LaneOrder.IndexOf(LaneOrder, branch);
+        }
+
+        /// <summary>
+        ///     Sets this repository's own order; an empty one goes back to the default.
         ///
         ///     Reloads rather than merely redrawing: the lane a commit sits in decides its
         ///     left margin, and a margin is not observable -- changing one behind the grid's
         ///     back leaves every row measured for the old layout.
         /// </summary>
-        public void SetPinnedLaneBranch(Models.Branch branch)
+        public void SetLaneOrder(List<string> entries)
         {
             if (_uiStates == null)
                 return;
 
-            var wanted = branch == null || IsLanePinnedTo(branch) ? string.Empty : branch.FullName;
-            if (wanted.Equals(_uiStates.PinnedLaneBranch, StringComparison.Ordinal))
+            _uiStates.LaneOrder = entries ?? [];
+            _uiStates.Save();
+            RefreshCommits();
+        }
+
+        /// <summary>
+        ///     Moves a branch within the order, adding it when it is not there: to the front
+        ///     for a position of 0, to the end for -1. The default order is copied into this
+        ///     repository first, so changing it here leaves every other repository alone.
+        /// </summary>
+        public void PlaceInLaneOrder(Models.Branch branch, int position)
+        {
+            var entries = new List<string>(LaneOrder);
+            var index = Models.LaneOrder.IndexOf(entries, branch);
+            var entry = index >= 0 ? entries[index] : Models.LaneOrder.EntryFor(branch);
+            if (index >= 0)
+                entries.RemoveAt(index);
+
+            if (position < 0 || position > entries.Count)
+                entries.Add(entry);
+            else
+                entries.Insert(position, entry);
+
+            SetLaneOrder(entries);
+        }
+
+        /// <summary>
+        ///     Takes out of the order the entry that names this branch.
+        /// </summary>
+        public void RemoveFromLaneOrder(Models.Branch branch)
+        {
+            var entries = new List<string>(LaneOrder);
+            var index = Models.LaneOrder.IndexOf(entries, branch);
+            if (index < 0)
                 return;
 
-            _uiStates.PinnedLaneBranch = wanted;
-            RefreshCommits();
+            entries.RemoveAt(index);
+
+            // Emptied, the repository's own order would fall back to the default -- which
+            // may hold the very branch just taken out. Keep an order of its own instead.
+            if (entries.Count == 0 && Preferences.Instance.DefaultLaneOrder.Count > 0)
+                entries.Add("-");
+
+            SetLaneOrder(entries);
         }
 
         /// <summary>

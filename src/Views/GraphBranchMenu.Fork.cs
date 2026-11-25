@@ -44,28 +44,62 @@ namespace SourceGit.Views
         }
 
         /// <summary>
-        ///     Hold the leftmost lane for this branch, whatever is checked out.
+        ///     Where this branch stands in the lane order: first, one column left or right,
+        ///     last, or out of it.
         ///
-        ///     Offered in both layouts. It was once offered only in the stable one, on the
-        ///     grounds that the compact placement gives a path no lane to be pinned to -- it
-        ///     sits at whatever rank it holds among the live paths. True, and beside the
-        ///     point: leftmost is a rank like any other, and drifting out of it is exactly
-        ///     what the compact placement does, so that is where the pin is worth the most.
+        ///     Offered in both layouts. The compact placement gives a path no lane of its
+        ///     own -- it sits at whatever rank it holds among the live paths -- and drifting
+        ///     is exactly what it does, so that is where holding a column is worth the most.
         /// </summary>
         private static void AppendPin(ContextMenu menu, Control owner, ViewModels.Repository repo, Models.Branch branch)
         {
-            var pinned = repo.IsLanePinnedTo(branch);
+            if (branch.IsDetachedHead)
+                return;
 
-            var pin = new MenuItem();
-            pin.Header = App.Text(pinned ? "GraphLane.Unpin" : "GraphLane.Pin");
-            pin.Icon = owner.CreateMenuIcon(pinned ? "Icons.Unlock" : "Icons.Lock");
-            pin.Click += (_, e) =>
+            var index = repo.LaneOrderIndexOf(branch);
+            var count = repo.LaneOrder.Count;
+
+            var root = new MenuItem();
+            root.Header = App.Text("LaneOrder.Menu");
+            root.Icon = owner.CreateMenuIcon(index >= 0 ? "Icons.Lock" : "Icons.Unlock");
+
+            if (index != 0)
+                root.Items.Add(LaneOrderItem(owner, "LaneOrder.First", "Icons.Lock", () => repo.PlaceInLaneOrder(branch, 0)));
+
+            if (index > 0)
+                root.Items.Add(LaneOrderItem(owner, "LaneOrder.Left", null, () => repo.PlaceInLaneOrder(branch, index - 1)));
+
+            if (index >= 0 && index < count - 1)
+                root.Items.Add(LaneOrderItem(owner, "LaneOrder.Right", null, () => repo.PlaceInLaneOrder(branch, index + 1)));
+
+            if (index < 0)
+                root.Items.Add(LaneOrderItem(owner, "LaneOrder.Last", null, () => repo.PlaceInLaneOrder(branch, -1)));
+            else
+                root.Items.Add(LaneOrderItem(owner, "LaneOrder.Remove", "Icons.Unlock", () => repo.RemoveFromLaneOrder(branch)));
+
+            root.Items.Add(new MenuItem() { Header = "-" });
+            root.Items.Add(LaneOrderItem(owner, "LaneOrder.Edit", null, () =>
             {
-                repo.SetPinnedLaneBranch(branch);
+                if (repo.CanCreatePopup())
+                    repo.ShowPopup(new ViewModels.ConfigureLaneOrder(repo));
+            }));
+
+            menu.Items.Add(root);
+        }
+
+        private static MenuItem LaneOrderItem(Control owner, string key, string icon, System.Action apply)
+        {
+            var item = new MenuItem();
+            item.Header = App.Text(key);
+            if (icon != null)
+                item.Icon = owner.CreateMenuIcon(icon);
+            item.Click += (_, e) =>
+            {
+                apply();
                 e.Handled = true;
             };
 
-            menu.Items.Add(pin);
+            return item;
         }
 
         /// <summary>

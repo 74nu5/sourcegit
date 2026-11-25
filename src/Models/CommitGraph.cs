@@ -99,7 +99,7 @@ namespace SourceGit.Models
         /// </summary>
         public int HiddenLanes { get; private set; } = 0;
 
-        public static CommitGraph Generate(List<Commit> commits, bool firstParentOnlyEnabled, CommitGraphHighlighting highlighting, HashSet<string> highlightExtraCommits, GraphLaneMode laneMode = GraphLaneMode.Compact, string pinnedHead = null)
+        public static CommitGraph Generate(List<Commit> commits, bool firstParentOnlyEnabled, CommitGraphHighlighting highlighting, HashSet<string> highlightExtraCommits, GraphLaneMode laneMode = GraphLaneMode.Compact, IReadOnlyList<string> laneOrder = null)
         {
             const double unitWidth = 12;
             const double halfWidth = 6;
@@ -113,22 +113,13 @@ namespace SourceGit.Models
             var colorPicker = new ColorPicker();
             var defHighlighting = highlighting == CommitGraphHighlighting.All;
 
-            // Reserving lane 0 only makes sense when the branch it is held for is actually
-            // part of the window, otherwise the leftmost lane would stay empty.
-            LaneAllocator laneAllocator = null;
-            string laneAnchor = null;
-            if (laneMode == GraphLaneMode.Stable)
-            {
-                laneAnchor = ResolveLaneAnchor(commits, pinnedHead);
-                laneAllocator = new LaneAllocator(laneAnchor != null);
-            }
-
-            // Compact holds no lane identity, so a pin here can mean one thing only: the
-            // leftmost column. It is resolved from the pin alone and never from what is
-            // checked out -- the fallback that serves Stable would move the default layout,
-            // which has to stay exactly what it was.
-            var compactPin = laneMode == GraphLaneMode.Compact ? ResolveCompactPin(commits, pinnedHead) : null;
-            PathHelper leftmostHolder = null;
+            // The columns held for the branches of the lane order, leftmost first. None unless
+            // an order is set -- or, in the stable layout, for the branch checked out -- and
+            // with none, the compact placement is upstream's, untouched.
+            var slots = ResolveLaneSlots(commits, laneMode, laneOrder);
+            var slotCount = slots.Count;
+            var holders = new PathHelper[slotCount];
+            var laneAllocator = laneMode == GraphLaneMode.Stable ? new LaneAllocator(slotCount) : null;
 
             var rowIndex = -1;
 
@@ -143,60 +134,84 @@ namespace SourceGit.Models
                 // Update current y offset
                 offsetY += unitHeight;
 
-                // Which path holds the leftmost column on this row, settled before the walk
-                // rather than after it: the row where a pin first applies is then laid out in
-                // one pass, instead of starting on the right and swinging left on the next.
-                var holder = leftmostHolder;
-                var holds = holder != null;
-                if (compactPin != null && holder == null && commit.SHA.Equals(compactPin, StringComparison.Ordinal))
-                {
-                    // Find returns the same path the walk below will pick as major, so a
-                    // commit several paths converge on cannot pin one and continue another.
-                    holder = unsolved.Find(x => x.Next.Equals(commit.SHA, StringComparison.Ordinal));
-                    holds = true;
-                }
-
-                leftmostHolder = holder;
+                // The column held for this commit, when it is the tip of a branch of the order.
+                var tipSlot = slotCount > 0 ? slots.IndexOf(commit.SHA) : -1;
 
                 // Find first curves that links to this commit and marks others that links to this commit ended.
-                var offsetX = 4 - halfWidth + (holds ? unitWidth : 0);
+                var offsetX = 4 - halfWidth + slotCount * unitWidth;
 
-                // Slots stop being handed out in list order once one is held, so the widest
-                // is no longer simply the last.
+                // Columns stop being handed out in list order once some are held, so the
+                // widest is no longer simply the last.
                 var maxOffsetOld = unsolved.Count > 0
-                    ? (holds ? WidestLastX(unsolved) : unsolved[^1].LastX)
+                    ? (slotCount > 0 ? WidestLastX(unsolved) : unsolved[^1].LastX)
                     : offsetX + unitWidth;
                 var isHighlighted = defHighlighting;
 
-                // The held path takes the commit it reaches, whatever its rank in the list.
-                // Left to the walk below, a branch merging in could be found first, become
-                // the row's major, and the held path would end into it -- handing the
-                // leftmost column away in the middle of the very trunk it was pinned to.
-                if (holder != null && holder.Next.Equals(commit.SHA, StringComparison.Ordinal))
+                // Of the held paths reaching this commit, the leftmost takes it, and the
+                // others end into it: shared history stays with the branch that comes first
+                // in the order. Left to the walk below, whichever path is first in the list
+                // would take it -- often the newest branch, carrying the trunk away.
+                var majorSlot = HeldPathReaching(holders, commit.SHA);
+
+                // A path reaching the tip of a branch that comes earlier in the order than the
+                // one it holds, or holding none, moves into that branch's column: from here
+                // down the history is that branch's. Settled before the walk, so the row is
+                // laid out in one pass instead of swinging across on the next.
+                if (tipSlot >= 0 && (majorSlot < 0 || tipSlot < majorSlot))
                 {
-                    major = holder;
+                    var reaching = majorSlot >= 0 ? holders[majorSlot] : unsolved.Find(x => x.Next.Equals(commit.SHA, StringComparison.Ordinal));
+                    if (reaching != null)
+                    {
+                        if (majorSlot >= 0)
+                            holders[majorSlot] = null;
+                        else
+                            laneAllocator?.Release(reaching.Lane, rowIndex);
+
+                        reaching.Lane = tipSlot;
+                        holders[tipSlot] = reaching;
+                        majorSlot = tipSlot;
+                    }
+                }
+
+                if (majorSlot >= 0)
+                {
+                    major = holders[majorSlot];
                     isHighlighted = major.IsHighlighted;
 
                     if (commit.Parents.Count > 0)
                     {
                         major.Next = commit.Parents[0];
-                        major.Goto(LaneX(0), offsetY, halfHeight);
+                        major.Goto(LaneX(majorSlot), offsetY, halfHeight);
                     }
                     else
                     {
-                        major.End(LaneX(0), offsetY, halfHeight);
+                        major.End(LaneX(majorSlot), offsetY, halfHeight);
                         ended.Add(major);
                     }
                 }
 
                 foreach (var l in unsolved)
                 {
-                    if (ReferenceEquals(l, holder))
+                    var held = slotCount > 0 ? Array.IndexOf(holders, l) : -1;
+                    if (held >= 0)
                     {
-                        // Placed just above when it reaches this commit; otherwise it simply
-                        // keeps its column. Either way it takes no slot from the walk.
-                        if (!ReferenceEquals(major, holder))
-                            l.Pass(LaneX(0), offsetY, halfHeight);
+                        if (ReferenceEquals(l, major))
+                            continue;
+
+                        // Its column stays where it is, empty once it ends: a held column is
+                        // never lent to another branch, or the branches after it would shift.
+                        if (l.Next.Equals(commit.SHA, StringComparison.Ordinal))
+                        {
+                            l.End(major.LastX, offsetY, halfHeight);
+                            ended.Add(l);
+
+                            if (!isHighlighted && l.IsHighlighted)
+                                isHighlighted = true;
+                        }
+                        else
+                        {
+                            l.Pass(LaneX(held), offsetY, halfHeight);
+                        }
 
                         continue;
                     }
@@ -243,8 +258,8 @@ namespace SourceGit.Models
                     colorPicker.Recycle(l.Path.Color);
                     laneAllocator?.Release(l.Lane, rowIndex);
 
-                    if (ReferenceEquals(l, leftmostHolder))
-                        leftmostHolder = null;
+                    if (slotCount > 0 && Array.IndexOf(holders, l) is var endedSlot and >= 0)
+                        holders[endedSlot] = null;
 
                     unsolved.Remove(l);
                 }
@@ -287,24 +302,29 @@ namespace SourceGit.Models
 
                 // If no path found, create new curve for branch head
                 // Otherwise, create new curve for new merged commit
+                double? heldRootX = null;
                 if (major == null)
                 {
-                    // holds without a holder means the pin lands on a commit no live path
-                    // reaches: the path is born here, and it is born in the held column.
-                    var isHolder = holds && holder == null;
-                    if (!isHolder)
+                    // The tip of a branch of the order that no live path reaches: its path is
+                    // born here, and born in its own column.
+                    var bornHeld = tipSlot >= 0 && holders[tipSlot] == null;
+                    if (!bornHeld)
                         offsetX += unitWidth;
 
                     if (commit.Parents.Count > 0)
                     {
-                        var lane = laneAllocator?.Acquire(rowIndex, commit.SHA.Equals(laneAnchor, StringComparison.Ordinal)) ?? 0;
-                        var startX = laneAllocator != null ? LaneX(lane) : (isHolder ? LaneX(0) : offsetX);
+                        var lane = bornHeld ? tipSlot : laneAllocator?.Acquire(rowIndex) ?? 0;
+                        var startX = bornHeld ? LaneX(tipSlot) : (laneAllocator != null ? LaneX(lane) : offsetX);
                         major = new PathHelper(commit.Parents[0], isHighlighted, colorPicker.Next(), new Point(startX, offsetY)) { Lane = lane };
                         unsolved.Add(major);
                         temp.Paths.Add(major.Path);
 
-                        if (isHolder)
-                            leftmostHolder = major;
+                        if (bornHeld)
+                            holders[tipSlot] = major;
+                    }
+                    else if (bornHeld)
+                    {
+                        heldRootX = LaneX(tipSlot);
                     }
                 }
                 else if (isHighlighted && !major.IsHighlighted && commit.Parents.Count > 0)
@@ -314,7 +334,7 @@ namespace SourceGit.Models
                 }
 
                 // Calculate link position of this commit.
-                var position = new Point(major?.LastX ?? offsetX, offsetY);
+                var position = new Point(major?.LastX ?? heldRootX ?? offsetX, offsetY);
                 var dotColor = major?.Path.Color ?? 0;
                 var anchor = new Dot() { Center = position, Color = dotColor, IsHighlighted = isHighlighted };
                 if (commit.IsUncommitted)
@@ -359,15 +379,23 @@ namespace SourceGit.Models
                         }
                         else
                         {
-                            offsetX += unitWidth;
+                            // A parent that is the tip of a branch of the order is reached
+                            // through its own column straight away.
+                            var parentSlot = slotCount > 0 ? slots.IndexOf(parentHash) : -1;
+                            var parentHeld = parentSlot >= 0 && holders[parentSlot] == null;
+                            if (!parentHeld)
+                                offsetX += unitWidth;
 
-                            var lane = laneAllocator?.Acquire(rowIndex, false) ?? 0;
-                            var laneX = laneAllocator != null ? LaneX(lane) : offsetX;
+                            var lane = parentHeld ? parentSlot : laneAllocator?.Acquire(rowIndex) ?? 0;
+                            var laneX = parentHeld ? LaneX(parentSlot) : (laneAllocator != null ? LaneX(lane) : offsetX);
 
                             // Create new curve for parent commit that not includes before
                             var l = new PathHelper(parentHash, isHighlighted, colorPicker.Next(), position, new Point(laneX, position.Y + halfHeight)) { Lane = lane };
                             unsolved.Add(l);
                             temp.Paths.Add(l.Path);
+
+                            if (parentHeld)
+                                holders[parentSlot] = l;
                         }
                     }
                 }
@@ -383,15 +411,21 @@ namespace SourceGit.Models
             }
 
             // Deal with curves haven't ended yet.
+            var packed = 0;
             for (var i = 0; i < unsolved.Count; i++)
             {
                 var path = unsolved[i];
                 var endY = (commits.Count - 0.5) * unitHeight;
 
+                // Held paths end in their column; the others where the walk packed them,
+                // which is after the held columns.
+                var held = slotCount > 0 ? Array.IndexOf(holders, path) : -1;
+                var rank = held >= 0 ? held : slotCount + packed++;
+
                 if (path.Path.Points.Count == 1 && Math.Abs(path.Path.Points[0].Y - endY) < 0.0001)
                     continue;
 
-                path.End(laneAllocator != null ? LaneX(path.Lane) : (i + 0.5) * unitWidth + 4, endY + halfHeight, halfHeight);
+                path.End(laneAllocator != null ? LaneX(path.Lane) : (rank + 0.5) * unitWidth + 4, endY + halfHeight, halfHeight);
             }
             unsolved.Clear();
 

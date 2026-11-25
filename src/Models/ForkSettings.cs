@@ -31,6 +31,7 @@ namespace SourceGit.Models
         public bool ShowPullRequestIndicator { get; set; } = false;
         public bool ShowRemoteIconInsteadOfName { get; set; } = false;
         public BranchColumnMode BranchColumnMode { get; set; } = BranchColumnMode.RefsOnly;
+        public List<string> DefaultLaneOrder { get; set; } = [];
     }
 
     /// <summary>
@@ -51,6 +52,7 @@ namespace SourceGit.Models
         public bool ShowUncommittedInGraph { get; set; } = false;
         public double BranchColumnWidth { get; set; } = 0;
         public double GraphColumnWidth { get; set; } = 0;
+        public List<string> LaneOrder { get; set; } = [];
     }
 
     public static class ForkSettingsFile

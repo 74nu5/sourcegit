@@ -41,7 +41,7 @@ namespace SourceGit.ViewModels
         private void ResolveBranchOwnership(List<Models.Commit> commits)
         {
             if (Preferences.Instance.BranchColumnMode == Models.BranchColumnMode.AllRows)
-                Models.BranchOwnership.Resolve(commits, _repo.Branches);
+                Models.BranchOwnership.Resolve(commits, _repo.Branches, _repo.LaneOrder);
             else
                 Models.BranchOwnership.Clear(commits);
         }
@@ -102,14 +102,16 @@ namespace SourceGit.ViewModels
             get => _repo;
         }
 
-        private string ResolvePinnedLaneHead()
+        /// <summary>
+        ///     The tips of the branches of the lane order in this history, in order.
+        /// </summary>
+        private List<string> ResolveLaneOrderTips(List<Models.Commit> commits)
         {
-            var full = _repo?.PinnedLaneBranch;
-            if (string.IsNullOrEmpty(full))
+            var order = _repo?.LaneOrder;
+            if (order == null || order.Count == 0)
                 return null;
 
-            var branch = _repo.Branches.Find(x => x.FullName.Equals(full, System.StringComparison.Ordinal));
-            return branch?.Head;
+            return Models.LaneOrder.ResolveTips(order, commits);
         }
 
         private const double MIN_GRAPH_COLUMN_WIDTH = 24;

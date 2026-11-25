@@ -34,7 +34,7 @@ namespace SourceGit.Models
                 c.OwnerBranch = string.Empty;
         }
 
-        public static void Resolve(List<Commit> commits, List<Branch> branches)
+        public static void Resolve(List<Commit> commits, List<Branch> branches, IReadOnlyList<string> laneOrder = null)
         {
             Clear(commits);
 
@@ -46,7 +46,7 @@ namespace SourceGit.Models
                 bySHA[c.SHA] = c;
 
             // Each commit is visited once, plus one stopping visit per branch.
-            foreach (var branch in Prioritize(branches))
+            foreach (var branch in Prioritize(branches, laneOrder))
             {
                 var sha = branch.Head;
                 while (!string.IsNullOrEmpty(sha) && bySHA.TryGetValue(sha, out var commit))
@@ -63,7 +63,7 @@ namespace SourceGit.Models
             }
         }
 
-        private static List<Branch> Prioritize(List<Branch> branches)
+        private static List<Branch> Prioritize(List<Branch> branches, IReadOnlyList<string> laneOrder)
         {
             var tracked = new HashSet<string>();
             foreach (var b in branches)
@@ -75,7 +75,7 @@ namespace SourceGit.Models
             var sorted = new List<Branch>(branches);
             sorted.Sort((l, r) =>
             {
-                var delta = Rank(l, tracked) - Rank(r, tracked);
+                var delta = Rank(l, tracked, laneOrder) - Rank(r, tracked, laneOrder);
                 if (delta != 0)
                     return delta;
 
@@ -86,8 +86,14 @@ namespace SourceGit.Models
             return sorted;
         }
 
-        private static int Rank(Branch branch, HashSet<string> tracked)
+        private static int Rank(Branch branch, HashSet<string> tracked, IReadOnlyList<string> laneOrder)
         {
+            // The branches of the lane order first, in its order: the commits a branch owns
+            // are the ones drawn in its column, and the column and the graph have to agree.
+            var ordered = LaneOrder.IndexOf(laneOrder, branch);
+            if (ordered >= 0)
+                return ordered * 2 - 2 * MAX_ORDERED + (branch.IsLocal ? 0 : 1);
+
             // Trunks come first, remote ones included: a feature branch only owns what it
             // adds on top of the trunk, never the shared history it was forked from. Putting
             // the current branch first instead would make it swallow the whole trunk.
@@ -103,6 +109,11 @@ namespace SourceGit.Models
             // A remote whose local counterpart is already in the list would only repeat it.
             return tracked.Contains(branch.FullName) ? 5 : 4;
         }
+
+        /// <summary>
+        ///     Room for the lane order below every other rank.
+        /// </summary>
+        private const int MAX_ORDERED = 1000;
 
         private static bool IsTrunk(string name)
         {

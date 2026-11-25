@@ -494,10 +494,21 @@ namespace SourceGit.Views
                 ev.Handled = true;
             };
 
+            var laneOrder = new MenuItem();
+            laneOrder.Header = App.Text("LaneOrder.Edit");
+            laneOrder.Icon = this.CreateMenuIcon(repo.LaneOrder.Count > 0 ? "Icons.Lock" : "Icons.Unlock");
+            laneOrder.Click += (_, ev) =>
+            {
+                if (repo.CanCreatePopup())
+                    repo.ShowPopup(new ViewModels.ConfigureLaneOrder(repo));
+                ev.Handled = true;
+            };
+
             menu.Items.Add(new MenuItem() { Header = "-" });
             menu.Items.Add(branchPlacement);
             menu.Items.Add(compactLanes);
             menu.Items.Add(stableLanes);
+            menu.Items.Add(laneOrder);
             var uncommittedInGraph = new MenuItem();
             uncommittedInGraph.Header = App.Text("Repository.ShowUncommittedInGraph");
             if (repo.ShowUncommittedInGraph)

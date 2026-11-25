@@ -98,8 +98,6 @@
 
   <x:String x:Key="Text.GraphVisibility.Only" xml:space="preserve">Show Only This in Graph</x:String>
   <x:String x:Key="Text.GraphVisibility.All" xml:space="preserve">Show Everything in Graph Again</x:String>
-  <x:String x:Key="Text.GraphLane.Pin" xml:space="preserve">Keep in Leftmost Lane</x:String>
-  <x:String x:Key="Text.GraphLane.Unpin" xml:space="preserve">Release the Leftmost Lane</x:String>
   <x:String x:Key="Text.Repository.ShowStashesInGraph" xml:space="preserve">Show stashes in the graph</x:String>
   <x:String x:Key="Text.Repository.ShowUncommittedInGraph" xml:space="preserve">Show uncommitted changes in the graph</x:String>
   <x:String x:Key="Text.Graph.Uncommitted" xml:space="preserve">Uncommitted changes</x:String>
@@ -149,4 +147,15 @@
   <x:String x:Key="Text.LocalExclusions.PullNote" xml:space="preserve">A pull that changes one of these tracked files stops until you stop excluding it and deal with your modification.</x:String>
   <x:String x:Key="Text.LocalExclusions.DiscardNote" xml:space="preserve">Discarding changes with “include ignored files” deletes the untracked files excluded here.</x:String>
   <x:String x:Key="Text.LocalExclusions.SparseNote" xml:space="preserve">This repository uses a sparse checkout: files kept out by it carry the skip-worktree bit too, and are not listed.</x:String>
+  <x:String x:Key="Text.LaneOrder.Menu" xml:space="preserve">Lane Order</x:String>
+  <x:String x:Key="Text.LaneOrder.First" xml:space="preserve">Put in the Leftmost Lane</x:String>
+  <x:String x:Key="Text.LaneOrder.Left" xml:space="preserve">Move One Lane Left</x:String>
+  <x:String x:Key="Text.LaneOrder.Right" xml:space="preserve">Move One Lane Right</x:String>
+  <x:String x:Key="Text.LaneOrder.Last" xml:space="preserve">Add at the End of the Order</x:String>
+  <x:String x:Key="Text.LaneOrder.Remove" xml:space="preserve">Take Out of the Order</x:String>
+  <x:String x:Key="Text.LaneOrder.Edit" xml:space="preserve">Lane Order…</x:String>
+  <x:String x:Key="Text.LaneOrder.Title" xml:space="preserve">Lane Order</x:String>
+  <x:String x:Key="Text.LaneOrder.Repository" xml:space="preserve">This repository</x:String>
+  <x:String x:Key="Text.LaneOrder.Default" xml:space="preserve">All repositories</x:String>
+  <x:String x:Key="Text.LaneOrder.Hint" xml:space="preserve">The branches that hold the leftmost lanes, in order, separated by commas: main|master, integration, dev. “a|b” takes whichever exists, * matches anything, and main also stands for origin/main. Empty for this repository: the order for all repositories applies; - holds no lane here.</x:String>
 </ResourceDictionary>

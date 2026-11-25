@@ -98,8 +98,6 @@
 
   <x:String x:Key="Text.GraphVisibility.Only" xml:space="preserve">N'afficher que celle-ci dans le graphe</x:String>
   <x:String x:Key="Text.GraphVisibility.All" xml:space="preserve">Tout réafficher dans le graphe</x:String>
-  <x:String x:Key="Text.GraphLane.Pin" xml:space="preserve">Garder dans la première colonne</x:String>
-  <x:String x:Key="Text.GraphLane.Unpin" xml:space="preserve">Libérer la première colonne</x:String>
   <x:String x:Key="Text.Repository.ShowStashesInGraph" xml:space="preserve">Afficher les remises dans le graphe</x:String>
   <x:String x:Key="Text.Repository.ShowUncommittedInGraph" xml:space="preserve">Afficher le travail non commité dans le graphe</x:String>
   <x:String x:Key="Text.Graph.Uncommitted" xml:space="preserve">Modifications non commitées</x:String>
@@ -149,4 +147,15 @@
   <x:String x:Key="Text.LocalExclusions.PullNote" xml:space="preserve">Un pull qui modifie l&apos;un de ces fichiers suivis s&apos;arrête tant que vous ne cessez pas de l&apos;exclure et ne traitez pas votre modification.</x:String>
   <x:String x:Key="Text.LocalExclusions.DiscardNote" xml:space="preserve">Annuler les modifications avec « inclure les fichiers ignorés » supprime les fichiers non suivis exclus ici.</x:String>
   <x:String x:Key="Text.LocalExclusions.SparseNote" xml:space="preserve">Ce dépôt utilise un sparse checkout : les fichiers qu&apos;il écarte portent eux aussi le drapeau skip-worktree, et ne sont pas listés.</x:String>
+  <x:String x:Key="Text.LaneOrder.Menu" xml:space="preserve">Ordre des colonnes</x:String>
+  <x:String x:Key="Text.LaneOrder.First" xml:space="preserve">Mettre dans la première colonne</x:String>
+  <x:String x:Key="Text.LaneOrder.Left" xml:space="preserve">Décaler d&apos;une colonne vers la gauche</x:String>
+  <x:String x:Key="Text.LaneOrder.Right" xml:space="preserve">Décaler d&apos;une colonne vers la droite</x:String>
+  <x:String x:Key="Text.LaneOrder.Last" xml:space="preserve">Ajouter à la fin de l&apos;ordre</x:String>
+  <x:String x:Key="Text.LaneOrder.Remove" xml:space="preserve">Retirer de l&apos;ordre</x:String>
+  <x:String x:Key="Text.LaneOrder.Edit" xml:space="preserve">Ordre des colonnes…</x:String>
+  <x:String x:Key="Text.LaneOrder.Title" xml:space="preserve">Ordre des colonnes</x:String>
+  <x:String x:Key="Text.LaneOrder.Repository" xml:space="preserve">Ce dépôt</x:String>
+  <x:String x:Key="Text.LaneOrder.Default" xml:space="preserve">Tous les dépôts</x:String>
+  <x:String x:Key="Text.LaneOrder.Hint" xml:space="preserve">Les branches qui occupent les premières colonnes, dans l&apos;ordre, séparées par des virgules : main|master, integration, dev. « a|b » prend celle qui existe, * remplace n&apos;importe quoi, et main vaut aussi pour origin/main. Vide pour ce dépôt : l&apos;ordre de tous les dépôts s&apos;applique ; - n&apos;y réserve aucune colonne.</x:String>
 </ResourceDictionary>

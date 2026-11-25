@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Text.Json.Serialization;
 
 namespace SourceGit.Models
@@ -31,14 +32,15 @@ namespace SourceGit.Models
         public bool IsPullRequestsVisibleInSideBar { get; set; } = true;
 
         /// <summary>
-        ///     Full name of the branch that holds the leftmost lane of the graph, or empty.
+        ///     The order in which branches hold the leftmost columns of the graph, for this
+        ///     repository; empty to follow the default order of the preferences.
         ///
-        ///     Per repository rather than per person for the same reason as the six above:
-        ///     the answer is a property of the history being read. It is `main` on one clone
-        ///     and `develop` on the next, and nobody wants to re-say it on every switch.
+        ///     Per repository for the same reason as the six above: the answer is a property
+        ///     of the history being read. It is main then dev on one clone, master then
+        ///     integration on the next, and nobody wants to re-say it on every switch.
         /// </summary>
         [JsonIgnore]
-        public string PinnedLaneBranch { get; set; } = string.Empty;
+        public List<string> LaneOrder { get; set; } = [];
 
         /// <summary>
         ///     Whether stashes are drawn in the graph, hanging off the commit they were
@@ -84,11 +86,23 @@ namespace SourceGit.Models
             IsSubmodulesVisibleInSideBar = states.IsSubmodulesVisibleInSideBar;
             IsWorktreesVisibleInSideBar = states.IsWorktreesVisibleInSideBar;
             IsPullRequestsVisibleInSideBar = states.IsPullRequestsVisibleInSideBar;
-            PinnedLaneBranch = states.PinnedLaneBranch ?? string.Empty;
+            LaneOrder = states.LaneOrder ?? [];
             ShowStashesInGraph = states.ShowStashesInGraph;
             ShowUncommittedInGraph = states.ShowUncommittedInGraph;
             BranchColumnWidth = states.BranchColumnWidth;
             GraphColumnWidth = states.GraphColumnWidth;
+
+            // The single branch this fork used to keep in the leftmost lane becomes the
+            // first, and only, entry of the order -- under the name the sidebar shows, which
+            // is what an entry matches.
+            var pinned = states.PinnedLaneBranch ?? string.Empty;
+            if (LaneOrder.Count == 0 && pinned.Length > 0)
+            {
+                if (pinned.StartsWith("refs/heads/", System.StringComparison.Ordinal))
+                    LaneOrder = [pinned.Substring(11)];
+                else if (pinned.StartsWith("refs/remotes/", System.StringComparison.Ordinal))
+                    LaneOrder = [pinned.Substring(13)];
+            }
         }
 
         /// <summary>
@@ -109,7 +123,7 @@ namespace SourceGit.Models
                 IsSubmodulesVisibleInSideBar = IsSubmodulesVisibleInSideBar,
                 IsWorktreesVisibleInSideBar = IsWorktreesVisibleInSideBar,
                 IsPullRequestsVisibleInSideBar = IsPullRequestsVisibleInSideBar,
-                PinnedLaneBranch = PinnedLaneBranch,
+                LaneOrder = LaneOrder,
                 ShowStashesInGraph = ShowStashesInGraph,
                 ShowUncommittedInGraph = ShowUncommittedInGraph,
                 BranchColumnWidth = BranchColumnWidth,

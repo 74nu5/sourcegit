@@ -25,12 +25,20 @@ Most of these live in the **Advanced Options** menu of the history toolbar.
 **Stable lanes.** *Advanced Options → Branch placement → Stable Lanes.* Upstream places a
 branch at whatever rank it holds among the live ones, so it drifts one column left each
 time a branch on its left ends. With stable lanes, a branch keeps the column it was given
-until it ends. The graph has a budget of twenty lanes; beyond that, branches share the
-last column, and a tooltip on the graph says so.
+until it ends. Without a lane order, the leftmost lane is held for the branch checked out,
+with the history it shares with the others. The graph has a budget of twenty lanes; beyond
+that, branches share the last column, and a tooltip on the graph says so.
 
-**Keep a branch in the leftmost lane.** *Right-click a branch → Keep in Leftmost Lane.*
-Typically for `main`: it stays in the first column whatever is checked out. Works with
-both placements.
+**Lane order.** *Advanced Options → Lane Order…*, or *right-click a branch → Lane Order.*
+The branches that hold the leftmost columns, in order — say `main|master, integration,
+dev` — and every other branch after them. The shared history stays in the column of the
+branch that comes first; a branch only fills its own column with what it adds. Held
+columns are never lent to other branches, so nothing shifts when a branch starts or ends.
+An entry missing from the history leaves no gap, `main` also stands for `origin/main`,
+`a|b` takes whichever exists and `*` matches anything. One order for all repositories, and
+one per repository that replaces it. Empty, as it starts, nothing is held. The branch
+column follows the same order. This replaces *Keep in Leftmost Lane*: a branch kept there
+becomes the first entry of its repository's order.
 
 **Show only one branch.** *Right-click a branch, a folder of branches or a tag → Show Only
 This in Graph*, and *Show Everything in Graph Again* to come back. The same filter upstream

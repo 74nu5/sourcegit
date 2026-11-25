@@ -4,61 +4,90 @@ using System.Collections.Generic;
 namespace SourceGit.Models
 {
     /// <summary>
-    ///     Stable lane allocation, added by this fork. Generate() keeps only the branches that
-    ///     choose between the historical placement and this one.
+    ///     Stable lane allocation and the lane order, added by this fork. Generate() keeps
+    ///     only the branches that choose between the historical placement and these.
     /// </summary>
     public partial class CommitGraph
     {
         /// <summary>
-        ///     Which commit the leftmost lane is held for, or null when nobody claims it.
+        ///     The tips the leftmost columns are held for, in column order.
         ///
-        ///     A pinned branch wins, so that the trunk stays in the same column whatever is
-        ///     checked out -- that is the whole point of pinning one. When the pin points
-        ///     outside the loaded window, or when nothing is pinned, the branch that is
-        ///     checked out takes the lane, which is what this fork has always done. Pinning
-        ///     adds a claimant; it never leaves the lane empty that would otherwise be held.
+        ///     The lane order names branches -- main, then integration, then dev -- and the
+        ///     caller hands over their tips. A tip outside the loaded window claims nothing,
+        ///     and neither does a tip lying on the line of a branch that comes earlier: an
+        ///     integration fully merged into main, say, would only hold an empty column. So
+        ///     the first-parent line of each tip is walked in order, the way the graph's paths
+        ///     follow it, and a tip already walked over is dropped. What is dropped leaves no
+        ///     gap: dev takes the second column when there is no integration.
+        ///
+        ///     With no order, the stable layout holds the leftmost column for the branch
+        ///     checked out, as it always has. The compact one holds nothing -- a fallback
+        ///     there would move the default layout of every repository, which has to stay
+        ///     byte for byte what upstream produces.
         /// </summary>
-        private static string ResolveLaneAnchor(List<Commit> commits, string pinnedHead)
+        private static List<string> ResolveLaneSlots(List<Commit> commits, GraphLaneMode laneMode, IReadOnlyList<string> laneOrder)
         {
-            Commit head = null;
-
-            foreach (var c in commits)
+            var tips = new List<string>();
+            if (laneOrder != null)
             {
-                if (!string.IsNullOrEmpty(pinnedHead) && c.SHA.Equals(pinnedHead, StringComparison.Ordinal))
-                    return c.SHA;
-
-                if (head == null && c.IsCurrentHead)
-                    head = c;
+                foreach (var tip in laneOrder)
+                {
+                    if (!string.IsNullOrEmpty(tip))
+                        tips.Add(tip);
+                }
             }
 
-            return head?.SHA;
+            var slots = new List<string>();
+            if (tips.Count > 0)
+            {
+                var bySHA = new Dictionary<string, Commit>(commits.Count);
+                foreach (var c in commits)
+                    bySHA.TryAdd(c.SHA, c);
+
+                var walked = new HashSet<string>();
+                foreach (var tip in tips)
+                {
+                    if (slots.Count == MAX_LANES - 1)
+                        break;
+
+                    if (!bySHA.ContainsKey(tip) || walked.Contains(tip))
+                        continue;
+
+                    slots.Add(tip);
+
+                    var sha = tip;
+                    while (bySHA.TryGetValue(sha, out var c) && walked.Add(sha) && c.Parents.Count > 0)
+                        sha = c.Parents[0];
+                }
+            }
+
+            if (slots.Count == 0 && laneMode == GraphLaneMode.Stable)
+            {
+                foreach (var c in commits)
+                {
+                    if (c.IsCurrentHead)
+                    {
+                        slots.Add(c.SHA);
+                        break;
+                    }
+                }
+            }
+
+            return slots;
         }
 
         /// <summary>
-        ///     Which commit the leftmost column is held for in the compact layout, or null
-        ///     when nobody claims it.
-        ///
-        ///     Deliberately not <see cref="ResolveLaneAnchor"/>. That one falls back to the
-        ///     checked-out branch, which is right for the stable layout -- it reserves a lane
-        ///     either way -- and wrong here: the compact placement with nothing pinned has to
-        ///     stay byte for byte what upstream produces, and a fallback would move it for
-        ///     every repository at once.
-        ///
-        ///     A pin pointing outside the loaded window claims nothing, or the leftmost
-        ///     column would be held empty for a branch that is not on screen.
+        ///     The column of the leftmost held path that reaches this commit, or -1.
         /// </summary>
-        private static string ResolveCompactPin(List<Commit> commits, string pinnedHead)
+        private static int HeldPathReaching(PathHelper[] holders, string sha)
         {
-            if (string.IsNullOrEmpty(pinnedHead))
-                return null;
-
-            foreach (var c in commits)
+            for (var i = 0; i < holders.Length; i++)
             {
-                if (c.SHA.Equals(pinnedHead, StringComparison.Ordinal))
-                    return c.SHA;
+                if (holders[i] != null && holders[i].Next.Equals(sha, StringComparison.Ordinal))
+                    return i;
             }
 
-            return null;
+            return -1;
         }
 
         /// <summary>
@@ -88,24 +117,22 @@ namespace SourceGit.Models
         /// </summary>
         private class LaneAllocator
         {
-            public LaneAllocator(bool reserveCurrentBranch)
+            /// <summary>
+            ///     The first lanes are held for the branches of the lane order: the allocator
+            ///     never hands them out, and they count in the width from the start.
+            /// </summary>
+            public LaneAllocator(int reserved)
             {
-                _reserveCurrentBranch = reserveCurrentBranch;
-                _reservedAvailable = reserveCurrentBranch;
-                _next = reserveCurrentBranch ? 1 : 0;
+                _reserved = reserved;
+                _next = reserved;
+                MaxLane = reserved > 0 ? reserved - 1 : 0;
             }
 
-            public int MaxLane { get; private set; } = 0;
+            public int MaxLane { get; private set; }
             public int Overflow { get; private set; } = 0;
 
-            public int Acquire(int row, bool isCurrentBranch)
+            public int Acquire(int row)
             {
-                if (isCurrentBranch && _reservedAvailable)
-                {
-                    _reservedAvailable = false;
-                    return 0;
-                }
-
                 var best = -1;
                 for (var i = 0; i < _freed.Count; i++)
                 {
@@ -140,15 +167,14 @@ namespace SourceGit.Models
 
             public void Release(int lane, int row)
             {
-                if (lane == 0 && _reserveCurrentBranch)
+                if (lane < _reserved)
                     return;
 
                 _freed.Add((lane, row));
             }
 
             private readonly List<(int Lane, int Row)> _freed = [];
-            private readonly bool _reserveCurrentBranch;
-            private bool _reservedAvailable;
+            private readonly int _reserved;
             private int _next;
         }
 

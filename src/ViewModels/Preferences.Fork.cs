@@ -146,6 +146,18 @@ namespace SourceGit.ViewModels
         }
 
         /// <summary>
+        ///     The order in which branches hold the leftmost columns of the graph, for every
+        ///     repository that has none of its own. Empty: nothing is held, and the graph is
+        ///     upstream's.
+        /// </summary>
+        [JsonIgnore]
+        public List<string> DefaultLaneOrder
+        {
+            get => _defaultLaneOrder;
+            set => SetProperty(ref _defaultLaneOrder, value ?? []);
+        }
+
+        /// <summary>
         ///     Whether to look for a new release as the application starts.
         ///
         ///     Upstream asks once a day and remembers when it last asked, which suits an
@@ -199,6 +211,7 @@ namespace SourceGit.ViewModels
             _showPullRequestIndicator = settings.ShowPullRequestIndicator;
             _showRemoteIconInsteadOfName = settings.ShowRemoteIconInsteadOfName;
             _branchColumnMode = settings.BranchColumnMode;
+            _defaultLaneOrder = settings.DefaultLaneOrder ?? [];
 
             ForgeAccounts.Clear();
             ForgeAccounts.AddRange(settings.ForgeAccounts ?? []);
@@ -228,6 +241,7 @@ namespace SourceGit.ViewModels
                 ShowPullRequestIndicator = _showPullRequestIndicator,
                 ShowRemoteIconInsteadOfName = _showRemoteIconInsteadOfName,
                 BranchColumnMode = _branchColumnMode,
+                DefaultLaneOrder = _defaultLaneOrder,
             };
 
             Models.ForkSettingsFile.Write(
@@ -246,5 +260,6 @@ namespace SourceGit.ViewModels
         private bool _showPullRequestIndicator = false;
         private bool _showRemoteIconInsteadOfName = false;
         private Models.BranchColumnMode _branchColumnMode = Models.BranchColumnMode.RefsOnly;
+        private List<string> _defaultLaneOrder = [];
     }
 }
